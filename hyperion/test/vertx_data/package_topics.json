@@ -1,0 +1,1555 @@
+{
+    "ecosystem": "pypi", 
+    "package_topic_map": {
+        "org.jooq:jooq": ["sql", "code-generation", "query"], 
+        "org.hamcrest:hamcrest-library": ["intent", "test", "expression"], 
+        "org.freemarker:freemarker": ["dynamic", "web", "project", "development"], 
+        "org.vert-x:vertx-lang-java": ["asynchronous", "development", "web", "enterprise"], 
+        "org.golo-lang:golo": ["leight-weight", "dynamic", "jvm"], 
+        "io.netty:netty-resolver": ["socket", "cloud", "network", "io"], 
+        "io.vertx:vertx-mail-service::sources": ["smtp", "email", "service", "client"], 
+        "com.zaxxer:HikariCP": ["java", "connection-pool", "jdbc", "high-performance"], 
+        "io.vertx:vertx-health-check:zip:docs": ["health-check", "json", "web-handler"], 
+        "io.knotx:knotx-repository-connector-filesystem": ["html", "static", "dynamic", "web"], 
+        "org.eclipse.jgit:org.eclipse.jgit": ["github", "java", "cli", "http"], 
+        "org.jboss.ironjacamar:ironjacamar-arquillian-embedded": ["connector", "java", "standalone"], 
+        "org.apache.karaf.system:org.apache.karaf.system.core": ["karaf", "containers"], 
+        "org.aspectj:aspectjweaver": ["java", "class", "multi-object", "synchronous"], 
+        "io.vertx:vertx-config-spring-config-server": ["configuration", "server", "http", "github"], 
+        "io.vertx:vertx-rabbitmq-client:zip:docs": ["client", "rabbitmq", "broker", "api"], 
+        "org.hsqldb:hsqldb": ["database", "web", "app", "server"], 
+        "org.mongodb:mongo-java-driver": ["java", "driver", "mongodb"], 
+        "org.slf4j:slf4j-log4j12": ["logs", "api"], 
+        "org.jdbi:jdbi": ["data", "tabular", "sql", "framework"], 
+        "io.vertx:vertx-rx-groovy": ["asynchronous", "java", "vm"], 
+        "net.shibboleth.utilities:java-support": ["authentication", "openid-connect", "saml"], 
+        "com.jcraft:jsch": ["java", "ssh", "server", "cryptography"], 
+        "io.vertx:vertx-service-discovery-backend-redis::sources": ["microservice", "backend","tools", "RESTful"], 
+        "org.workspace7.maven.plugins.vertx.it:spi-dep-one": ["plugins", "service", "interface"], 
+        "io.vertx:vertx-config-zookeeper": ["cluster-management", "cloud", "distributed", "framework"], 
+        "io.vertx:vertx-proton": ["amqp", "wrapper"], 
+        "io.vertx:vertx-core:zip:docs": ["http", "tcp", "jvm", "event-driven"], 
+        "io.vertx:vertx-config-kubernetes-configmap:zip:docs": ["kubernetes", "configuration", "cloud"], 
+        "org.quartz-scheduler:quartz": ["message-queue", "scheduler", "HTTP"], 
+        "org.jboss.resteasy:resteasy-netty4": ["RESTful", "client", "server", "webservice"], 
+        "org.jboss.spec:jboss-javaee-7.0:pom": ["dependency", "management", "api"], 
+        "io.vertx:vertx-mail-service:zip:docs": ["smtp", "asynchronous", "email", "service"], 
+        "org.ops4j.pax.exam:pax-exam-extender-service": ["containers", "testing", "framework", "osgi"], 
+        "io.vertx:vertx-mongo-client": ["client", "asynchronous", "mongodb", "database"], 
+        "as.leap:spi": ["rpc", "wrapper", "event-bus", "transport"], 
+        "io.vertx:vertx-camel-bridge:zip:docs": ["messaging", "queue", "interface", "camel"], 
+        "io.netty:netty-codec-http": ["event-driven", "asynchronous", "network", "framework"], 
+        "io.vertx:vertx-stack-manager:zip:docs": ["docker", "management", "dependency"], 
+        "io.vertx:vertx-auth-shiro::sources": ["authentication", "interface"], 
+        "org.apache.camel:camel-rmi": ["remote", "messaging", "remote", "serializing" ], 
+        "com.google.guava:guava": ["collections", "utilities", "google", "io"], 
+        "com.mchange:c3p0": ["connector", "connection-pool", "jdbc", "caching"], 
+        "io.vertx:vertx-tcp-eventbus-bridge:zip:docs": ["tcp", "event-bus", "bridge", "messaging"], 
+        "org.json:json": ["json", "data", "dataformat", "leight-weight"], 
+        "io.swagger:swagger-jersey2-jaxrs": ["swagger", "api", "RESTful", "server"], 
+        "io.vertx:vertx-jdbc-client:zip:docs": ["asynchronous", "database", "interface", "jdbc"], 
+        "io.vertx:vertx-kafka-client": ["messaging", "asynchronous", "api", "streaming"], 
+        "commons-collections:commons-collections": ["collections", "interface", "utilities"], 
+        "io.vertx:vertx-amqp-bridge:zip:docs": ["message-producer", "message-consumer", "amqp", "bridge"], 
+        "org.bouncycastle:bcpg-jdk15on": ["openpgp", "protocol", "cryptography", "api"], 
+        "io.vertx.workshop:data-storage-service": ["microservice", "data", "storage", "restful"], 
+        "com.spotify:docker-client": ["docker", "java", "containers"], 
+        "org.workspace7.maven.plugins.vertx.it:spi-dep-two": ["plugin", "dependency"], 
+        "de.nierbeck.example.vertx:Vertx-Http": ["event-bus", "service", "http"], 
+        "io.vertx:vertx-grpc": ["client", "server", "configuration", "ssl"], 
+        "io.vertx:vertx-health-check": ["health-check", "web", "event-bus"], 
+        "com.microsoft.azure:azure-mgmt-utility": ["utilities", "management", "microsoft", "api"], 
+        "com.orientechnologies:orientdb-graphdb": ["graph", "database", "sql", "nosql"], 
+        "com.amazonaws:aws-java-sdk-kms": ["aws", "webservice", "storage", "database"], 
+        "org.jboss.weld.se:weld-se-core": ["servlet", "dependency-injection", "containers" ], 
+        "org.apache.sshd:sshd-core": ["ssh", "cryptography", "asynchronous", "client"], 
+        "org.ops4j.pax.exam:pax-exam-container-karaf": ["testing", "framework", "containers", "osgi"], 
+        "io.grpc:grpc-protobuf": ["http", "rpc", "framework", "security"], 
+        "com.networknt:validator": ["microservice", "validator", "api", "json"], 
+        "io.vertx:vertx-config:zip:docs": ["http", "event-bus", "json","configuration"], 
+        "io.vertx:vertx-auth-oauth2": ["authentication", "api", "commons", "interface"], 
+        "io.vertx:vertx-config-zookeeper::sources": ["event-bus", "json", "collections"], 
+        "io.vertx:vertx-service-discovery-backend-redis": ["microservice", "restful", "backend"], 
+        "org.openpcf:neo4vertx-core": ["graph", "database"], 
+        "io.vertx:vertx-rabbitmq-client": ["rabbitmq", "client", "broker", "messaging"], 
+        "io.grpc:grpc-stub": ["rpc", "service", "tls-support", "http"], 
+        "org.aspectj:aspectjrt": ["run-time", "aspectj", "bytecode"], 
+        "org.pac4j:pac4j-openid": ["security", "authentication", "saml", "jwt"], 
+        "com.orientechnologies:orientdb-core": ["database", "nosql", "graph", "performance"], 
+        "io.vertx:vertx-web-templ-thymeleaf::sources": ["collections", "web", "scalability", "app"], 
+        "org.pac4j:pac4j-oauth": ["security", "authorization", "oauth", "ldap"], 
+        "org.jasig.cas.client:cas-client-support-saml": ["cas", "api", "client", "server"], 
+        "org.glassfish.hk2:hk2-api": ["restful", "api"], 
+        "org.neo4j:neo4j-ha": ["neo4j", "cluster-management", "database"], 
+        "io.netty:netty-codec-http2": ["network", "socket", "io", "http"], 
+        "io.vertx:vertx-sync": ["synchronous", "leight-weight"], 
+        "com.couchbase.client:java-client": ["couchbase", "synchronous", "asynchronous", "api"], 
+        "org.ops4j.pax.swissbox:pax-swissbox-core": ["swissbox", "osgi", "utilities"], 
+        "org.eclipse.aether:aether-spi": ["service-provider", "interface"], 
+        "com.squareup.retrofit2:retrofit": ["http", "client", "java"], 
+        "com.google.protobuf:protobuf-java": ["google", "protocol", "serialization"], 
+        "io.vertx:vertx-auth-common": ["io", "vertx", "authentication"], 
+        "org.bouncycastle:bcprov-jdk16": ["cryptography", "api", "security"], 
+        "com.github.lalyos:jfiglet": ["image", "fonts", "ascii", "distributed"], 
+        "com.microsoft.azure:azure-keyvault": ["key", "azure", "microsoft", "sdk"], 
+        "io.vertx:vertx-bridge-common": ["event-bus", "bridge", "configuration"], 
+        "io.prometheus:simpleclient_vertx": ["metrics", "prometheus", "jvm", "instrumentation"], 
+        "org.jboss.ironjacamar:ironjacamar-core-impl": ["connector", "messaging", "server"], 
+        "com.codahale.metrics:metrics-jvm": ["go", "leight-weight", "instrumentation"], 
+        "org.hamcrest:hamcrest-all": ["collections", "junit", "testing", "api"], 
+        "io.vertx:vertx-infinispan::sources": ["cache", "io", "cluster-management", "monitoring"], 
+        "io.vertx:vertx-hawkular-metrics::sources": ["monitoring", "management", "spi", "metrics"], 
+        "io.vertx:vertx-jdbc-client::sources": ["sql", "jdbc", "client", "io"], 
+        "io.vertx:vertx-web-templ-freemarker": ["template", "web", "io", "asciidoc"], 
+        "com.networknt:handler": ["network", "management", "http"], 
+        "de.nierbeck.example.vertx:Vertx-Extender": ["osgi", "karaf", "http", "distribution"], 
+        "org.jboss.weld.vertx:weld-vertx-core": ["jvm", "jboss", "messaging", "bootstrap"], 
+        "io.vertx:examples-utils": ["gradle", "comand-line", "utilities", "docker"], 
+        "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml": ["jackson-databind", "yaml", "parser", "json"], 
+        "org.apache.openejb:commons-dbcp-all": ["ejb", "database", "connection-pool"], 
+        "io.vertx:vertx-auth-mongo::sources": ["authentication", "client", "mongodb", "query"], 
+        "com.google.code.findbugs:jsr305": ["google", "analysis", "code", "debugg"], 
+        "io.dropwizard:dropwizard-core": ["io", "restful", "webservice", "http"], 
+        "org.codehaus.groovy:groovy": ["gradle", "groovy", "static", "dynamic"], 
+        "org.apache.karaf.shell:org.apache.karaf.shell.ssh": ["network", "shell", "ssh", "osgi"], 
+        "io.vertx:vertx-dropwizard-metrics": ["metrics", "io", "service-provider", "osgi"], 
+        "com.distelli.graphql:graphql-apigen-deps": ["graph", "schema", "api"], 
+        "io.vertx:vertx-mongo-client:zip:docs": ["mongodb", "client", "json", "database"], 
+        "org.bouncycastle:bcprov-jdk15on": ["cryptography", "algorithm", "api", "security"], 
+        "io.knotx:knotx-knot-handlebars": ["microservice", "adobe-cq", "reactive", "framework"], 
+        "io.vertx:vertx-jwt": ["security", "awt"], 
+        "io.vertx:vertx-shell:zip:docs": ["shell", "io"], 
+        "org.glassfish.jersey.containers:jersey-container-grizzly2-http": ["containers", "http", "webservice"], 
+        "io.vertx:vertx-web-common::sources": ["io", "web", "service"], 
+        "org.jooq:jooq-codegen": ["build", "build-system", "plugin"], 
+        "com.esotericsoftware:kryo-shaded": ["graph", "serialization", "object", "framework"], 
+        "org.glassfish.jersey.containers:jersey-container-jetty-http": ["server", "containers", "webservice", "http"], 
+        "io.vertx:vertx-service-discovery-bridge-consul::sources": ["io", "service", "bridge", "discovery"], 
+        "io.vertx:vertx-service-discovery-backend-redis:zip:docs": ["service", "io", "database", "discovery"], 
+        "org.pac4j:pac4j-cas": ["authentication", "authorization", "security", "jwt"], 
+        "org.apache.camel:camel-rss": ["integration", "framework", "api"], 
+        "org.apache.maven:maven-aether-provider": ["provider", "build", "build-system", "metadata"], 
+        "org.mozilla:rhino": ["scripting", "javascript", "jvm", "language"], 
+        "org.apache.commons:commons-io": ["io", "utilities", "code", "classes"], 
+        "org.springframework.data:spring-data-redis": ["java", "redis", "spring", "spring-data"], 
+        "io.vertx:vertx-lang-kotlin:zip:docs": ["gradle", "json", "api", "language"], 
+        "org.apache.ignite:ignite-core": ["in-memory", "clustering", "datagrid", "streaming"], 
+        "xerces:xercesImpl": ["parser", "xml", "framework", "interface"], 
+        "io.vertx:vertx-platform": ["io", "platform"], 
+        "org.ops4j.pax.exam:pax-exam-link-mvn": ["exam", "link"], 
+        "io.knotx:knotx-example-action-adapter-http": ["platform", "integration", "scalable", "web"], 
+        "org.hibernate:hibernate-entitymanager": ["hibernate", "java", "orm", "jdbc"], 
+        "io.vertx:vertx-shell": ["shell", "io", "http", "client"], 
+        "io.vertx.blueprint:order-microservice": ["micro-services", "event-sourcing", "asynchronous", "docker"], 
+        "io.vertx:vertx-hazelcast::sources": ["cluster", "management", "io", "plugin"], 
+        "io.vertx:vertx-reactive-streams": ["asynchronous", "reactive", "streaming", "jvm"], 
+        "org.pac4j:pac4j-core": ["security", "engine", "authentication", "web"], 
+        "com.networknt:security": ["security", "network"], 
+        "io.github.jklingsporn:vertx-jooq-shared": ["asynchronous", "api"], 
+        "io.vertx:vertx-web-common": ["io", "web", "collections"], 
+        "io.vertx:vertx-lang-ceylon": ["io", "ceylon", "awt", "jdbc"], 
+        "org.codehaus.plexus:plexus-utils": ["utilities", "xml", "client", "classes"], 
+        "io.vertx:vertx-web-client": ["web", "client", "asciidoc"], 
+        "me.escoffier.vertx:vertx-completable-future": ["future", "api", "thread", "synchronous"], 
+        "org.javassist:javassist": ["tools", "bytecode", "api", "jvm"], 
+        "org.fusesource.hawtbuf:hawtbuf": ["complier", "api", "protobuf", "bytecode"], 
+        "org.jacpfx:vxms-common": ["microservice", "framework","restful", "event-driven"], 
+        "org.apache.curator:curator-recipes": ["distributed", "coordination"], 
+        "org.eclipse.jetty:jetty-util": ["web", "server", "jetty", "eclipse"], 
+        "org.ops4j.pax.swissbox:pax-swissbox-extender": ["osgi", "swissbox", "ops4j", "utilities"], 
+        "io.vertx:vertx-kafka-client:zip:docs": ["streaming", "kafka", "client", "io"], 
+        "io.vertx:vertx-service-proxy::sources": ["service", "asynchronous", "proxy"], 
+        "org.apache.karaf.features:org.apache.karaf.features.core": ["osgi", "containers", "dynamic", "configuration"], 
+        "org.apache.qpid:proton-j": ["leight-weight", "messaging", "bridge", "proxy"], 
+        "org.osgi:osgi.cmpn": ["osgi", "utilities"], 
+        "org.openpcf:neo4vertx-core::javadoc": ["graph", "database", "neo4j"], 
+        "io.vertx:vertx-rx-java": ["rx", "rxjs", "io", "reactive"], 
+        "io.vertx:vertx-lang-ceylon-doc": ["jdbc", "jwt", "oauth", "client"], 
+        "rubygems:yard:gem": ["ruby", "wrapper", "api"], 
+        "io.netty:netty-handler": ["management", "network", "socket"], 
+        "as.leap:service-impl": ["rpc", "service", "impl"], 
+        "org.pac4j:pac4j-saml": ["client", "passive", "security", "authorization"], 
+        "com.jayway.jsonpath:json-path": ["json", "xml", "xpath"], 
+        "org.apache.maven.scm:maven-scm-provider-gitexe": ["provider", "build", "github", "scm"], 
+        "org.jboss.weld.vertx:weld-vertx-web": ["cdi-api", "jvm", "reactive"], 
+        "com.google.inject:guice": ["leight-weight", "dependency-injection", "framework", "google"], 
+        "io.protostuff:protostuff-json": ["schema", "validator", "serialization", "json"], 
+        "fr.treeptik.mattermost:vertx-api-mattermost": ["docker", "containers", "api"], 
+        "io.vertx:vertx-mail-client::sources": ["asyncronous", "smtp", "client", "email"], 
+        "org.ldaptive:ldaptive": ["server", "ldap", "api"], 
+        "io.vertx:vertx-service-discovery:zip:docs": ["proxy", "http", "service"], 
+        "org.eclipse.aether:aether-util": ["collections", "utilities", "collections"], 
+        "com.networknt:swagger": ["swagger", "network", "management"], 
+        "io.vertx:vertx-web-templ-freemarker::sources": ["template", "cache", "flag", "web"], 
+        "com.github.stephenc.findbugs:findbugs-annotations": ["annotations", "defect", "detection", "metadata"], 
+        "org.pac4j:vertx-pac4j": ["security", "jwt", "sql", "mongodb"], 
+        "fr.treeptik:cu-core": ["containers", "wordpress", "docker", "jboss"], 
+        "org.jooq:jooq-meta": ["metadata", "LINQ", "scala", "api"], 
+        "org.pac4j:pac4j-oidc": ["authentication", "framework", "saml", "jwt"], 
+        "io.vertx:vertx-mail-service": ["io", "email", "service", "http"], 
+        "com.colobu:jaxrs-common": ["spring-boot", "resteasy", "restful", "benchmark"], 
+        "io.dropwizard.metrics:metrics-core": ["metrics", "unparalleled", "code", "jvm"], 
+        "org.apache.commons:commons-lang3": ["utilities", "language", "classes"], 
+        "io.vertx:vertx-web-templ-pebble::shaded": ["http", "web"], 
+        "commons-codec:commons-codec": ["encoder", "deccoder", "base64", "utilities"], 
+        "com.datastax.cassandra:cassandra-driver-mapping": ["database", "mapping", "driver", "client"], 
+        "org.apache.maven:maven-plugin-api": ["plugin", "model", "api", "build-system"], 
+        "io.vertx:vertx-service-proxy": ["io", "service", "proxy", "http"], 
+        "com.tinkerpop.gremlin:gremlin-java": ["graph", "query", "language", "database"], 
+        "io.vertx:vertx-auth-mongo:zip:docs": ["mongodb", "authorization"], 
+        "org.twdata.maven:mojo-executor": ["mojo", "plugin"], 
+        "io.knotx:knotx-knot-service": ["assembler", "microservice", "reactive"], 
+        "org.osgi:org.osgi.core": ["osgi", "utilities", "interface", "classes"], 
+        "org.flywaydb:flyway-core": ["database", "boxfuse", "sql", "deployment"], 
+        "io.vertx:vertx-lang-groovy": ["language", "groovy", "io"], 
+        "as.leap:vertx-rpc": ["rpc", "wrapper", "event-bus"], 
+        "org.webjars:sockjs-client": ["socket", "client", "javascript"], 
+        "io.vertx:vertx-infinispan": ["cluster", "management"], 
+        "javax.ws.rs:javax.ws.rs-api": ["standard", "specs", "api", "javax"], 
+        "io.vertx:vertx-auth-jdbc": ["jdbc", "authorization", "authentication", "security"], 
+        "io.netty:netty-handler-proxy": ["network", "proxy", "socket", "io"], 
+        "io.vertx:vertx-sockjs-service-proxy:zip:docs": ["service", "event-bus", "io", "proxy"], 
+        "com.networknt:info": ["handler", "configuration"], 
+        "org.springframework:spring-context-support": ["framework", "spring"], 
+        "io.knotx:knotx-server": ["assembler", "reactive", "microservice", "http"], 
+        "com.englishtown.vertx:vertx-hk2": ["dependency-injection"], 
+        "com.nimbusds:nimbus-jose-jwt": ["javascript", "encryption", "json", "token"], 
+        "junit:junit": ["testing", "unit-testing", "framework"], 
+        "io.vertx:vertx-config-spring-config-server:zip:docs": ["server", "configuration", "http", "github"], 
+        "io.vertx:service-provider": ["io", "service", "proxy"], 
+        "com.hazelcast:hazelcast-all": ["big-data", "datagrid", "clustering", "distributed"], 
+        "org.jboss.shrinkwrap:shrinkwrap-spi": ["archives", "api"], 
+        "io.vertx:vertx-maven-service-factory::shaded": ["run-time", "dynamic-loading", "service"], 
+        "io.netty:netty-tcnative-boringssl-static": ["network", "socket", "io", "ssl"], 
+        "io.vertx.blueprint:cache-infrastructure": ["micro-services", "docker", "asyncronous", "event-sourcing"], 
+        "org.glassfish.jersey.core:jersey-server": ["server", "webservice", "restful"], 
+        "org.apache.httpcomponents:httpcore": ["http", "client", "client"], 
+        "org.apache.maven:maven-core": ["build-system", "build", "tools", "apache"], 
+        "com.networknt:exception": ["exception", "handler", "run-time"], 
+        "org.apache.camel:camel-spring": ["spring", "camel", "dsl", "xml"], 
+        "com.darylteo:directory-watcher": ["monitoring", "filesystem", "directory", "service"], 
+        "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider": ["provider", "json", "restful", "jaxrs"], 
+        "io.vertx:vertx-auth-jwt:zip:docs": ["jwt", "authentication", "security", "json"], 
+        "org.apache.maven.scm:maven-scm-provider-svnexe": ["provider", "service", "svn"], 
+        "org.springframework.boot:spring-boot-starter-web": ["web", "starter", "restful", "containers"], 
+        "org.osgi:osgi.core": ["utilities", "osgi", "interface", "classes"], 
+        "org.opensaml:opensaml-security-impl": ["security", "service", "provider"], 
+        "org.vert-x:vertx-lang-rhino": ["asynchronous", "web", "enterprise", "development"],
+        "xalan:xalan": ["text", "utilities", "parser", "HTML"],
+        "xml-apis:xml-apis": ["api", "xml", "http", "interface"],
+        "io.vertx:vertx-config-git::sources": ["scm","config","vertx","git","io"], 
+        "io.vertx:vertx-mongo-embedded-db": ["embedded", "mongodb", "backend"], 
+        "org.hawkular.metrics:clients-common": ["monitoring", "metrics","java","alerting","hawkular","time-series" ], 
+        "com.orientechnologies:orientdb-server": ["orientdb","graph", "database", "sql" ], 
+        "io.netty:netty-buffer": ["event-loop", "asyncronous", "framework", "network"], 
+        "io.vertx:vertx-auth-htdigest:zip:docs": ["authentication"], 
+        "io.vertx:vertx-lang-ruby::sources": ["ruby-support"], 
+        "org.springframework:spring-orm": ["orm", "persistence", "spring", "mapping", "relational"], 
+        "javax.mail:mail": ["email", "api"], 
+        "io.vertx:vertx-auth-htdigest": ["authentication"], 
+        "org.apache.maven:maven-settings": ["configure", "maven", "execution"], 
+        "io.vertx:vertx-auth-common:zip:docs": ["authentication", "authorisation"], 
+        "io.vertx:vertx-service-discovery-bridge-consul": ["service-discovery", "consul", "bridge"], 
+        "org.apache.maven.plugin-tools:maven-plugin-annotations": ["plugin", "tools","build","build-system","annotations","maven", "apache"], 
+        "io.vertx:vertx-sockjs-service-proxy": ["service", "event-bus","vertx" ,"proxy","io"], 
+        "org.springframework.data:spring-data-jpa": ["spring-data","jpa","spring","ddd","java", "data-access" ], 
+        "com.rabbitmq:amqp-client": ["rabbitmq", "java", "amqp"], 
+        "io.knotx:knotx-core": ["rxjava", "reactive", "microservices", "adobe-cq" ], 
+        "io.vertx:vertx-maven-service-factory:zip:docs": ["maven", "run-time", "service", "dynamic-loading"], 
+        "org.springframework.shell:spring-shell": ["shell", "spring", "interactive"], 
+        "com.google.appengine:appengine-api-1.0-sdk": ["sdk","google","computing","cloud","app-engine","api"], 
+        "org.scala-lang:scala-library": ["scala", "scala-compiler", "scala-library", "jvm-languages"], 
+        "com.fasterxml.jackson.core:jackson-annotations": ["annotations", "json", "jackson-core", "data-processor"], 
+        "org.opensaml:opensaml-profile-impl": ["saml"], 
+        "io.vertx:vertx-lang-ruby:zip:docs": ["ruby-support"], 
+        "org.hamcrest:hamcrest-core": ["testing","match-rule","unit-testing"], 
+        "io.vertx:vertx-mongo-service": ["io", "vertx", "mongodb", "service", "non-blocking", "configuration"], 
+        "io.vertx:vertx-stomp:zip:docs": ["stomp", "text-messaging", "message-broker"], 
+        "com.amazonaws:aws-java-sdk-ec2": ["aws-sdk","java","aws","amazon", "cloud", "computing" ], 
+        "io.vertx:mod-rxvertx": ["asynchronous", "event-driven", "http", "io", "vertx"], 
+        "org.ow2.asm:asm": ["bytecode-manipulation", "analysis-framework", "code-manipulation", "bytecode"], 
+        "com.yammer.metrics:metrics-graphite": ["metrics", "performance","management","monitoring"], 
+        "ch.qos.logback:logback-core": ["logging", "framework"], 
+        "org.mongodb:mongodb-driver-async": ["database","nosql","driver","client","mongodba","synchronous"], 
+        "io.vertx:vertx-lang-kotlin-compiler::sources": ["kotlin-support"], 
+        "com.englishtown.vertx:vertx-guice": ["dependency-injection", "verticles"], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservice-MetricsDashboard": ["microservice", "docker"], 
+        "io.vertx:vertx-maven-service-factory::sources": ["maven", "run-time", "service", "dynamic-loading"], 
+        "com.github.phiz71:vertx-swagger-router": ["vertx", "swagger","github", "routing" ], 
+        "io.vertx:vertx-circuit-breaker::sources": ["microservices", "vertx", "java", "async", "circuitbreaker"], 
+        "org.jacpfx:vxms-event": ["event", "vertx", "microservice", "microservice-framework", "rest", "event-driven" ], 
+        "io.vertx:vertx-service-discovery-bridge-consul:zip:docs": ["microservices","service-discovery", "infrastructure"], 
+        "com.englishtown.vertx:vertx-when": ["promises","wrapper", "event-bus"], 
+        "org.apache.shiro:shiro-core": ["apache", "security","framework", "authentication", "authorization", "cryptography", "session-management"], 
+        "org.pac4j:pac4j-sql": ["security", "authentication", "authorization", "saml", "ratpack", "jax-rs", "dropwizard", "ldap", "jwt"], 
+        "org.openpcf:neo4vertx-core::sources": ["neo4j", "vertx", "module", "graph-database"], 
+        "io.vertx:vertx-service-discovery-bridge-docker-links::sources": ["microservices","service-discovery", "infrastructure", "import", "docker"], 
+        "org.jboss.resteasy:resteasy-jackson2-provider": ["providerj","boss", "json", "marshalling"], 
+        "io.protostuff:protostuff-core": ["serialization", "protostuff", "serialization-library", "java", "protobuf", "code-generator" ], 
+        "org.jboss.resteasy:resteasy-undertow": ["jboss", "rest", "undertow", "intergration"],
+        "org.mortbay.jetty.alpn:jetty-alpn-agent": ["server", "jetty", "alpn", "npn"], 
+        "io.vertx:vertx-redis-client:zip:docs": ["redis", "client-library"], 
+        "org.apache.karaf.features:standard:xml:features": ["apache","osgi"], 
+        "io.vertx:vertx-web-templ-handlebars::shaded": ["web", "http", "restful", "real-time"], 
+        "io.vertx:vertx-config-redis": ["redis", "configuration"], 
+        "com.netflix.hystrix:hystrix-core": ["fault-tolerance", "distributed-system"], 
+        "io.vertx:vertx-lang-groovy::sources": ["groovy-support"], 
+        "mysql:mysql-connector-java": ["mysql", "connector", "driver"], 
+        "org.openpcf:neo4vertx-examples:zip": ["neo4j", "vertx", "module", "graph-database"], 
+        "org.cstamas.vertx.orientdb:vertx-orientdb": ["orientdb", "plocal","remote", "memory", "graph-database"], 
+        "com.hazelcast:hazelcast": ["java", "hazelcast", "in-memory", "datagrid","big-data", "clustering", "scalability", "distributed", "caching"], 
+        "org.apache.httpcomponents:httpclient": ["http","apache","client","low-level"], 
+        "org.jacpfx:sek8sdiscovery": ["client", "async", "event-bus"], 
+        "io.knotx:knotx-knot-fragment-splitter": ["io","cms","crm","scalability", "knotx", "aem", "handlebars", "reactive",  "microservices", "adobe-experience-manager", "adobe-cq" ], 
+        "io.netty:netty-all": ["event-driven", "asynchronous","network", "socket", "framework", "netty","io"], 
+        "com.networknt:mask": ["mask", "data", "log"], 
+        "org.apache.maven:maven-project": ["model", "build","build-system","maven","apache"], 
+        "io.vertx:vertx-codegen": ["idiomatic","language-api"], 
+        "org.springframework.boot:spring-boot-starter-logging": ["logging","spring","starter"], 
+        "io.swagger:swagger-annotations": [	"io","annotations", "swagger", "swagger-api", "rest-api", "rest", "openapi-specification" ], 
+        "io.vertx:vertx-config-spring-config-server::sources": ["server", "configuration"], 
+        "javax.inject:javax.inject": ["objects", "specification"], 
+        "io.vertx:vertx-consul-client::sources": ["consul", "client", "service-discovery", "configuration"], 
+        "io.vertx:vertx-stomp": ["stomp", "text-messaging", "message-broker"], 
+        "org.jruby:jruby-stdlib": ["ruby-support"], 
+        "de.nierbeck.example.vertx:Vertx-System": ["osgi", "karaf"], 
+        "org.jboss.shrinkwrap:shrinkwrap-api": ["jboss","api", "archives", "artifacts"], 
+        "org.apache.poi:poi-ooxml": ["apache", "microsoft", "file-format"], 
+        "org.apache.curator:curator-framework": ["framework","apache","distributed","coordination", "zookeeper"], 
+        "io.vertx:vertx-service-discovery::sources": ["microservices","service-discovery", "infrastructure"], 
+        "org.jboss.resteasy:resteasy-jaxrs": ["jboss","rest","jaxrs","webservice", "portable"], 
+        "io.vertx:vertx-web-templ-thymeleaf": ["thymeleaf", "web", "template", "http", "restful"], 
+        "io.vertx:vertx-web-templ-pebble::sources": ["vertx", "web", "template"], 
+        "io.vertx:vertx-stack-docker:zip:docs": ["pre-configured", "maven", "docker-images", "poms"], 
+        "commons-fileupload:commons-fileupload": ["upload", "web-app"], 
+        "io.vertx:vertx-tcp-eventbus-bridge::sources": ["tcp", "sockets", "bridge", "event-bus"], 
+        "io.vertx:vertx-mqtt-server::sources": ["mqtt", "protocol","vertx","reactive","iot","rxjava","rxjava2", "io", "server"], 
+        "com.englishtown.vertx:vertx-jersey-jackson": ["vertx", "webservice", "jersey"], 
+        "io.vertx:vertx-jca-examples-ejb:ejb": ["wildfly", "appplication-server", "jee-compliant", "example"], 
+        "com.google.api-client:google-api-client-jackson2": ["google","client","api", "authentication", "batching", "upload", "download"], 
+        "org.pac4j:pac4j-http": ["http", "security", "authentication", "authorization", "saml", "shiro", "jax-rs", "dropwizard", "ldap", "jwt"], 
+        "io.vertx:vertx-config-zookeeper:zip:docs": ["distributed","coordination", "zookeeper", "configuration"], 
+        "org.webjars:jquery": ["client", "web-library", "jquery", "bootstrap", "jar"], 
+        "org.apache.maven.shared:maven-common-artifact-filters": ["build","build-system","maven","apache","filtering","dependency-resolution"], 
+        "io.prometheus:simpleclient": ["instrumentation","java","metrics","prometheus" ], 
+        "io.vertx:vertx-health-check::sources": ["health-check", "microservices"], 
+        "org.apache.geronimo.specs:geronimo-atinject_1.0_spec": ["apache","specs", "dependency-injection"], 
+        "org.apache.commons:commons-compress": ["api", "compression","archiving","commons"], 
+        "io.vertx:vertx-lang-groovy:zip:docs": ["vertx", "groovy", "support"], 
+        "org.eclipse.aether:aether-impl": ["dependency resolution","artifact","eclipse"], 
+        "io.protostuff:protostuff-runtime": ["serialization", "protostuff", "serialization-library", "protobuf", "code-generator", "run-time" ], 
+        "org.ceylon-lang:ceylon-complete": ["ceylon" ,"sdk"], 
+        "org.pac4j:pac4j-stormpath": ["stormpath", "cloud", "security", "authentication", "authorization", "saml", "spring-mvc", "spring-security", "play-framework", "ldap", "jwt"], 
+        "io.dazraf:vertx-hot-buck": ["hot-deploy", "recompiling"], 
+        "javax.enterprise:cdi-api": ["Java Specifications","standard", "dependency-injection","javax","api","specs"], 
+        "org.apache.commons:commons-collections4": ["collections","apache","commons","structures"], 
+        "io.vertx:vertx-config-hocon": ["web", "configuration", "object"], 
+        "org.jasig.cas.client:cas-client-core": ["cas-client", "client", "cas-server", "sso", "authentication", "servlet-container"], 
+        "io.prometheus:simpleclient_hotspot": ["instrumentation","java","metrics","prometheus", "monitoring"], 
+        "com.fasterxml.jackson.jaxrs:jackson-jaxrs-base": ["rest","jaxrs","json","jackson", "multi-module"], 
+        "com.fasterxml.jackson.core:jackson-core": ["json","streaming-api", "parser", "data-processor", "jackson"], 
+        "io.vertx:vertx-docgen": ["documentation", "javadoc", "asciidoc"], 
+        "com.amazonaws:aws-java-sdk-opsworks": ["amazon","aws","sdk"], 
+        "com.ryantenney.metrics:metrics-spring": ["spring", "metrics", "application-level"], 
+        "org.jboss.spec.javax.ws.rs:jboss-jaxrs-api_2.0_spec": ["jboss","api","rest","jaxrs", "web-services"], 
+        "io.vertx:vertx-sync:zip:docs": ["asynchronous", "synchronous", "non-blocking", "kernel"], 
+        "com.networknt:status": ["network-status"], 
+        "org.apache.poi:poi": ["apache","excel","spreadsheet", "microsoft"], 
+        "org.thymeleaf:thymeleaf": ["web", "template-engine", "standalone"], 
+        "io.vertx:vertx-sql-common": ["io","vertx","sql","database-connection"], 
+        "com.englishtown:when.java:test-jar": ["test", "classes", "jar"], 
+        "io.vertx:vertx-config-hocon::sources": ["web", "configuration", "object"], 
+        "io.vertx:vertx-core::sources": ["netty", "reactive", "jvm", "http2", "concurrency", "high-performance", "non-blocking", "event-loop"], 
+        "io.vertx:vertx-amqp-bridge": ["amqp", "queue","bridge", "event-bus", "message-producer", "message-consumer"], 
+        "io.vertx:vertx-auth-mongo": ["io","vertx","authentication","mongodb", "authorization"], 
+        "io.vertx:vertx-consul-client": ["consul", "client", "service-discovery", "configuration"], 
+        "org.jsoup:jsoup": ["jsoup", "html", "dom", "parse", "css", "java-html-parser"], 
+        "io.vertx:vertx-circuit-breaker:zip:docs": ["microservices", "async", "circuitbreaker"], 
+        "com.github.rjeschke:txtmark": ["github","markdown","parser"], 
+        "org.springframework:spring-webmvc": ["spring","mvc","web","framework"], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-JDBC": ["osgi", "karaf","connector"], 
+        "io.vertx:vertx-web": ["restful", "http", "mircoservices", "web"], 
+        "com.yammer.metrics:metrics-core": ["metrics", "performance", "management" ,"monitoring"], 
+        "de.nierbeck.example.vertx:Vertx-Shell": ["shell", "interactive"], 
+        "org.jetbrains.kotlin:kotlin-osgi-bundle": ["bundle","kotlin","osgi"], 
+        "io.vertx:vertx-auth-jwt": ["jwt", "authentication", "security", "json"], 
+        "org.jacpfx.vertx.spring:vertx-spring-ext": ["annotations", "classes", "spring"], 
+        "org.opensaml:opensaml-xmlsec-impl": ["saml"], 
+        "org.vert-x:vertx-platform": ["vertx-platform", "asynchronous", "web", "enterprise", "scalability"], 
+        "org.apache.ignite:ignite-spring": ["apache","spring","in-memory", "middleware", "big-data", "distributed-system"], 
+        "org.apache.maven:maven-toolchain": ["maven","build","build-system","apache","tool-chain"], 
+        "io.vertx:vertx-reactive-streams::sources": ["asynchronous", "streaming", "non-blocking"], 
+        "org.opensaml:opensaml-messaging-api": ["messaging","api","saml"], 
+        "org.apache.httpcomponents:httpmime": ["apache","mime","http","client"], 
+        "com.tinkerpop.blueprints:blueprints-core": ["graph", "interface"], 
+        "org.jacpfx:vxms-rest": ["microservice", "microservice-framework", "rest"], 
+        "io.vertx:vertx-auth-jwt::sources": ["jwt", "authentication", "security", "json"], 
+        "io.vertx:vertx-sql-common::sources": ["io","vertx","sql","database-connection"], 
+        "org.wso2.carbon.commons:org.wso2.carbon.identity.oauth.stub": ["identity","authentication","oauth","stub"], 
+        "org.springframework:spring-core": ["spring", "core", "deployment", "portable"], 
+        "io.knotx:knotx-mocks": ["web-app", "rxjava", "knotx", "aem", "handlebars", "reactive", "java-8", "microservices", "intergration", "adobe-experience-manager", "adobe-cq"], 
+        "org.springframework:spring-aop": ["aspect", "aop", "spring"], 
+        "io.vertx:vertx-shell::sources": ["shell", "interactive"], 
+        "io.vertx:vertx-core:test-jar": ["testing", "tools"], 
+        "de.codepitbull.vertx.microservice:etcd-integration": ["etcd","microservice", "reactive", "service-discovery"], 
+        "io.vertx:vertx-auth-oauth2:zip:docs": ["oauth2", "authentication", "vertx", "io","oauth"], 
+        "org.bouncycastle:bcpkix-jdk15on": ["encryption", "cryptography", "certification-generation"], 
+        "io.vertx:vertx-jca-api": ["jca", "api", "wildfly", "appplication-server"], 
+        "org.pac4j:pac4j-jwt": ["stormpath", "cloud","java","token", "security", "authentication", "authorization", "saml", "play-framework", "vertx", "sparkjava", "jax-rs", "ldap", "jwt"], 
+        "org.apache.felix:org.apache.felix.ipojo": ["apache","pojo","osgi","run-time"], 
+        "io.vertx:vertx-auth-shiro": ["authentication","security", "authorization", "session-management"], 
+        "io.termd:termd-core": ["aws", "cloud", "collections"], 
+        "io.vertx:vertx-config-kubernetes-configmap::sources": ["web", "configuration", "object", "kubernetes"], 
+        "com.google.appengine:appengine-jsr107cache": ["google", "cache","appengine"], 
+        "com.orientechnologies:orientdb-tools": ["tools","orientdb","graph", "orientdb", "graph-database", "dbms", "nosql","graph-store", "multi-master", "database", "performance", "sql"], 
+        "io.vertx:vertx-unit": ["junit", "testing", "async", "vertx", "concurrent"], 
+        "io.vertx:vertx-auth-common::sources": ["authentication", "authorization"], 
+        "io.vertx:vertx-config-git:zip:docs": ["scm","config","vertx","git","io"], 
+        "org.opensaml:opensaml-profile-api": ["api","user-profile"], 
+        "io.vertx:vertx-service-discovery-bridge-kubernetes::sources": ["microservices", "service-discovery", "bridge", "kubernetes"], 
+        "io.vertx:vertx-config-git": ["scm","config","vertx","git","io"], 
+        "io.vertx:vertx-service-discovery-bridge-docker": ["microservices", "service-discovery", "bridge", "docker"], 
+        "biz.paluch.logging:logstash-gelf": ["log4j", "logback", "java", "gelf", "logstash", "graylog"], 
+        "org.springframework.security:spring-security-ldap": ["security","spring","directory","ldap", "authentication","access-control"], 
+        "io.vertx:vertx-bridge-common::sources": ["configuration", "event-bus", "bridge"], 
+        "io.vertx:vertx-codegen::sources": ["idiomatic","language-api"], 
+        "org.opensaml:opensaml-saml-api": ["saml", "api"], 
+        "io.vertx:vertx-infinispan:zip:docs": ["cache","vertx","io","cluster-management","infinispan"], 
+        "org.apache.maven.shared:maven-invoker": ["maven","build","build-system","apache"], 
+        "io.vertx:vertx-config-kubernetes-configmap": ["configure", "vertx", "kubernetes"], 
+        "org.jboss.shrinkwrap:shrinkwrap-impl-base": ["jboss", "archiving"], 
+        "io.knotx:knotx-knot-action": ["vertx", "rxjava", "knotx", "aem", "handlebars", "reactive", "java-8", "microservices", "adobe-experience-manager", "adobe-cq"], 
+        "com.github.jknack:handlebars-jackson2": ["github", "semantic-template", "java", "mustache"], 
+        "io.vertx:vertx-sync::sources": ["asynchronous", "synchronous", "non-blocking"], 
+        "org.postgresql:postgresql": ["database","postgresql","driver"], 
+        "io.knotx:knotx-example-gateway": ["vertx", "rxjava", "knotx", "aem", "handlebars", "reactive", "java-8", "microservices", "adobe-experience-manager", "adobe-cq"], 
+        "io.vertx:vertx-web-templ-mvel::shaded": ["web", "template"], 
+        "io.vertx:vertx-codetrans": ["code-translator"], 
+        "io.vertx:vertx-service-discovery-bridge-kubernetes:zip:docs": ["microservices", "service-discovery", "bridge", "kubernetes"], 
+        "javax.servlet:javax.servlet-api": ["standard","servlet","javax","api","specs"], 
+        "com.englishtown.vertx:vertx-jersey-swagger": ["webservice", "jax-rs", "restful"], 
+        "org.eclipse.aether:aether-transport-file": ["eclipse","transport"], 
+        "commons-configuration:commons-configuration": ["configuration", "file", "interface"], 
+        "io.vertx:vertx-auth-jdbc::sources": ["sql","jdbc","vertx","authentication","io", "authorization", "database"], 
+        "org.pac4j:pac4j-ldap": ["directory","ldap", "java", "security", "authentication", "authorization", "jax-rs", "ldap", "jwt"], 
+        "io.vertx:vertx-rx-js:zip:docs": ["asynchronous", "event-bus", "rxjs"], 
+        "io.vertx:vertx-web-templ-handlebars::sources": ["web", "template"], 
+        "io.vertx:vertx-service-discovery-bridge-docker-links:zip:docs": ["bridge","service","vertx","docker","io","discovery"], 
+        "io.vertx:vertx-service-discovery-bridge-docker-links": ["bridge","service","vertx","docker","io","discovery"], 
+        "com.fasterxml.jackson.dataformat:jackson-dataformat-xml": ["xml", "json", "processing", "serializing"], 
+        "com.googlecode.json-simple:json-simple": ["json"], 
+        "com.tinkerpop.gremlin:gremlin-groovy": ["dsl", "graph-database", "graph","groovy","query-language", "Traversal"], 
+        "io.vertx:vertx-web-client::sources": ["RESTful","HTTP","micro-services","web"], 
+        "io.vertx:vertx-hazelcast": ["vertx", "java", "netty", "reactive", "jvm", "http2", "concurrency", "non-blocking", "event-loop"], 
+        "io.vertx:vertx-zookeeper": ["cluster-management","zookeeper", "configuration"], 
+        "org.springframework.security:spring-security-config": ["security","spring","config", "authentication", "access-control", "framework"], 
+        "org.apache.logging.log4j:log4j-api": ["logging", "api"], 
+        "de.nierbeck.example.vertx:Vertx-AliveCheck": ["osgi","karaf", "health-check"], 
+        "org.apache.maven.plugin-tools:maven-plugin-tools-annotations": ["plugin", "tools","build","build-system","annotations","maven", "apache"], 
+        "com.microsoft.azure:azure-keyvault-extensions": ["azure","extension","cloud"], 
+        "io.engagingspaces:vertx-dataloader": ["facebook-dataloader", "vertx-dataloader", "graphql", "java-8", "vertx", "dataloader", "batch", "asynchronous", "caching" ], 
+        "com.fasterxml.jackson.core:jackson-databind": ["binding", "json", "data-binding"], 
+        "org.apache.logging.log4j:log4j-core": ["logging", "monitoring", "core-api"], 
+        "io.prometheus:client": ["instrumentation", "java", "metrics", "prometheus"], 
+        "com.fasterxml.jackson.datatype:jackson-datatype-joda": ["json", "extension", "date-time"], 
+        "com.codahale.metrics:metrics-core": ["metrics","performance","management","monitoring"], 
+        "io.atomix:atomix-all": ["fault-tolerance", "distributed", "coordination", "event-driven", "framework"], 
+        "org.apache.logging.log4j:log4j-slf4j-impl": ["logging","apache","slf4j","bridge"], 
+        "org.bouncycastle:bcprov-ext-jdk15on": ["encryption", "cryptography", "bcp","ntru"], 
+        "org.slf4j:log4j-over-slf4j": ["logging", "slf4","jbridge"], 
+        "io.vertx:vertx-stack-manager:zip:full": ["management", "distribution", "dependency-resolution"], 
+        "com.networknt:body": ["body-parser"], 
+        "io.vertx:vertx-dropwizard-metrics::sources": ["dropwizard-metrics", "java", "vertx", "jmxtrans", "hawtio"], 
+        "io.vertx:vertx-mqtt-server:zip:docs": ["mqtt", "reactive", "iot", "rxjava", "rxjava2", "mqtt-broker", "websockets", "tls-support"], 
+        "org.osgi:osgi.enterprise": ["osgi", "utilities"], 
+        "commons-io:commons-io": ["io-utilities"], 
+        "io.vertx.blueprint:account-microservice": [ "microservice", "vertx", "event-driven-microservices", "event-sourcing", "microservices", "asynchronous", "docker"], 
+        "io.prometheus:simpleclient_dropwizard": ["instrumentation", "java", "metrics", "prometheus", "client", "dropwizard" ], 
+        "io.swagger:swagger-codegen": ["swagger", "swagger-codegen", "rest", "rest-api", "openapi-specification"], 
+        "com.googlecode.zohhak:zohhak": ["parameterised", "junit", "testing"], 
+        "org.jboss.resteasy:resteasy-vertx": ["vertx", "jboss"], 
+        "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4": ["hibernate","persistence","json","lazy-loading"], 
+        "io.vertx:vertx-web-templ-jade::shaded": ["template", "web", "asynchronous"], 
+        "com.google.inject.extensions:guice-multibindings": ["dependency-injection", "framework", "google","extension"],
+        "io.vertx:vertx-jca-adapter:rar": [
+            "jca", 
+            "adapter"
+        ], 
+        "com.vlkan:quasar-maven-plugin": [
+            "maven", 
+            "plugin", 
+            "bytecode-instrumentation", 
+            "Quasar"
+        ], 
+        "io.vertx:vertx-mqtt-server": [
+            "mqtt", 
+            "server"
+        ], 
+        "io.vertx:vertx-service-factory::sources": [
+            "service", 
+            "deployment", 
+            "verticle-factory"
+        ], 
+        "com.nimbusds:oauth2-oidc-sdk": [
+            "oauth2", 
+            "openid", 
+            "sdk"
+        ], 
+        "com.zaxxer:nuprocess": [
+            "java", 
+            "external-process-execution"
+        ], 
+        "org.apache.maven.scm:maven-scm-manager-plexus": [
+            "maven", 
+            "scm", 
+            "plexus"
+        ], 
+        "io.vertx:vertx-web-templ-mvel::sources": [
+            "web", 
+            "template", 
+            "mvel"
+        ], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-Entity": [
+            "microservice"
+        ], 
+        "org.jruby:jruby-core": [
+            "jruby", 
+            "ruby-language", 
+            "jvm", 
+            "ruby"
+        ], 
+        "com.networknt:metrics": [
+            "handler", 
+            "metrics"
+        ], 
+        "io.reactivex:rxjava": [
+            "java", 
+            "rxjava", 
+            "flow", 
+            "reactive-streams"
+        ], 
+        "io.netty:netty-resolver-dns": [
+            "netty", 
+            "resolver", 
+            "dns"
+        ], 
+        "org.opensaml:opensaml-saml-impl": [
+            "opensaml", 
+            "saml"
+        ], 
+        "nl.revolution.vertx3-examples:utils": [
+            "utility"
+        ], 
+        "com.englishtown:when.java": [
+            "async", 
+            "when"
+        ], 
+        "io.vertx:vertx-grpc::sources": [
+            "grpc"
+        ], 
+        "net.sf.jsr107cache:jsr107cache": [
+            "distributed", 
+            "cache"
+        ], 
+        "io.vertx:vertx-jca-examples-web:war": [
+            "jca", 
+            "example"
+        ], 
+        "io.reactivex:rxgroovy": [
+            "reactive", 
+            "groovy"
+        ], 
+        "com.codahale.metrics:metrics-servlets": [
+            "metrics", 
+            "servlets"
+        ], 
+        "org.opensaml:opensaml-core": [
+            "opensaml", 
+            "saml"
+        ], 
+        "io.vertx:vertx-web:js:client": [
+            "js", 
+            "client"
+        ], 
+        "org.slf4j:jcl-over-slf4j": [
+            "jcl", 
+            "slf4j", 
+            "logging"
+        ], 
+        "io.vertx:vertx-web-templ-jade": [
+            "template", 
+            "jade"
+        ], 
+        "fr.treeptik:cu-docker-api": [
+            "cloudunit", 
+            "docker", 
+            "client", 
+            "api"
+        ], 
+        "joda-time:joda-time": [
+            "java", 
+            "joda", 
+            "joda-time", 
+            "date-time"
+        ], 
+        "org.neo4j.app:neo4j-server::static-web": [
+            "neo4j", 
+            "server"
+        ], 
+        "io.vertx:vertx-lang-kotlin": [
+            "kotlin-language"
+        ], 
+        "com.tinkerpop.blueprints:blueprints-neo4j-graph": [
+            "tinkerpop", 
+            "blueprints", 
+            "neo4j"
+        ], 
+        "org.yaml:snakeyaml": [
+            "parser", 
+            "emitter", 
+            "yaml"
+        ], 
+        "org.eclipse.jetty:jetty-server": [
+            "web", 
+            "server"
+        ], 
+        "com.englishtown.vertx:vertx-jersey": [
+            "jersey"
+        ], 
+        "io.vertx:vertx-maven-service-factory": [
+            "verticle-factory ", 
+            "service", 
+            "loading"
+        ], 
+        "io.vertx:vertx-web-templ-handlebars": [
+            "template", 
+            "handlebars"
+        ], 
+        "org.pac4j:pac4j-mongo": [
+            "mongo", 
+            "secure", 
+            "authentication"
+        ], 
+        "org.elasticsearch:elasticsearch": [
+            "elasticsearch", 
+            "java", 
+            "search-engine"
+        ], 
+        "org.apache.kafka:kafka_2.12": [
+            "streaming", 
+            "distributed", 
+            "publish-subscribe", 
+            "message"
+        ], 
+        "org.jacpfx:vxms-core": [
+            "vxms"
+        ], 
+        "org.apache.maven.plugin-tools:maven-plugin-tools-model": [
+            "maven", 
+            "plugin", 
+            "model"
+        ], 
+        "org.springframework.boot:spring-boot-starter-data-jpa": [
+            "persistence", 
+            "data", 
+            "spring", 
+            "jpa", 
+            "starter"
+        ], 
+        "io.vertx:vertx-jdbc-client": [
+            "jdbc", 
+            "client"
+        ], 
+        "org.codehaus.groovy:groovy-all": [
+            "groovy", 
+            "codehaus", 
+            "jvm", 
+            "language"
+        ], 
+        "io.vertx:vertx-rx-groovy:zip:docs": [
+            "vertx-groovy", 
+            "zip", 
+            "docs"
+        ], 
+        "javax.servlet:jstl": [
+            "servlet", 
+            "javax", 
+            "specs", 
+            "standard"
+        ], 
+        "com.jolbox:bonecp": [
+            "jdbc", 
+            "connection", 
+            "pool"
+        ], 
+        "org.apache.kafka:kafka-clients": [
+            "client", 
+            "kafka"
+        ], 
+        "org.mockito:mockito-all": [
+            "mocking-framework", 
+            "testing-tools", 
+            "mock", 
+            "testing"
+        ], 
+        "com.networknt:audit": [
+            "audit", 
+            "logger"
+        ], 
+        "org.glassfish.hk2:hk2-locator": [
+            "glassfish", 
+            "service-locator"
+        ], 
+        "io.vertx:vertx-tcp-eventbus-bridge": [
+            "network", 
+            "eventbus", 
+            "messaging", 
+            "bridge", 
+            "vertx", 
+            "tcp", 
+            "io"
+        ], 
+        "com.codahale.metrics:metrics-servlet": [
+            "metrics", 
+            "servlet"
+        ], 
+        "io.vertx:vertx-ignite::sources": [
+            "ignite", 
+            "cluster-manager"
+        ], 
+        "io.vertx:vertx-rx-java::sources": [
+            "java-language"
+        ], 
+        "com.networknt:utility": [
+            "utility", 
+            "general-purpose"
+        ], 
+        "io.vertx:vertx-stack-manager:tar.gz": [
+            "stack-manager"
+        ], 
+        "io.vertx:vertx-config::sources": [
+            "config"
+        ], 
+        "com.h2database:h2": [
+            "database", 
+            "embedded", 
+            "sql"
+        ], 
+        "io.vertx:vertx-http-service-factory::sources": [
+            "vertx", 
+            "http", 
+            "service", 
+            "factory"
+        ], 
+        "com.networknt:config": [
+            "config", 
+            "utility"
+        ], 
+        "org.eclipse.aether:aether-transport-http": [
+            "transport", 
+            "http"
+        ], 
+        "io.vertx:vertx-web-templ-thymeleaf::shaded": [
+            "vertx", 
+            "web", 
+            "templ", 
+            "thymeleaf"
+        ], 
+        "org.subethamail:subethasmtp": [
+            "smtp", 
+            "library"
+        ], 
+        "io.vertx:vertx-zookeeper::sources": [
+            "zookeeper", 
+            "cluster-manager"
+        ], 
+        "io.vertx:vertx-hazelcast:zip:docs": [
+            "hazelcast", 
+            "cluster-manager"
+        ], 
+        "com.github.witoldsz:ultm": [
+            "jdbc", 
+            "transaction-manager"
+        ], 
+        "io.grpc:grpc-netty": [
+            "grpc", 
+            "netty"
+        ], 
+        "org.vert-x:vertx-core": [
+            "vertx-core"
+        ], 
+        "co.paralleluniverse:quasar-core::jdk8": [
+            "java", 
+            "jvm", 
+            "fibers", 
+            "actors", 
+            "concurrency"
+        ], 
+        "org.opensaml:opensaml-messaging-impl": [
+            "saml", 
+            "messaging"
+        ], 
+        "io.vertx:vertx-sql-common:zip:docs": [
+            "sql"
+        ], 
+        "io.vertx:vertx-auth-oauth2::sources": [
+            "authentication", 
+            "oauth"
+        ], 
+        "io.debezium:debezium-core": [
+            "database", 
+            "utility", 
+            "change-data-capture"
+        ], 
+        "io.knotx:knotx-repository-connector-http": [
+            "knotx", 
+            "repository", 
+            "connector", 
+            "http"
+        ], 
+        "io.vertx:vertx-service-factory": [
+            "vertx", 
+            "service", 
+            "factory"
+        ], 
+        "io.netty:netty-common": [
+            "netty", 
+            "common"
+        ], 
+        "com.datastax.cassandra:cassandra-driver-core": [
+            "cassandra", 
+            "driver", 
+            "core"
+        ], 
+        "org.apache.camel:camel-stream": [
+            "camel", 
+            "stream"
+        ], 
+        "io.vertx:vertx-http-service-factory:zip:docs": [
+            "vertx", 
+            "http", 
+            "service", 
+            "factory"
+        ], 
+        "io.vertx:vertx-web-templ-freemarker::shaded": [
+            "vertx", 
+            "web", 
+            "templ", 
+            "freemarker"
+        ], 
+        "de.neuland-bfi:jade4j": [
+            "jade4j"
+        ], 
+        "io.netty:netty-transport": [
+            "netty", 
+            "transport"
+        ], 
+        "org.opensaml:opensaml-soap-api": [
+            "opensaml", 
+            "soap", 
+            "api"
+        ], 
+        "de.nierbeck.example.vertx:Vertx-Cluster": [
+            "Vertx", 
+            "Cluster"
+        ], 
+        "org.ektorp:org.ektorp": [
+            "org.ektorp"
+        ], 
+        "io.vertx:vertx-lang-kotlin-compiler": [
+            "vertx", 
+            "lang", 
+            "kotlin", 
+            "compiler"
+        ], 
+        "com.timgroup:java-statsd-client": [
+            "java", 
+            "statsd", 
+            "client"
+        ], 
+        "io.vertx:vertx-stack-manager:tar.gz:full": [
+            "vertx", 
+            "stack", 
+            "manager"
+        ], 
+        "org.glassfish.hk2:guice-bridge": [
+            "guice", 
+            "bridge"
+        ], 
+        "org.cryptacular:cryptacular": [
+            "cryptacular"
+        ], 
+        "io.vertx:vertx-redis-client::sources": [
+            "vertx", 
+            "redis", 
+            "client"
+        ], 
+        "org.apache.felix:org.apache.felix.ipojo.annotations": [
+            "org.apache.felix.ipojo.annotations"
+        ], 
+        "org.hdrhistogram:HdrHistogram": [
+            "HdrHistogram"
+        ], 
+        "org.mvel:mvel2": [
+            "mvel2"
+        ], 
+        "org.glassfish.jersey.media:jersey-media-multipart": [
+            "multipart-entity", 
+            "webservice"
+        ], 
+        "com.microsoft.azure:azure-keyvault-core": [
+            "azure", 
+            "keyvault", 
+            "core"
+        ], 
+        "io.vertx:vertx-auth-jdbc:zip:docs": [
+            "vertx", 
+            "auth", 
+            "jdbc"
+        ], 
+        "io.vertx:vertx-ignite:zip:docs": [
+            "vertx", 
+            "ignite"
+        ], 
+        "com.orientechnologies:orientdb-client": [
+            "orientdb", 
+            "client"
+        ], 
+        "io.vertx:vertx-mongo-client::sources": [
+            "vertx", 
+            "mongo", 
+            "client"
+        ], 
+        "io.vertx:vertx-lang-scala-docs_2.12:zip:docs": [
+            "vertx", 
+            "lang", 
+            "scala", 
+            "docs_2.12"
+        ], 
+        "org.apache.karaf.package:org.apache.karaf.package.core": [
+            "org.apache.karaf.package.core"
+        ], 
+        "io.vertx:vertx-config-yaml": [
+            "vertx", 
+            "config", 
+            "yaml"
+        ], 
+        "de.nierbeck.example.vertx:Vertx-Karaf-Cluster:tar.gz": [
+            "Vertx", 
+            "Karaf", 
+            "Cluster"
+        ], 
+        "com.amazonaws:aws-java-sdk-autoscaling": [
+            "aws", 
+            "java", 
+            "sdk", 
+            "autoscaling"
+        ], 
+        "org.jboss.resteasy:resteasy-netty": [
+            "resteasy", 
+            "netty"
+        ], 
+        "org.neo4j:neo4j": [
+            "graph", 
+            "database"
+        ], 
+        "io.debezium:debezium-core:test-jar": [
+            "debezium", 
+            "core"
+        ], 
+        "io.vertx:vertx-grpc:zip:docs": [
+            "vertx", 
+            "grpc"
+        ], 
+        "io.vertx:vertx-kafka-client::sources": [
+            "vertx", 
+            "kafka", 
+            "client"
+        ], 
+        "io.vertx:vertx-redis-client": [
+            "vertx", 
+            "redis", 
+            "client"
+        ], 
+        "log4j:log4j": [
+            "log4j"
+        ], 
+        "org.springframework.boot:spring-boot-starter": [
+            "spring", 
+            "boot", 
+            "starter"
+        ], 
+        "org.glassfish.jersey.containers:jersey-container-servlet-core": [
+            "jersey", 
+            "container", 
+            "servlet", 
+            "core"
+        ], 
+        "io.undertow:undertow-servlet": [
+            "undertow", 
+            "servlet"
+        ], 
+        "io.vertx:vertx-lang-ruby": [
+            "vertx", 
+            "lang", 
+            "ruby"
+        ], 
+        "com.mitchellbosecke:pebble": [
+            "java", 
+            "java-template-engine"
+        ], 
+        "io.vertx:vertx-lang-ceylon-stack:zip:docs": [
+            "vertx", 
+            "lang", 
+            "ceylon", 
+            "stack"
+        ], 
+        "io.vertx:vertx-camel-bridge::sources": [
+            "vertx", 
+            "camel", 
+            "bridge"
+        ], 
+        "de.nierbeck.example.vertx:Vertx-Verticles": [
+            "Vertx", 
+            "Verticles"
+        ], 
+        "io.vertx:vertx-lang-js": [
+            "vertx", 
+            "lang", 
+            "js"
+        ], 
+        "io.vertx:vertx-web:zip:docs": [
+            "vertx", 
+            "web"
+        ], 
+        "io.vertx:vertx-jgroups": [
+            "vertx", 
+            "jgroups"
+        ], 
+        "io.vertx:vertx-http-service-factory": [
+            "vertx", 
+            "http", 
+            "service", 
+            "factory"
+        ], 
+        "io.reactivex:rxjava-joins": [
+            "rxjava", 
+            "joins"
+        ], 
+        "org.apache.karaf.shell:org.apache.karaf.shell.core": [
+            "org.apache.karaf.shell.core"
+        ], 
+        "org.reactivestreams:reactive-streams": [
+            "reactive", 
+            "streams"
+        ], 
+        "io.vertx:vertx-web-client:zip:docs": [
+            "vertx", 
+            "web", 
+            "client"
+        ], 
+        "org.projectlombok:lombok": [
+            "lombok"
+        ], 
+        "com.englishtown.vertx:vertx-curator": [
+            "vertx", 
+            "curator"
+        ], 
+        "org.springframework:spring-beans": [
+            "spring", 
+            "beans"
+        ], 
+        "io.vertx:vertx-mysql-postgresql-client:zip:docs": [
+            "vertx", 
+            "mysql", 
+            "postgresql", 
+            "client"
+        ], 
+        "com.linecorp.armeria:armeria": [
+            "armeria", 
+            "http", 
+            "http2", 
+            "http-server", 
+            "http-client", 
+            "thrift", 
+            "thrift-server", 
+            "thrift-client", 
+            "microservices", 
+            "grpc", 
+            "rpc", 
+            "rpc-framework", 
+            "rpc-library", 
+            "rpc-server", 
+            "rpc-client", 
+            "micro-framework", 
+            "grpc-client", 
+            "grpc-server"
+        ], 
+        "io.vertx:vertx-sockjs-service-proxy::sources": [
+            "vertx", 
+            "sockjs", 
+            "service", 
+            "proxy"
+        ], 
+        "com.networknt:client": [
+            "client"
+        ], 
+        "org.ops4j.pax.exam:pax-exam-invoker-junit": [
+            "pax", 
+            "exam", 
+            "invoker", 
+            "junit"
+        ], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-Bookservice": [
+            "Vertx", 
+            "Microservices", 
+            "Bookservice"
+        ], 
+        "io.vertx:vertx-unit::sources": [
+            "vertx", 
+            "unit"
+        ], 
+        "io.vertx:vertx-lang-ceylon:zip:docs": [
+            "vertx", 
+            "lang", 
+            "ceylon"
+        ], 
+        "io.vertx:vertx-rx-java:zip:docs": [
+            "vertx", 
+            "rx", 
+            "java"
+        ], 
+        "io.vertx:vertx-mysql-postgresql-client": [
+            "vertx", 
+            "mysql", 
+            "postgresql", 
+            "client"
+        ], 
+        "org.ops4j.pax.exam:pax-exam-inject": [
+            "pax", 
+            "exam", 
+            "inject"
+        ], 
+        "io.vertx:vertx-auth-shiro:zip:docs": [
+            "vertx", 
+            "auth", 
+            "shiro"
+        ], 
+        "io.vertx:vertx-config-hocon:zip:docs": [
+            "vertx", 
+            "config", 
+            "hocon"
+        ], 
+        "org.jboss.ironjacamar:ironjacamar-depchain:pom": [
+            "ironjacamar", 
+            "depchain"
+        ], 
+        "org.springframework:spring-web": [
+            "spring", 
+            "web"
+        ], 
+        "io.vertx:vertx-service-proxy:zip:docs": [
+            "vertx", 
+            "service", 
+            "proxy"
+        ], 
+        "org.opensaml:opensaml-xmlsec-api": [
+            "opensaml", 
+            "xmlsec", 
+            "api"
+        ], 
+        "com.github.scribejava:scribejava-apis": [
+            "scribejava", 
+            "apis"
+        ], 
+        "io.vertx:vertx-rabbitmq-client::sources": [
+            "vertx", 
+            "rabbitmq", 
+            "client"
+        ], 
+        "com.netflix.feign:feign-core": [
+            "java", 
+            "http-client", 
+            "jax-rs", 
+            "okhttp3", 
+            "slf4j", 
+            "interface"
+        ], 
+        "io.vertx.blueprint:microservice-blueprint-common": [
+            "microservice", 
+            "blueprint", 
+            "common"
+        ], 
+        "io.dazraf:vertx-hot-core": [
+            "vertx", 
+            "hot", 
+            "core"
+        ], 
+        "io.vertx.blueprint:product-microservice": [
+            "product", 
+            "microservice"
+        ], 
+        "io.vertx:vertx-circuit-breaker": [
+            "vertx", 
+            "circuit", 
+            "breaker"
+        ], 
+        "com.github.stefanbirkner:system-rules": [
+            "system", 
+            "rules"
+        ], 
+        "com.github.shyiko:mysql-binlog-connector-java": [
+            "mysql", 
+            "binlog", 
+            "connector", 
+            "java"
+        ], 
+        "io.swagger:swagger-parser": [
+            "swagger", 
+            "parser"
+        ], 
+        "io.vertx:vertx-service-factory:zip:docs": [
+            "vertx", 
+            "service", 
+            "factory"
+        ], 
+        "org.antlr:ST4": [
+            "ST4"
+        ], 
+        "io.vertx:vertx-ignite": [
+            "vertx", 
+            "ignite"
+        ], 
+        "org.jboss.ejb3:jboss-ejb3-ext-api": [
+            "jboss", 
+            "ejb3", 
+            "ext", 
+            "api"
+        ], 
+        "org.apache.velocity:velocity": [
+            "velocity"
+        ], 
+        "ch.qos.logback:logback-classic": [
+            "logback", 
+            "classic"
+        ], 
+        "io.github.qrman:potato-db": [
+            "potato", 
+            "db"
+        ], 
+        "io.knotx:knotx-gateway": [
+            "knotx", 
+            "gateway"
+        ], 
+        "io.vertx:vertx-service-discovery": [
+            "vertx", 
+            "service", 
+            "discovery"
+        ], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-Cluster-Karaf:tar.gz": [
+            "karaf", 
+            "vertex", 
+            "microservices"
+        ], 
+        "io.vertx:vertx-web::sources": [
+            "vertx", 
+            "web"
+        ], 
+        "org.jetbrains.kotlin:kotlin-stdlib": [
+            "kotlin", 
+            "stdlib"
+        ], 
+        "io.vertx:vertx-hawkular-metrics:zip:docs": [
+            "vertx", 
+            "hawkular", 
+            "metrics"
+        ], 
+        "io.vertx:vertx-dropwizard-metrics:zip:docs": [
+            "vertx", 
+            "dropwizard", 
+            "metrics"
+        ], 
+        "io.vertx:vertx-lang-js:zip:docs": [
+            "vertx", 
+            "lang", 
+            "js"
+        ], 
+        "de.nierbeck.example.vertx:Vertx-Feature:xml:features": [
+            "Vertx", 
+            "Feature"
+        ], 
+        "io.vertx:vertx-hawkular-metrics": [
+            "vertx", 
+            "hawkular", 
+            "metrics"
+        ], 
+        "org.springframework:spring-context": [
+            "spring", 
+            "context"
+        ], 
+         "io.vertx:vertx-config-yaml::sources": [
+            "vertx", 
+            "config", 
+            "yaml"
+        ], 
+        "org.atmosphere:atmosphere-spring": [
+            "atmosphere", 
+            "spring"
+        ], 
+        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": [
+            "jackson", 
+            "datatype", 
+            "jsr310"
+        ], 
+        "io.vertx:vertx-camel-bridge": [
+            "vertx", 
+            "camel", 
+            "bridge"
+        ], 
+        "com.tinkerpop.blueprints:blueprints-orient-graph": [
+            "blueprints", 
+            "orient", 
+            "graph"
+        ], 
+        "org.springframework.security:spring-security-crypto": [
+            "spring", 
+            "security", 
+            "crypto"
+        ], 
+        "org.jboss.resteasy:async-http-servlet-3.0": [
+            "async", 
+            "http", 
+            "servlet", 
+            "3.0"
+        ], 
+        "org.neo4j.app:neo4j-server": [
+            "neo4j", 
+            "server"
+        ], 
+        "org.vert-x:vertx-lang-groovy": [
+            "vertx", 
+            "lang", 
+            "groovy"
+        ], 
+        "io.vertx:vertx-mail-client": [
+            "vertx", 
+            "mail", 
+            "client"
+        ], 
+        "org.springframework.boot:spring-boot-starter-undertow": [
+            "spring", 
+            "boot", 
+            "starter", 
+            "undertow"
+        ], 
+        "org.slf4j:slf4j-api": [
+            "slf4j", 
+            "api"
+        ], 
+        "org.eclipse.aether:aether-api": [
+            "aether", 
+            "api"
+        ], 
+        "org.opensaml:opensaml-security-api": [
+            "opensaml", 
+            "security", 
+            "api"
+        ], 
+        "io.vertx:vertx-stomp::sources": [
+            "vertx", 
+            "stomp"
+        ], 
+        "io.vertx:vertx-rx-js": [
+            "vertx", 
+            "rx", 
+            "js"
+        ], 
+        "org.glassfish.jersey.media:jersey-media-json-jackson": [
+            "jersey", 
+            "media", 
+            "json", 
+            "jackson"
+        ], 
+        "redis.clients:jedis": [
+            "jedis"
+        ], 
+        "com.github.jknack:handlebars": [
+            "handlebars"
+        ], 
+        "io.vertx:vertx-core": [
+            "vertx", 
+            "core"
+        ], 
+        "org.codehaus.jackson:jackson-mapper-asl": [
+            "jackson", 
+            "mapper", 
+            "asl"
+        ], 
+        "io.vertx:vertx-mysql-postgresql-client::sources": [
+            "vertx", 
+            "mysql", 
+            "postgresql", 
+            "client"
+        ], 
+        "io.vertx:vertx-config-yaml:zip:docs": [
+            "vertx", 
+            "config", 
+            "yaml"
+        ], 
+        "io.vertx:vertx-amqp-bridge::sources": [
+            "vertx", 
+            "amqp", 
+            "bridge"
+        ], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-Features:xml:features": [
+            "vertx", 
+            "microservices", 
+            "features"
+        ], 
+        "io.vertx:vertx-zookeeper:zip:docs": [
+            "vertx", 
+            "zookeeper"
+        ], 
+        "io.vertx:vertx-config-redis:zip:docs": [
+            "vertx", 
+            "config", 
+            "redis"
+        ], 
+        "org.gitlab:java-gitlab-api": [
+            "java", 
+            "gitlab", 
+            "api"
+        ], 
+        "org.apache.karaf.cellar:apache-karaf-cellar:xml:features": [
+            "apache", 
+            "karaf", 
+            "cellar"
+        ], 
+        "io.knotx:knotx-adapter-common": [
+            "knotx", 
+            "adapter", 
+            "common"
+        ], 
+        "io.knotx:knotx-knot-fragment-assembler": [
+            "knotx", 
+            "knot", 
+            "fragment", 
+            "assembler"
+        ], 
+        "org.sfs:sfs-server": [
+            "sfs", 
+            "server"
+        ], 
+        "com.amazonaws:aws-java-sdk-elasticloadbalancing": [
+            "aws", 
+            "java", 
+            "sdk", 
+            "elasticloadbalancing"
+        ], 
+        "io.vertx:vertx-auth-htdigest::sources": [
+            "vertx", 
+            "auth", 
+            "htdigest"
+        ], 
+        "org.eclipse.aether:aether-connector-basic": [
+            "aether", 
+            "connector", 
+            "basic"
+        ], 
+        "io.vertx:vertx-config": [
+            "vertx", 
+            "config"
+        ], 
+        "org.openid4java:openid4java": [
+            "openid4java"
+        ], 
+        "de.nierbeck.example.vertx.mircoservices:Vertx-Microservices-CookbookUI": [
+            "vertx", 
+            "microservices", 
+            "cookbookUI"
+        ], 
+        "io.vertx:vertx-unit:zip:docs": [
+            "vertx", 
+            "unit"
+        ], 
+        "io.vertx:vertx-consul-service": [
+            "vertx", 
+            "consul", 
+            "service"
+        ], 
+        "javax:javaee-api": [
+            "javaee", 
+            "api"
+        ], 
+        "com.networknt:server": [
+            "server"
+        ], 
+        "io.vertx:vertx-web-templ-jade::sources": [
+            "vertx", 
+            "web", 
+            "templ", 
+            "jade"
+        ], 
+        "org.springframework.security:spring-security-web": [
+            "spring", 
+            "security", 
+            "web"
+        ], 
+        "com.englishtown.vertx:vertx-cassandra": [
+            "vertx", 
+            "cassandra"
+        ], 
+        "io.vertx:vertx-config-redis::sources": [
+            "vertx", 
+            "config", 
+            "redis"
+        ], 
+        "io.vertx:vertx-reactive-streams:zip:docs": [
+            "vertx", 
+            "reactive", 
+            "streams"
+        ], 
+        "org.apache.karaf.features:framework:kar": [
+            "framework"
+        ], 
+        "com.codahale.metrics:metrics-graphite": [
+            "metrics", 
+            "graphite"
+        ], 
+        "io.knotx:knotx-example-handlebars-ext": [
+            "knotx", 
+            "example", 
+            "handlebars", 
+            "ext"
+        ], 
+        "org.apache.kafka:kafka_2.10": [
+            "kafka_2.10"
+        ], 
+        "io.vertx:vertx-consul-client:zip:docs": [
+            "vertx", 
+            "consul", 
+            "client"
+        ], 
+        "org.ops4j.pax.exam:pax-exam-link-assembly": [
+            "pax", 
+            "exam", 
+            "link", 
+            "assembly"
+        ], 
+        "io.undertow:undertow-core": [
+            "undertow", 
+            "core"
+        ], 
+        "org.apache.camel:camel-core": [
+            "camel", 
+            "core"
+        ], 
+        "io.knotx:knotx-adapter-service-http": [
+            "knotx", 
+            "adapter", 
+            "service", 
+            "http"
+        ]
+
+    }
+}

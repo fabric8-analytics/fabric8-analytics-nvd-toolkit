@@ -1,0 +1,60 @@
+{
+    "stacks": [
+        {
+            "code_repository": {
+                "type": "unknown",
+                "url": "https://github.com/englishtown/vertx-cassandra"
+            },
+            "declared_license": "MIT License",
+            "dependencies": [
+                "com.englishtown.vertx:vertx-curator 3.1.0",
+                "com.datastax.cassandra:cassandra-driver-core 3.1.3",
+                "io.vertx:vertx-core 3.3.0",
+                "com.englishtown.vertx:vertx-when 4.2.0",
+                "com.englishtown.vertx:vertx-guice 2.3.0",
+                "com.englishtown.vertx:vertx-hk2 2.4.0"
+            ],
+            "description": "Execute cassandra statements from a vert.x module",
+            "devel_dependencies": [
+                "org.hamcrest:hamcrest-core 1.3",
+                "org.mockito:mockito-core 1.10.19",
+                "org.apache.cassandra:cassandra-all 3.7",
+                "io.vertx:vertx-core:test-jar 3.3.0",
+                "junit:junit 4.12"
+            ],
+            "ecosystem": "java-pom",
+            "homepage": "https://github.com/englishtown/oss-parent-vertx/vertx-cassandra-parent/vertx-cassandra",
+            "name": "vertx-cassandra",
+            "path": "0aad77ad693cc7195b5d91ca4d701ae937b7b5af/vertx-cassandra/pom.xml",
+            "version": "3.6.0-SNAPSHOT"
+        },
+        {
+            "code_repository": {
+                "type": "unknown",
+                "url": "https://github.com/englishtown/vertx-cassandra-binarystore"
+            },
+            "declared_license": "MIT License",
+            "dependencies": [
+                "com.englishtown.vertx:vertx-when 4.2.0",
+                "io.vertx:vertx-service-proxy 3.3.0",
+                "io.vertx:vertx-codegen 3.3.0",
+                "io.vertx:vertx-lang-js 3.3.0",
+                "com.englishtown.vertx:vertx-hk2 2.4.0",
+                "io.vertx:vertx-core 3.3.0",
+                "com.englishtown.vertx:vertx-cassandra 3.4.0"
+            ],
+            "description": "Vert.x module to store large binary files over the event bus.",
+            "devel_dependencies": [
+                "org.apache.cassandra:cassandra-all 3.7",
+                "junit:junit 4.12",
+                "org.mockito:mockito-core 1.10.19",
+                "io.vertx:vertx-core:test-jar 3.3.0"
+            ],
+            "ecosystem": "java-pom",
+            "homepage": "https://github.com/englishtown/vertx-cassandra-binarystore",
+            "name": "vertx-cassandra-binarystore",
+            "path": "0fb365c3abef74b2a93daf0b447f5564f947f915/pom.xml",
+            "version": "2.3.0-SNAPSHOT"
+        }
+    ]
+}

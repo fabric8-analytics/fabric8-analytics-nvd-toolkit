@@ -1,0 +1,49 @@
+{
+    "ecosystem": "pypi", 
+    "package_topic_map": {
+        "com.englishtown.vertx:vertx-guice": [
+            "dependency-injection", 
+            "verticles"
+        ], 
+        "com.datastax.cassandra:cassandra-driver-core": [
+            "cassandra", 
+            "driver", 
+            "core"
+        ], 
+        "io.vertx:vertx-core": [
+            "vertx", 
+            "core"
+        ], 
+        "io.vertx:vertx-codegen": [
+            "idiomatic", 
+            "language-api"
+        ], 
+        "com.englishtown.vertx:vertx-cassandra": [
+            "vertx", 
+            "cassandra"
+        ], 
+        "com.englishtown.vertx:vertx-hk2": [
+            "dependency-injection"
+        ], 
+        "com.englishtown.vertx:vertx-when": [
+            "promises", 
+            "wrapper", 
+            "event-bus"
+        ], 
+        "io.vertx:vertx-service-proxy": [
+            "io", 
+            "service", 
+            "proxy", 
+            "http"
+        ], 
+        "io.vertx:vertx-lang-js": [
+            "vertx", 
+            "lang", 
+            "js"
+        ], 
+        "com.englishtown.vertx:vertx-curator": [
+            "vertx", 
+            "curator"
+        ]
+    }
+}
