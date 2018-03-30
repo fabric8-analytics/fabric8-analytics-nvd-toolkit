@@ -1,2 +1,2 @@
 from .handlers import GitHubHandler
-from .preprocessors import NLTKPreprocessor, FeatureExtractor
+from .preprocessors import NLTKPreprocessor, FeatureExtractor, Hook

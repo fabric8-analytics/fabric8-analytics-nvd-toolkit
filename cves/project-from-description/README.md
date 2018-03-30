@@ -45,7 +45,7 @@ its accuracy.
 GitHub. This allows for labeling the data with the project name infered from the GitHub repository
 
 - To discover a latent pattern, a Naive Bayes Classifier for chosen for a model.
-Vanilla feature extractors were based on simple text features such as positional tags.
+Vanilla feature extractors were based on simple text feature_keys such as positional tags.
 [NLTK] was used for these purposes.
 
 - Naive Bayes Classifier provided decent results on the toy data set and hence with feature
