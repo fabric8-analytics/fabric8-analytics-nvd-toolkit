@@ -7,16 +7,38 @@ import unittest
 
 from sklearn.pipeline import Pipeline
 
-from toolkit.preprocessing import NLTKPreprocessor, FeatureExtractor, Hook
+from toolkit.preprocessing import \
+    GitHubHandler, \
+    NVDFeedPreprocessor, \
+    NLTKPreprocessor,\
+    FeatureExtractor,\
+    Hook
 
 # noinspection PyProtectedMember
 from toolkit.preprocessing.preprocessors import _FeatureExtractor
+from toolkit.config import GITHUB_BASE_URL
 
 TEST_SENT = "Test sentence, better not to worry too much."
 TEST_DATA = [
     "Test sentence, better not to worry too much.",
     "Test sentence, better not to worry too much.",
 ]
+
+TEST_REPOSITORY = GITHUB_BASE_URL + 'python/cpython'
+
+# create TestCVE type
+TestCVE = type('TestCVE', (), {})
+
+# set up cve attributes and their values
+TEST_CVE_ATTR = ('cve_id', 'references', 'description')
+TEST_CVE_ATTR_VALS = ('cve_id', [TEST_REPOSITORY], 'description')
+
+# assign attributes
+_ = [
+    setattr(TestCVE, attr, val)
+    for attr, val in zip(TEST_CVE_ATTR, TEST_CVE_ATTR_VALS)
+]
+TEST_CVE = TestCVE()
 
 
 def clear(func):
@@ -106,6 +128,85 @@ class TestNLTKPreprocessor(unittest.TestCase):
         with pytest.raises(TypeError):
             _ = Pipeline([
                 ('preprocessor', NLTKPreprocessor)
+            ])
+
+
+class TestNVDFeedPreprocessor(unittest.TestCase):
+    """Tests for NVDFeedPreprocessor class."""
+
+    def test_init(self):
+        """Test NVDFeedPreprocessor `__init__` method."""
+        # default parameters
+        prep = NVDFeedPreprocessor()
+
+        self.assertIsInstance(prep, NVDFeedPreprocessor)
+
+        # custom parameters
+        prep = NVDFeedPreprocessor(
+            attributes=['cve_id']
+        )
+        self.assertIsInstance(prep, NVDFeedPreprocessor)
+
+    def test_transform(self):
+        """Test NVDFeedPreprocessor `transform` method."""
+        # custom parameters
+        prep = NVDFeedPreprocessor(
+            attributes=TEST_CVE_ATTR  # only extract cve_id
+        )
+        result, = prep.transform(cves=[TestCVE])
+
+        # result should be a tuple of default handlers and cve attributes
+        # check only the cve attributes here to avoid calling handler
+        # separately
+        self.assertEqual(result[-len(TEST_CVE_ATTR):], TEST_CVE_ATTR_VALS)
+
+    def test_filter_by_handler(self):
+        """Test NVDFeedPreprocessor `_filter_by_handler` method."""
+        prep = NVDFeedPreprocessor()
+
+        # make another cve
+        cve_without_ref = TestCVE()
+        # add reasonable reference
+        cve_without_ref.references = 'non-matching-reference'
+        cves = [cve_without_ref]
+        cves = prep._filter_by_handler(cves)  # pylint: disable=protected-access
+
+        # check that cves list is empty
+        self.assertTrue(not cves)
+
+        # noinspection PyTypeChecker
+        cves = [TEST_CVE]
+        cves = prep._filter_by_handler(cves)  # pylint: disable=protected-access
+
+        self.assertFalse(not cves)
+        self.assertIsInstance(cves[0], tuple)
+
+        # resulting tuple
+        cve, ref = cves[0]
+
+        # check that cves list is not empty
+        self.assertIsInstance(cve, TestCVE)
+        self.assertIsInstance(ref, str)
+
+    # noinspection PyUnresolvedReferences
+    def test_get_cve_attributes(self):
+        """Test NVDFeedPreprocessor `_get_cve_attributes` method."""
+        prep = NVDFeedPreprocessor()
+        cve_tuple, = prep._filter_by_handler(cves=[TestCVE()])
+        result = prep._get_cve_attributes(cve_tuple)  # pylint: disable=protected-access
+
+        print(result)
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(result.repository, TEST_REPOSITORY)
+        self.assertEqual(result.languages, None)
+        self.assertIsInstance(result.references, list)
+
+    def test_pipeline(self):
+        """Test NVDFeedPreprocessor as a single pipeline unit."""
+        # should raise, since NLTKPreprocessor does not implement `fit` method
+        with pytest.raises(TypeError):
+            _ = Pipeline([
+                ('preprocessor', NVDFeedPreprocessor)
             ])
 
 
@@ -264,4 +365,3 @@ class Test_FeatureExtractor(unittest.TestCase):
 
             self.assertEqual(key, 'key')
             self.assertEqual(value, 'test')
-

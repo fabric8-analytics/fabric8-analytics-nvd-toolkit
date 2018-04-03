@@ -1,0 +1,76 @@
+"""Tests for utils module."""
+
+import pytest
+import unittest
+
+from toolkit import utils
+
+TEST_REFERENCE_HTTP = 'http://github.com/user/project/blob/master'
+TEST_REFERENCE_HTTPS = 'https://github.com/user/project/blob/master'
+TEST_REFERENCE_WRONG = 'http://gitlab.com/user/project/blob/master'
+
+TEST_REFERENCE_PATTERNS = {
+    TEST_REFERENCE_HTTP: True,
+    TEST_REFERENCE_HTTPS: True,
+    TEST_REFERENCE_WRONG: False,
+}
+
+
+class TestUtils(unittest.TestCase):
+    """Tests for utils module."""
+
+    def test_classproperty(self):
+        """Test classproperty decorator."""
+        class Sample:
+            _secret = 'secret'
+
+            # noinspection PyMethodParameters
+            @utils.classproperty
+            def secret(cls):
+                return cls._secret
+
+        # check readability
+        self.assertEqual(Sample.secret, 'secret')
+
+        # check overwrite protection and delete protections
+        with pytest.raises(AttributeError):
+            # TODO: solve these
+            # setter
+            Sample.secret = 'not_so_secret'
+            # delete
+            del Sample.secret
+
+    def test_has_reference(self):
+        """Test utils.has_reference() function."""
+        # Create sample extensible cve object for testing
+        cve = type('', (), {})
+        cve.references = TEST_REFERENCE_PATTERNS.keys()
+        # test urls
+        ret = utils.has_reference(cve, url=TEST_REFERENCE_HTTP)
+        self.assertTrue(ret)
+
+        for k, v in TEST_REFERENCE_PATTERNS.items():  # pylint: disable=invalid-name
+            # test  patterns
+            cve.references = [k]
+            ret = utils.has_reference(cve, pattern='github')
+            self.assertEqual(ret, v)
+
+    def test_get_reference(self):
+        """Test utils.get_reference() function."""
+        # Create sample extensible cve object for testing
+        cve = type('', (), {})
+        cve.references = TEST_REFERENCE_PATTERNS.keys()
+        # test urls
+        ret = utils.get_reference(cve, url=TEST_REFERENCE_HTTP)
+        self.assertEqual(ret, TEST_REFERENCE_HTTP)
+
+        for k, v in TEST_REFERENCE_PATTERNS.items():  # pylint: disable=invalid-name
+            # test  patterns
+            cve.references = [k]
+            ret = utils.get_reference(cve, pattern='github')
+            self.assertEqual(ret, [None, k][v])
+
+    def test_nvd_to_dataframe(self):
+        """Test NVD feed transformation to pandas.DataFrame object."""
+        # TODO
+        pass

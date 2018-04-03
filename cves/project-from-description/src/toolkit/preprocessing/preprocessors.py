@@ -11,7 +11,105 @@ import weakref
 import nltk
 import nltk.corpus as corpus
 
+from collections import namedtuple
 from sklearn.base import TransformerMixin
+
+from toolkit import utils
+from toolkit.preprocessing import GitHubHandler
+
+
+class NVDFeedPreprocessor(TransformerMixin):
+    """Preprocessor collecting relevant data from NVD feed.
+
+    :param attributes: Iterable of attributes to extract,
+
+        While `transform`, each attribute will be gathered from each element
+        of the list fed to the method and return in the resulting tuple.
+
+        If None, ('cve_id', 'references', 'description') are selected by default
+    """
+
+    def __init__(self,
+                 attributes: typing.Iterable = None,
+                 handler=GitHubHandler):
+        if attributes and not isinstance(attributes, typing.Iterable):
+            raise TypeError(
+                "Argument `attributes` expected to be of type `{}`, got `{}`"
+                .format(typing.Iterable, type(attributes))
+            )
+
+        self._cve_attributes = attributes or ('cve_id', 'references', 'description')
+        self._handler = handler
+
+    # noinspection PyPep8Naming
+    def transform(self, cves: typing.Iterable):  # pylint: disable=invalid-name
+        """Apply transformation to each element in `cves`.
+
+        This transformation outputs list of tuples
+
+        :param cves:
+            Iterable, each element is assumed to be of type "nvdlib.model.CVE"
+            or an object implementing attributes given in `attr_list`
+
+        :returns: list of shape (len(x), len(attr_list))
+            Each element of the resulting list is a namedtuple of cve attributes
+        """
+
+        # filter the cves by the given handler
+        cve_tuples = self._filter_by_handler(cves)
+
+        return [
+            self._get_cve_attributes(t) for t in cve_tuples
+        ]
+
+    def _filter_by_handler(self, cves: typing.Iterable) -> typing.List[tuple]:
+        """Filter the given elements by specified handler.
+
+        NOTE: The only supported handler ATM is `GitHubHandler`, hence
+        cves are filtered by reference pattern.
+
+        :returns: list of tuples of type (cve, reference)
+        """
+        filtered_cves = list()
+        for cve in cves:
+            # TODO: modify this approach by creating handler-specific filter method
+            #   such method would take CVE and returned bool whether
+            #   it could operate on it or not
+            ref = utils.get_reference(cve, pattern=self._handler.pattern)
+            if ref is None:
+                continue
+
+            # include the ref in the tuple instead iterating over
+            # the references later again
+            filtered_cves.append((cve, ref))
+
+        return filtered_cves
+
+    def _get_cve_attributes(self, cve_tuple):
+        """Get the selected attributes from the CVE object."""
+        cve, ref = cve_tuple
+
+        # initialize handler
+        handler = self._handler(url=ref)
+
+        # attribute creator
+        Attributes = namedtuple(
+            'Attributes',
+            handler.default_properties + self._cve_attributes
+        )
+
+        # initialize with handlers default data
+        data = list()
+        for prop in handler.default_properties:
+            attr = getattr(handler, prop, None)
+            if attr is not None:
+                data.append(attr)
+
+        data.extend([
+            getattr(cve, attr, None) for attr in self._cve_attributes
+        ])
+
+        return Attributes(*data)
 
 
 class NLTKPreprocessor(TransformerMixin):
@@ -174,8 +272,8 @@ class FeatureExtractor(TransformerMixin):
 
         :returns: list of lists of dictionaries
 
-            Each list in the resulting dict is a list of features per each word
-            in the sentence.
+            Each element of the list represents a sentence representing by another list,
+            which is a list of features per each word in the sentence.
 
             The keys of those features (dictionaries), are names of the feature_keys, ie.
             hooks and the values are the values of those extracted feature_keys.
