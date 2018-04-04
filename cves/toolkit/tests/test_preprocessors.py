@@ -193,8 +193,8 @@ class TestLabelPreprocessor(unittest.TestCase):
         self.assertIsInstance(label_prep._hook, Hook)  # pylint: disable=protected-access
 
     @clear
-    def test_fit(self):
-        """Test LabelPreprocessor `fit` method"""
+    def test_transform(self):
+        """Test LabelPreprocessor `transform` method"""
         hook = Hook(key='label', func=lambda x: x)
         attributes = ['repository']
 

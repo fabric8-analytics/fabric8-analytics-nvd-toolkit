@@ -83,6 +83,14 @@ class NVDFeedPreprocessor(TransformerMixin):
             self._get_cve_attributes(t) for t in cve_tuples
         ]
 
+    # noinspection PyPep8Naming
+    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
+        """Alias for `transform` method.
+
+        Required by sklearn Pipeline.
+        """
+        return self.transform(X)
+
     def _filter_by_handler(self, cves: typing.Iterable) -> typing.List[tuple]:
         """Filter the given elements by specified handler.
 
@@ -157,7 +165,7 @@ class LabelPreprocessor(TransformerMixin):
         self._hook = hook
 
     # noinspection PyPep8Naming
-    def fit(self,
+    def transform(self,
             X: typing.Iterable):  # pylint: disable=invalid-name
         """Fit the data provided in `X` by extracting attributes specified
         while initializaiton."""
@@ -172,7 +180,7 @@ class LabelPreprocessor(TransformerMixin):
         return transformed
 
     # noinspection PyPep8Naming
-    def transform(self, X: typing.Iterable):  # pylint: disable=invalid-name
+    def fit(self, X: typing.Iterable):  # pylint: disable=invalid-name
         """Apply transformation by applying provided hook to each element."""
 
         return np.array([
@@ -186,10 +194,10 @@ class LabelPreprocessor(TransformerMixin):
                       **fit_params):
 
         # perform fit
-        fit = self.fit(X)
+        transformed = self.transform(X)
 
         # transform and return
-        return self.transform(fit)
+        return self.fit(transformed)
 
 
 class NLTKPreprocessor(TransformerMixin):

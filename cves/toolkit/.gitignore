@@ -1,0 +1,12 @@
+# Folders to ignore
+
+# cache
+**/.ipynb_checkpoints/
+**/.pytest_cache/
+**/.cache/
+
+# virtual env
+env/
+
+
+# Files to ignore
