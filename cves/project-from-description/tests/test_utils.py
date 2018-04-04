@@ -70,6 +70,21 @@ class TestUtils(unittest.TestCase):
             ret = utils.get_reference(cve, pattern='github')
             self.assertEqual(ret, [None, k][v])
 
+    def test_find_(self):
+        word = 'project'
+        # test case insensitive (default)
+        sample = 'This document belongs to the Project.'
+        found = utils.find_(word, sample)
+
+        self.assertIsNotNone(found)
+        self.assertEqual(found.lower(), word.lower())
+
+        # test case sensitive
+        sample = 'This document belongs to the Project.'
+        found = utils.find_(word, sample, ignore_case=False)
+
+        self.assertIsNone(found)
+
     def test_nvd_to_dataframe(self):
         """Test NVD feed transformation to pandas.DataFrame object."""
         # TODO

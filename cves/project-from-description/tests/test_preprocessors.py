@@ -8,8 +8,8 @@ import unittest
 from sklearn.pipeline import Pipeline
 
 from toolkit.preprocessing import \
-    GitHubHandler, \
     NVDFeedPreprocessor, \
+    LabelPreprocessor,\
     NLTKPreprocessor,\
     FeatureExtractor,\
     Hook
@@ -108,7 +108,7 @@ class TestNLTKPreprocessor(unittest.TestCase):
         self.assertTrue(all(isinstance(t[0], type(t[1])) for t in result))
 
     def test_transform(self):
-        """Test NLTKPreprocessor `transform` method."""
+        """Test NLTKPreprocessor `fit` method."""
         # custom parameters
         prep = NLTKPreprocessor(
             stopwords=True,
@@ -117,8 +117,8 @@ class TestNLTKPreprocessor(unittest.TestCase):
         transform = prep.transform(X=TEST_DATA)
 
         self.assertTrue(len(transform), len(TEST_DATA))
-        # check that neither list is empty
-        self.assertFalse(any(not l for l in transform))
+        # check that the array is not empty
+        self.assertTrue(transform.size > 0)
 
         # rest of the tests should be covered by `test_tokenize`
 
@@ -148,12 +148,12 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
         self.assertIsInstance(prep, NVDFeedPreprocessor)
 
     def test_transform(self):
-        """Test NVDFeedPreprocessor `transform` method."""
+        """Test NVDFeedPreprocessor `fit` method."""
         # custom parameters
         prep = NVDFeedPreprocessor(
             attributes=TEST_CVE_ATTR  # only extract cve_id
         )
-        result, = prep.transform(cves=[TestCVE])
+        result, = prep.transform(X=[TEST_CVE])
 
         # result should be a tuple of default handlers and cve attributes
         # check only the cve attributes here to avoid calling handler
@@ -195,10 +195,8 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
         cve_tuple, = prep._filter_by_handler(cves=[TestCVE()])
         result = prep._get_cve_attributes(cve_tuple)  # pylint: disable=protected-access
 
-        print(result)
         self.assertIsInstance(result, tuple)
         self.assertEqual(result.repository, TEST_REPOSITORY)
-        self.assertEqual(result.languages, None)
         self.assertIsInstance(result.references, list)
 
     def test_pipeline(self):
@@ -208,6 +206,62 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
             _ = Pipeline([
                 ('preprocessor', NVDFeedPreprocessor)
             ])
+
+
+class TestLabelPreprocessor(unittest.TestCase):
+    """Tests for LabelPreprocessor class."""
+
+    def test_init(self):
+        hook = Hook(key='label', func=lambda x: x)
+        attributes = ['project']
+
+        label_prep = LabelPreprocessor(attributes=attributes,
+                                       hook=hook)
+
+        self.assertIsInstance(label_prep, LabelPreprocessor)
+        self.assertIsInstance(label_prep._hook, Hook)  # pylint: disable=protected-access
+
+    @clear
+    def test_fit(self):
+        """Test LabelPreprocessor `fit` method"""
+        hook = Hook(key='label', func=lambda x: x)
+        attributes = ['repository']
+
+        test_data = [TEST_CVE]
+
+        # prepare the data for label preprocessor
+        feed_prep = NVDFeedPreprocessor(attributes, skip_duplicity=True)
+        test_data = feed_prep.transform(X=test_data)
+
+        label_prep = LabelPreprocessor(attributes=attributes,
+                                       hook=hook)
+        test_data = label_prep.fit(test_data)
+        self.assertFalse(not test_data)
+
+        res = test_data,
+        self.assertTrue(res, TEST_REPOSITORY)
+
+    @clear
+    def test_fit_transform(self):
+        """Test LabelPreprocessor `fit_transform` method"""
+        hook = Hook(key='label', func=lambda _: 'label')
+        attributes = ['project', 'description']
+
+        test_data = [TEST_CVE]
+
+        # prepare the data for label preprocessor
+        feed_prep = NVDFeedPreprocessor(attributes, skip_duplicity=True)
+        test_data = feed_prep.transform(X=test_data)
+
+        label_prep = LabelPreprocessor(attributes=attributes,
+                                       hook=hook)
+
+        test_data = label_prep.fit_transform(test_data)
+        # check that only label is returned by the Hook
+        label, = test_data
+
+        self.assertFalse(not test_data)
+        self.assertEqual(label, 'label')
 
 
 class TestFeatureExtractor(unittest.TestCase):
@@ -248,7 +302,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # apply default extractors transformation
         prep = FeatureExtractor()
 
-        sent = tokenized[0]
+        sent, label = tokenized[0]
         result = prep._extract_features(sent, word_pos=0)
 
         self.assertIsInstance(result, dict)
@@ -258,18 +312,18 @@ class TestFeatureExtractor(unittest.TestCase):
 
     @clear
     def test_transform(self):
-        """Test FeatureExtractor `transform` method."""
+        """Test FeatureExtractor `fit` method."""
         # preprocess the sentences
         tokenizer = NLTKPreprocessor()
         tokenized = tokenizer.transform(TEST_DATA)
 
         # apply default extractors transformation
         prep = FeatureExtractor()
-        transform = prep.transform(X=tokenized)
+        transform = prep.transform(X=tokenized[:, 0])
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that all elements ale dicts
-        self.assertFalse(all(isinstance(obj, dict) for obj in transform))
+        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
 
         # delete to get rid of old keys
         del prep
@@ -290,7 +344,7 @@ class TestFeatureExtractor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that all elements ale lists
-        self.assertTrue(all(isinstance(obj, list) for obj in transform))
+        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
 
     @clear
     def test_pipeline(self):

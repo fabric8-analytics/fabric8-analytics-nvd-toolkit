@@ -30,7 +30,7 @@ class GitHubHandler(object):
 
     __URL_BASE_PATTERN = u"http[s]://github.com/([\w-]+)/([\w-]+[.]*[\w-]*)"
     __API_URL = u"https://api.github.com/repos/{user}/{project}/languages"
-    __DEFAULT_PROPERTIES = ('repository', 'user', 'project', 'languages')
+    __DEFAULT_PROPERTIES = ('user', 'project', 'repository')
 
     def __init__(self, url: str = None):
         self._src_url = self.strip_src_url(url)
@@ -78,7 +78,6 @@ class GitHubHandler(object):
         :raises: ValueError if url does not match handler's pattern
         """
         strip_url = re.search(self.__URL_BASE_PATTERN, url)
-        print(strip_url)
 
         if not strip_url:
             raise ValueError("url `%s` does not match handler's base pattern" % url)

@@ -10,6 +10,7 @@ import weakref
 
 import nltk
 import nltk.corpus as corpus
+import numpy as np
 
 from collections import namedtuple
 from sklearn.base import TransformerMixin
@@ -23,31 +24,51 @@ class NVDFeedPreprocessor(TransformerMixin):
 
     :param attributes: Iterable of attributes to extract,
 
-        While `transform`, each attribute will be gathered from each element
+        While `fit`, each attribute will be gathered from each element
         of the list fed to the method and return in the resulting tuple.
 
         If None, ('cve_id', 'references', 'description') are selected by default
+
+    :param handler: data handler, by default GitHubHandler (ATM the only one supported)
+    :param skip_duplicity: bool, whether to allow duplicit attributes
+
+        Handler provides default handler properties which it extracts from
+        the data, if any of attr in `attributes` intersects with those properties,
+        it raises an error if `skip_duplicit` is False (default).
     """
 
     def __init__(self,
                  attributes: typing.Iterable = None,
-                 handler=GitHubHandler):
+                 handler=GitHubHandler,
+                 skip_duplicity=False):
         if attributes and not isinstance(attributes, typing.Iterable):
             raise TypeError(
                 "Argument `attributes` expected to be of type `{}`, got `{}`"
                 .format(typing.Iterable, type(attributes))
             )
 
-        self._cve_attributes = attributes or ('cve_id', 'references', 'description')
+        attributes = tuple(attributes) if attributes else ('cve_id', 'references', 'description')
+        for attr in attributes:
+            if attr in handler.default_properties and not skip_duplicity:
+                raise ValueError("Attribute `{}` is already present in handlers "
+                                 "default properties.".format(attr))
+
+        self._cve_attributes = attributes
+        # leave only those not present in handlers default properties
+        self._cve_attributes = tuple([
+            attr for attr in self._cve_attributes
+            if attr not in handler.default_properties
+        ])
+
         self._handler = handler
 
     # noinspection PyPep8Naming
-    def transform(self, cves: typing.Iterable):  # pylint: disable=invalid-name
+    def transform(self, X: typing.Iterable):  # pylint: disable=invalid-name
         """Apply transformation to each element in `cves`.
 
         This transformation outputs list of tuples
 
-        :param cves:
+        :param X:
             Iterable, each element is assumed to be of type "nvdlib.model.CVE"
             or an object implementing attributes given in `attr_list`
 
@@ -56,7 +77,7 @@ class NVDFeedPreprocessor(TransformerMixin):
         """
 
         # filter the cves by the given handler
-        cve_tuples = self._filter_by_handler(cves)
+        cve_tuples = self._filter_by_handler(X)
 
         return [
             self._get_cve_attributes(t) for t in cve_tuples
@@ -112,8 +133,67 @@ class NVDFeedPreprocessor(TransformerMixin):
         return Attributes(*data)
 
 
+class LabelPreprocessor(TransformerMixin):
+    """Preprocessor implementing `tranform` method for scikit pipelines.
+
+    This preprocessor assign labels to the given set by creating.
+
+    :param attributes: list, attributes to be extracted from the `X`
+    while `fit` or `fit_transform` call and fed to the hook.
+
+    NOTE: attributes of `X` are extracted by `getattr` function, make
+    sure that the `X` implements __get__ method.
+
+    :param hook: Hook, hook to be called on the each element of `X`
+    while `fit_transform` call and will be fed the element of `X` (
+    which should be a `namedtuple`).
+    """
+
+    def __init__(self, attributes: list, hook: "Hook"):
+        self._attributes = attributes
+        if not isinstance(hook, Hook):
+            raise TypeError("Argument `hook` expected to be of type `{}`, got `{}"
+                            .format(Hook, type(hook)))
+        self._hook = hook
+
+    # noinspection PyPep8Naming
+    def fit(self,
+            X: typing.Iterable):  # pylint: disable=invalid-name
+        """Fit the data provided in `X` by extracting attributes specified
+        while initializaiton."""
+        Attribute = namedtuple('Attributes', field_names=self._attributes)
+
+        transformed = list()
+        for x in X:
+            transformed.append(Attribute(
+                *tuple(getattr(x, attr) for attr in self._attributes)
+            ))
+
+        return transformed
+
+    # noinspection PyPep8Naming
+    def transform(self, X: typing.Iterable):  # pylint: disable=invalid-name
+        """Apply transformation by applying provided hook to each element."""
+
+        return np.array([
+            (t, self._hook(*t)) for t in X
+        ])
+
+    # noinspection PyPep8Naming
+    def fit_transform(self,
+                      X: typing.Iterable,  # pylint: disable=invalid-name
+                      y=None,
+                      **fit_params):
+
+        # perform fit
+        fit = self.fit(X)
+
+        # transform and return
+        return self.transform(fit)
+
+
 class NLTKPreprocessor(TransformerMixin):
-    """Preprocessor implementing `transform` method for scikit pipelines.
+    """Preprocessor implementing `fit` method for scikit pipelines.
 
     This preprocessor performs tokenization, stemming and lemmatization
     by default. Processors used for these operations are customizable.
@@ -129,7 +209,7 @@ class NLTKPreprocessor(TransformerMixin):
 
             If provided, each tag is matched to a pattern in this dictionary
             and corrected, if applicable.
-        :param lower: bool, whether to transform tokens to lowercase
+        :param lower: bool, whether to fit tokens to lowercase
         :param strip: bool, whether to strip tokens
     """
 
@@ -155,34 +235,40 @@ class NLTKPreprocessor(TransformerMixin):
 
     # noinspection PyPep8Naming
     @staticmethod
-    def inverse_transform(X: typing.Iterable) -> list:  # pylint: disable=invalid-name
-        """Inverse operation to the `transform` method.
+    def inverse_transform(X: typing.Iterable) -> np.ndarray:  # pylint: disable=invalid-name
+        """Inverse operation to the `fit` method.
 
         Returns list of shape (len(X),) with the tokens stored in X.
 
         Note that this does not return the original data provided
-        to `transform` method, since lemmatization and stemming
+        to `fit` method, since lemmatization and stemming
         are not reversible operations and for memory sake, lowercase changes
         are not stored in memory either.
         """
-        return [
+        return np.array([
             list(x[0] for x in X)
-        ]
+        ])
 
     # noinspection PyPep8Naming
-    def transform(self, X: typing.Iterable) -> list:  # pylint: disable=invalid-name
+    def transform(self, X: typing.Iterable, y: typing.Iterable = None) -> np.ndarray:  # pylint: disable=invalid-name
         """Apply transformation to each element in X.
 
         This transformation outputs list of the shape (len(X), 2)
         where each element of the list is a tuple of (token, tag).
 
         :param X: Iterable, each element should be a string to be tokenized
+        :param y: Iterable, labels for each element in X (must be the same
+        length as `X`)
 
         :returns: list of shape (len(x), 2)
         """
-        return [
-            list(self.tokenize(sent)) for sent in X
-        ]
+        if not y:
+            y = [None] * len(list(X))
+        assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+
+        return np.array([
+            [np.array(list(self.tokenize(sent))), label] for sent, label in zip(X, y)
+        ])
 
     def tokenize(self, sentence: str):
         """Performs tokenization of a given sentence.
@@ -233,11 +319,16 @@ class NLTKPreprocessor(TransformerMixin):
 
 # noinspection PyTypeChecker
 class FeatureExtractor(TransformerMixin):
-    """Feature extractor implementing `transform` for scikit pipelines.
+    """Feature extractor implementing `fit` for scikit pipelines.
 
-    By default, constructs vanilla feature extractor with basic feature_keys
-    and positional context information. Use `feature_keys` argument to specify
-    custom feature_keys.
+    By default, constructs vanilla feature extractor with basic features
+    and positional context information.
+
+    :param features: dict, {feature_key: Hook}
+
+        Specify features which should be extracted from the given set.
+        The hooks are called for each element of the set and return
+        corresponding features.
     """
 
     def __init__(self,
@@ -256,39 +347,52 @@ class FeatureExtractor(TransformerMixin):
     # noinspection PyPep8Naming
     def transform(self,
                   X: typing.Iterable,  # pylint: disable=invalid-name
+                  y: typing.Iterable = None,
                   skip=False) -> typing.List[typing.List[dict]]:
         """Apply transformation to each element in X.
 
         This transformation outputs list of the shape (len(X),)
-        where each element of the list is a dictionary of (feature_key, value).
+        where each element of the list is a tupele of dictionary{feature_key: value},
+        classification label (if provided). The classification label is a bool
+        indicating whether the label provided by `y` matches the token.
 
-        :param X: Iterable, each element should be tokenized sentence
+        :param X: Iterable, each element should be tuple of (tagged_sentence, label)
 
-            Ie. an input could be a list of tuples (token, tag), which
-            is expected to be the output of NLTKPreprocessor or custom
+            Ie. an input should be a list of tuples (List[(token, tag)], label),
+            which is expected to be the output of NLTKPreprocessor or custom
             tokenization process.
+
+        :param y: Iterable of labels for the given sentences (must be the same
+        length as `X`)
 
         :param skip: bool, whether to skip unfed hooks
 
-        :returns: list of lists of dictionaries
+        :returns: List[Tuple[dict, label]]
 
-            Each element of the list represents a sentence representing by another list,
+            Each element of the list represents extracted features for the given token,
             which is a list of features per each word in the sentence.
 
             The keys of those features (dictionaries), are names of the feature_keys, ie.
             hooks and the values are the values of those extracted feature_keys.
         """
-        transformed = [None] * len(list(X))
+        transformed = list()
 
-        for i, tagged_sent in enumerate(X):
-            transformed[i] = [
-                self._extract_features(tagged_sent, word_pos=j, skip=skip)
-                for j in range(len(tagged_sent))
-            ]
+        if y is None:
+            y = [None] * len(list(X))
+        assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+
+        for tagged_sent, label in zip(X, y):
+            transformed.extend([
+                (
+                    self._extract_features(tagged_sent, word_pos=j, skip=skip),
+                    # whether the token matches the label
+                    label == tagged_sent[j][0] if label else None
+                ) for j in range(len(tagged_sent))
+            ])
 
         # pycharm is confused about the `None` initialization
         # noinspection PyPep8Naming
-        return transformed
+        return np.array(transformed)
 
     def _extract_features(self,
                           tagged_sent: list,
@@ -306,18 +410,36 @@ class FeatureExtractor(TransformerMixin):
 
 
 class Hook(object):
-    """Convenient class for handling hooks."""
+    """Convenient class for handling hooks.
+
+    :param key: str, unique identifier of the hook
+    :param func: function to be called by the hook
+
+        The function can not modify any items fed by its arguments.
+    :param default_kwargs: default `func` keyword argument values
+
+        Example:
+        def foo(x, verbose=False):
+            if verbose:
+                print('verbosity on')
+            return x
+
+        # init with default kwargs
+        foo_hook = Hook('foo', foo, verbose=True)
+        # and on the call
+        foo_hook(x=None)  # prints 'verbosity on'
+    """
 
     __INSTANCES = weakref.WeakSet()
 
-    def __init__(self, key: str, func, **kwargs):
+    def __init__(self, key: str, func, **default_kwargs):
         if key in Hook.get_current_keys():
             raise ValueError("Hook with key `%s` already exists" % key)
 
         # attr initialization
-        self._key = key
+        self._key = str(key)
         self._func = func
-        self._default_args = kwargs
+        self._default_kwargs = default_kwargs
 
         # add the key to the class
         Hook.__INSTANCES.add(self)
@@ -327,12 +449,12 @@ class Hook(object):
         return self._key
 
     @property
-    def default_args(self):
-        return self._default_args
+    def default_kwargs(self):
+        return self._default_kwargs
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args, **kwargs):
 
-        return self._func(**kwargs)
+        return self._func(*args, **kwargs)
 
     @classmethod
     def get_current_hooks(cls) -> list:
@@ -385,7 +507,6 @@ class _FeatureExtractor(object):
             hooks = [hooks]
 
         if not all([isinstance(hook, Hook) for hook in hooks]):
-            print(hooks)
             raise ValueError("`hooks` elements expected to be of type `%r`"
                              % Hook)
 
@@ -415,7 +536,7 @@ class _FeatureExtractor(object):
         for hook in self._hooks:
             # check that all arguments are provided
             try:
-                result[hook.key] = hook(**feed_dict, **hook.default_args)
+                result[hook.key] = hook(**feed_dict, **hook.default_kwargs)
             except TypeError as e:
                 if skip:
                     continue
