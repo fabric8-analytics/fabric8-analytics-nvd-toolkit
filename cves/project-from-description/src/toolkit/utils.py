@@ -4,6 +4,8 @@ of data from NVD feed."""
 import re
 import typing
 
+from toolkit.pipeline.hooks import Hook
+
 
 # noinspection PyPep8Naming
 class classproperty(object):  # pylint: disable=invalid-name
@@ -176,3 +178,30 @@ def nvd_to_dataframe(cve_list: list,
 
     # finalize and return the dataframe
     return DataFrame(data=data, columns=columns).assign(**{s.name: s.values for s in lang_data})
+
+
+def clear(func):
+    """Decorator which performs cleanup before function call."""
+
+    # noinspection PyUnusedLocal,PyUnusedLocal
+    def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
+        # perform cleanup
+        Hook.clear_current_instances()
+        exc = None
+        ret_values = None
+
+        # run the function
+        try:
+            ret_values = func(*args, **kwargs)
+        except BaseException as e:
+            # caught any exceptions which will be reraised
+            exc = e
+        finally:
+            # cleanup again
+            Hook.clear_current_instances()
+
+            if exc is not None:
+                raise exc
+            return ret_values
+
+    return wrapper

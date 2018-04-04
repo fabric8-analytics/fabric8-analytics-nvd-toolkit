@@ -10,13 +10,11 @@ from sklearn.pipeline import Pipeline
 from toolkit.preprocessing import \
     NVDFeedPreprocessor, \
     LabelPreprocessor,\
-    NLTKPreprocessor,\
-    FeatureExtractor,\
-    Hook
+    NLTKPreprocessor
 
-# noinspection PyProtectedMember
-from toolkit.preprocessing.preprocessors import _FeatureExtractor
+from toolkit.pipeline import Hook
 from toolkit.config import GITHUB_BASE_URL
+from toolkit.utils import clear
 
 TEST_SENT = "Test sentence, better not to worry too much."
 TEST_DATA = [
@@ -39,33 +37,6 @@ _ = [
     for attr, val in zip(TEST_CVE_ATTR, TEST_CVE_ATTR_VALS)
 ]
 TEST_CVE = TestCVE()
-
-
-def clear(func):
-    """Decorator which performs cleanup before function call."""
-
-    # noinspection PyUnusedLocal,PyUnusedLocal
-    def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
-        # perform cleanup
-        Hook.clear_current_instances()
-        exc = None
-        ret_values = None
-
-        # run the function
-        try:
-            ret_values = func(*args, **kwargs)
-        except BaseException as e:
-            # caught any exceptions which will be reraised
-            exc = e
-        finally:
-            # cleanup again
-            Hook.clear_current_instances()
-
-            if exc is not None:
-                raise exc
-            return ret_values
-
-    return wrapper
 
 
 class TestNLTKPreprocessor(unittest.TestCase):
@@ -244,7 +215,7 @@ class TestLabelPreprocessor(unittest.TestCase):
     @clear
     def test_fit_transform(self):
         """Test LabelPreprocessor `fit_transform` method"""
-        hook = Hook(key='label', func=lambda _: 'label')
+        hook = Hook(key='label', func=lambda p, d: 'label')
         attributes = ['project', 'description']
 
         test_data = [TEST_CVE]
@@ -257,165 +228,9 @@ class TestLabelPreprocessor(unittest.TestCase):
                                        hook=hook)
 
         test_data = label_prep.fit_transform(test_data)
-        # check that only label is returned by the Hook
-        label, = test_data
+        # check that correct label is returned by the Hook
+        label = test_data[0, 1]
 
-        self.assertFalse(not test_data)
+        self.assertTrue(test_data.size > 0)
         self.assertEqual(label, 'label')
 
-
-class TestFeatureExtractor(unittest.TestCase):
-    """Tests for FeatureExtractor class."""
-
-    @clear
-    def test_init(self):
-        """Test FeatureExtractor initialization."""
-        # default parameters
-        prep = FeatureExtractor()
-
-        self.assertIsInstance(prep, FeatureExtractor)
-        self.assertIsInstance(prep, FeatureExtractor)
-
-        # custom feature_keys
-        feature = 'useless-feature'
-        # delete to get rid of old keys
-        del prep
-
-        prep = FeatureExtractor(
-            features={
-                feature: lambda w, t: True,
-            }
-        )
-
-        self.assertIsInstance(prep, FeatureExtractor)
-        self.assertIsInstance(prep, FeatureExtractor)
-        # check that the custom feature_keys has been added
-        self.assertTrue(feature in prep.feature_keys)
-
-    @clear
-    def test_extract_features(self):
-        """Test FeatureExtractor `_extract_features` method"""
-        # preprocess the sentences
-        tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.transform(TEST_DATA)
-
-        # apply default extractors transformation
-        prep = FeatureExtractor()
-
-        sent, label = tokenized[0]
-        result = prep._extract_features(sent, word_pos=0)
-
-        self.assertIsInstance(result, dict)
-        # check few expected results
-        self.assertEqual(result['prev-word'], '<start>')
-        self.assertEqual(result['prev-tag'], '<start>')
-
-    @clear
-    def test_transform(self):
-        """Test FeatureExtractor `fit` method."""
-        # preprocess the sentences
-        tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.transform(TEST_DATA)
-
-        # apply default extractors transformation
-        prep = FeatureExtractor()
-        transform = prep.transform(X=tokenized[:, 0])
-
-        self.assertTrue(len(transform), len(TEST_DATA))
-        # check that all elements ale dicts
-        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
-
-        # delete to get rid of old keys
-        del prep
-
-        # apply transformation with custom feature_keys
-        prep = FeatureExtractor(
-            features={
-                'useless-feature': lambda s, w, t: True,
-            }
-        )
-        with pytest.raises(TypeError):
-            # raises if skip=False (default), since arguments `s`, `w`, `t`
-            # were not fed
-            _ = prep.transform(X=tokenized)
-
-        # skip=True
-        transform = prep.transform(X=tokenized, skip=True)
-
-        self.assertTrue(len(transform), len(TEST_DATA))
-        # check that all elements ale lists
-        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
-
-    @clear
-    def test_pipeline(self):
-        """Test FeatureExtractor as a single pipeline unit."""
-        # should raise, since NLTKPreprocessor does not implement `fit` method
-        with pytest.raises(TypeError):
-            _ = Pipeline([
-                ('preprocessor', FeatureExtractor)
-            ])
-
-
-class TestHook(unittest.TestCase):
-    """Tests for Hook class."""
-
-    def test_hook(self):
-        """Test Hook initialization and key handling."""
-        hook = Hook(key='key', func=lambda: 'test')
-
-        self.assertEqual(hook.key, 'key')
-        # w/o args
-        self.assertEqual(hook(), 'test')
-        # check invalid key
-        with pytest.raises(ValueError):
-            _ = Hook(key='key', func=lambda: None)
-
-        # hook with args
-        hook_args = Hook(key='key_', func=lambda x: x)
-
-        self.assertEqual(Hook.get_current_keys(), {'key', 'key_'})
-        self.assertEqual(hook_args.key, 'key_')
-
-
-# noinspection PyPep8Naming
-class Test_FeatureExtractor(unittest.TestCase):
-    """Tests for _FeatureExtractor class."""
-
-    @clear
-    def test_init(self):
-        """Test _FeatureExtractor initialization."""
-        _prep = _FeatureExtractor()
-
-        self.assertFalse(not _prep._hooks)  # pylint: disable=protected-access
-
-    @clear
-    def test_update(self):
-        """Test _FeatureExtractor update method."""
-
-        hook = Hook(key='key', func=lambda: None)
-        _prep = _FeatureExtractor().update(hook)
-
-        self.assertTrue('key' in _prep.keys)
-
-    @clear
-    def test_feed(self):
-        """Test _FeatureExtractor feed method."""
-        hook = Hook(key='key', func=lambda x: x)
-        _prep = _FeatureExtractor().update(hook)
-
-        # feed the extractor with skip=True
-        result = _prep.feed({'x': 'test'}, skip=True)
-        self.assertIsInstance(result, dict)
-
-        key, value = list(*result.items())
-
-        self.assertEqual(key, 'key')
-        self.assertEqual(value, 'test')
-
-        # feed and disable skip
-        with pytest.raises(TypeError):
-            result = _prep.feed({'x': 'test'}, skip=False)
-            key, value = list(*result.items())
-
-            self.assertEqual(key, 'key')
-            self.assertEqual(value, 'test')
