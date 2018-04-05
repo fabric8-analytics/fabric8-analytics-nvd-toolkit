@@ -4,6 +4,7 @@ The transformers are used in train and predict pipelines and implement
 the `transform` or `fit_transform` methods for this purpose
 """
 
+import sys
 import typing
 
 import numpy as np
@@ -14,7 +15,7 @@ from toolkit.pipeline.hooks import Hook
 
 # noinspection PyTypeChecker
 class FeatureExtractor(TransformerMixin):
-    """Feature extractor implementing `fit` for scikit pipelines.
+    """Feature extractor implementing `transform` for scikit pipelines.
 
     By default, constructs vanilla feature extractor with basic features
     and positional context information.
@@ -39,10 +40,14 @@ class FeatureExtractor(TransformerMixin):
         """Return list of hooks of selected feature_keys."""
         return self._extractor.keys
 
+    # noinspection PyPep8Naming, PyUnusedLocal
+    def fit(self, X, y=None):  # pylint: disable=invalid-name,unused-argument
+        """Auxiliary method to enable pipeline functionality."""
+        return self
+
     # noinspection PyPep8Naming
     def transform(self,
-                  X: typing.Iterable,  # pylint: disable=invalid-name
-                  y: typing.Iterable = None,
+                  X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
                   skip=False) -> typing.List[typing.List[dict]]:
         """Apply transformation to each element in X.
 
@@ -51,14 +56,11 @@ class FeatureExtractor(TransformerMixin):
         classification label (if provided). The classification label is a bool
         indicating whether the label provided by `y` matches the token.
 
-        :param X: Iterable, each element should be tuple of (tagged_sentence, label)
+        :param X: list or ndarray, each element should be tuple of (tagged_sentence, label)
 
             Ie. an input should be a list of tuples (List[(token, tag)], label),
             which is expected to be the output of NLTKPreprocessor or custom
             tokenization process.
-
-        :param y: Iterable of labels for the given sentences (must be the same
-        length as `X`)
 
         :param skip: bool, whether to skip unfed hooks
 
@@ -72,11 +74,19 @@ class FeatureExtractor(TransformerMixin):
         """
         transformed = list()
 
-        if y is None:
-            y = [None] * len(list(X))
-        assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+        if isinstance(X, list):
+            X = np.array(X)
 
-        for tagged_sent, label in zip(X, y):
+        # shape should be (?, 2) if labels are provided
+        if len(X.shape) > 2:
+            # assume labels are missing
+            print("in FeatureExtractor.transform: WARNING:"
+                  " unexpected value of `X.shape`, assuming labels were"
+                  " not provided.", file=sys.stderr)
+            # fill the labels
+            X = np.array([[x, None] for x in X])
+
+        for (tagged_sent, label) in X:
             transformed.extend([
                 (
                     self._extract_features(tagged_sent, word_pos=j, skip=skip),
@@ -85,8 +95,6 @@ class FeatureExtractor(TransformerMixin):
                 ) for j in range(len(tagged_sent))
             ])
 
-        # pycharm is confused about the `None` initialization
-        # noinspection PyPep8Naming
         return np.array(transformed)
 
     def _extract_features(self,

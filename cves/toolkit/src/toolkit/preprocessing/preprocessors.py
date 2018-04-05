@@ -22,9 +22,9 @@ from toolkit import utils
 class NVDFeedPreprocessor(TransformerMixin):
     """Preprocessor collecting relevant data from NVD feed.
 
-    :param attributes: Iterable of attributes to extract,
+    :param attributes: list or ndarray of attributes to extract,
 
-        While `fit`, each attribute will be gathered from each element
+        While `transform`, each attribute will be gathered from each element
         of the list fed to the method and return in the resulting tuple.
 
         If None, ('cve_id', 'references', 'description') are selected by default
@@ -38,13 +38,14 @@ class NVDFeedPreprocessor(TransformerMixin):
     """
 
     def __init__(self,
-                 attributes: typing.Iterable = None,
+                 attributes: typing.Union[list, np.ndarray] = None,
                  handler=GitHubHandler,
                  skip_duplicity=False):
-        if attributes and not isinstance(attributes, typing.Iterable):
+
+        if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
             raise TypeError(
                 "Argument `attributes` expected to be of type `{}`, got `{}`"
-                .format(typing.Iterable, type(attributes))
+                .format(typing.Union[list, np.ndarray], type(attributes))
             )
 
         attributes = tuple(attributes) if attributes else ('cve_id', 'references', 'description')
@@ -62,14 +63,19 @@ class NVDFeedPreprocessor(TransformerMixin):
 
         self._handler = handler
 
+    # noinspection PyPep8Naming, PyUnusedLocal
+    def fit(self, X, y=None):  # pyling: disable=invalid-name,unused-argument
+        """Auxiliary method to enable pipeline functionality."""
+        return self
+
     # noinspection PyPep8Naming
-    def transform(self, X: typing.Iterable):  # pylint: disable=invalid-name
+    def transform(self, X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
         """Apply transformation to each element in `cves`.
 
         This transformation outputs list of tuples
 
         :param X:
-            Iterable, each element is assumed to be of type "nvdlib.model.CVE"
+            list or ndarray, each element is assumed to be of type "nvdlib.model.CVE"
             or an object implementing attributes given in `attr_list`
 
         :returns: list of shape (len(x), len(attr_list))
@@ -91,7 +97,7 @@ class NVDFeedPreprocessor(TransformerMixin):
         """
         return self.transform(X)
 
-    def _filter_by_handler(self, cves: typing.Iterable) -> typing.List[tuple]:
+    def _filter_by_handler(self, cves: typing.Union[list, np.ndarray]) -> typing.List[tuple]:
         """Filter the given elements by specified handler.
 
         NOTE: The only supported handler ATM is `GitHubHandler`, hence
@@ -146,8 +152,8 @@ class LabelPreprocessor(TransformerMixin):
 
     This preprocessor assign labels to the given set by creating.
 
-    :param attributes: list, attributes to be extracted from the `X`
-    while `fit` or `fit_transform` call and fed to the hook.
+    :param feed_attributes: list, attributes to be extracted from the `X`
+    while `transform` or `fit_transform` call and fed to the hook.
 
     NOTE: attributes of `X` are extracted by `getattr` function, make
     sure that the `X` implements __get__ method.
@@ -155,53 +161,68 @@ class LabelPreprocessor(TransformerMixin):
     :param hook: Hook, hook to be called on the each element of `X`
     while `fit_transform` call and will be fed the element of `X` (
     which should be a `namedtuple`).
+
+    :param output_attributes: list, attributes to be returned
+
+        By default output_attributes are the same as feed_attributes.
     """
 
-    def __init__(self, attributes: list, hook: "Hook"):
-        self._attributes = attributes
+    def __init__(self,
+                 feed_attributes: list,
+                 hook: "Hook",
+                 output_attributes: list = None):
+        self._feed_attributes = feed_attributes
+        self._output_attributes = output_attributes or self._feed_attributes
         if not isinstance(hook, Hook):
             raise TypeError("Argument `hook` expected to be of type `{}`, got `{}"
                             .format(Hook, type(hook)))
         self._hook = hook
+        self._labels = None
+
+    @property
+    def labels(self):
+        return self._labels
+
+    # noinspection PyPep8Naming
+    def fit(self, X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
+        """Fit the preprocessor to the given data."""
+
+        Attribute = namedtuple('Attributes', field_names=self._feed_attributes)
+
+        self._labels = [None] * len(X)
+        for i, x in enumerate(X):
+            # noinspection PyTypeChecker
+            self._labels[i] = self._hook(*Attribute(
+                *tuple(getattr(x, attr) for attr in self._feed_attributes)
+            ))
+
+        return self
 
     # noinspection PyPep8Naming
     def transform(self,
-            X: typing.Iterable):  # pylint: disable=invalid-name
-        """Fit the data provided in `X` by extracting attributes specified
-        while initializaiton."""
-        Attribute = namedtuple('Attributes', field_names=self._attributes)
+                  X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
+        """Transforms the data provided in `X` by extracting output attributes specified
+        while initialization."""
 
-        transformed = list()
-        for x in X:
-            transformed.append(Attribute(
-                *tuple(getattr(x, attr) for attr in self._attributes)
-            ))
-
-        return transformed
-
-    # noinspection PyPep8Naming
-    def fit(self, X: typing.Iterable):  # pylint: disable=invalid-name
-        """Apply transformation by applying provided hook to each element."""
-
+        # noinspection PyTypeChecker
         return np.array([
-            (t, self._hook(*t)) for t in X
+            (getattr(x, attr), label) for attr in self._output_attributes
+            for x, label in zip(X, self._labels)
         ])
 
     # noinspection PyPep8Naming
     def fit_transform(self,
-                      X: typing.Iterable,  # pylint: disable=invalid-name
+                      X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
                       y=None,
                       **fit_params):
 
-        # perform fit
-        transformed = self.transform(X)
+        self.fit(X)
 
-        # transform and return
-        return self.fit(transformed)
+        return self.transform(X)
 
 
 class NLTKPreprocessor(TransformerMixin):
-    """Preprocessor implementing `fit` method for scikit pipelines.
+    """Preprocessor implementing `transform` method for scikit pipelines.
 
     This preprocessor performs tokenization, stemming and lemmatization
     by default. Processors used for these operations are customizable.
@@ -217,7 +238,7 @@ class NLTKPreprocessor(TransformerMixin):
 
             If provided, each tag is matched to a pattern in this dictionary
             and corrected, if applicable.
-        :param lower: bool, whether to fit tokens to lowercase
+        :param lower: bool, whether to transform tokens to lowercase
         :param strip: bool, whether to strip tokens
     """
 
@@ -241,42 +262,62 @@ class NLTKPreprocessor(TransformerMixin):
         self._lang = lang
         self._tag_dict = tag_dict or dict()
 
+        self._y = None
+
     # noinspection PyPep8Naming
     @staticmethod
-    def inverse_transform(X: typing.Iterable) -> np.ndarray:  # pylint: disable=invalid-name
-        """Inverse operation to the `fit` method.
+    def inverse_transform(X: typing.Union[list, np.ndarray]) -> np.ndarray:  # pylint: disable=invalid-name
+        """Inverse operation to the `transform` method.
 
         Returns list of shape (len(X),) with the tokens stored in X.
 
         Note that this does not return the original data provided
-        to `fit` method, since lemmatization and stemming
+        to `transform` method, since lemmatization and stemming
         are not reversible operations and for memory sake, lowercase changes
         are not stored in memory either.
         """
         return np.array([
-            list(x[0] for x in X)
+            x[0] for x in X
         ])
 
+    # noinspection PyPep8Naming, PyUnusedLocal
+    def fit(self, X: typing.Union[list, np.ndarray], y=None):  # pyling: disable=invalid-name,unused-argument
+        """Fits the preprocessor to the given data."""
+        # store the targets
+        if y is not None:
+            if not isinstance(y, np.ndarray):
+                y = np.array(y)
+
+            assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+        self._y = y
+
+        return self
+
     # noinspection PyPep8Naming
-    def transform(self, X: typing.Iterable, y: typing.Iterable = None) -> np.ndarray:  # pylint: disable=invalid-name
-        """Apply transformation to each element in X.
+    def transform(self,
+                  X: typing.Union[list, np.ndarray]) -> typing.Any:  # pylint: disable=invalid-name
+        """Fit to each element in X.
 
         This transformation outputs list of the shape (len(X), 2)
         where each element of the list is a tuple of (token, tag).
 
-        :param X: Iterable, each element should be a string to be tokenized
-        :param y: Iterable, labels for each element in X (must be the same
+        :param X: list or ndarray, each element should be a string to be tokenized
+        :param y: list or ndarray, labels for each element in X (must be the same
         length as `X`)
 
-        :returns: list of shape (len(x), 2)
+        :returns: np.ndarray of shape (len(x), 2)
         """
-        if not y:
-            y = [None] * len(list(X))
-        assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+        if self._y is not None:
+            result = np.array([
+                [self.tokenize(sent), y] for sent, y in zip(X, self._y)
+            ])
 
-        return np.array([
-            [np.array(list(self.tokenize(sent))), label] for sent, label in zip(X, y)
-        ])
+        else:
+            result = np.array([
+                list(self.tokenize(sent)) for sent in X
+            ])
+
+        return result
 
     def tokenize(self, sentence: str):
         """Performs tokenization of a given sentence.
@@ -285,6 +326,7 @@ class NLTKPreprocessor(TransformerMixin):
         # Tokenize the sentence with the given tokenizer
         tokenized = self._tokenizer.tokenize(sentence)
 
+        result = list()
         for token, tag in nltk.pos_tag(tokenized, tagset='universal'):
             # Check and correct (if applicable) the tag against given patterns
             for pattern, correction in self._tag_dict.items():
@@ -312,7 +354,9 @@ class NLTKPreprocessor(TransformerMixin):
                 # skip if the token can not be lemmatized (eg. tags 'PRT')
                 continue
 
-            yield token, tag
+            result.append((token, tag))
+
+        return np.array(result)
 
     def stem(self, token: str):
         """Stem the word and return the stem."""

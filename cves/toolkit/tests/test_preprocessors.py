@@ -2,7 +2,6 @@
 
 import re
 import typing
-import pytest
 import unittest
 
 from sklearn.pipeline import Pipeline
@@ -28,7 +27,7 @@ TEST_REPOSITORY = GITHUB_BASE_URL + 'python/cpython'
 TestCVE = type('TestCVE', (), {})
 
 # set up cve attributes and their values
-TEST_CVE_ATTR = ('cve_id', 'references', 'description')
+TEST_CVE_ATTR = ['cve_id', 'references', 'description']
 TEST_CVE_ATTR_VALS = ('cve_id', [TEST_REPOSITORY], 'description')
 
 # assign attributes
@@ -64,22 +63,17 @@ class TestNLTKPreprocessor(unittest.TestCase):
             stopwords=True,
             lower=True
         )
-        tokenized = prep.tokenize(TEST_SENT)
-        self.assertIsInstance(tokenized, typing.Generator)
+        result = prep.tokenize(TEST_SENT)
+        self.assertIsInstance(result, typing.Iterable)
 
-        result = list(tokenized)
-
-        # check that the list is not empty
-        self.assertIsInstance(result, list)
+        print(result)
         # check that punctuation has been got rid of
         self.assertFalse(any(re.match(u"[,.]", t[0]) for t in result))
-        # check that the resulting list contains tuples
-        self.assertTrue(all(isinstance(t, tuple) for t in result))
-        # check that the list contains tuples of same type
+        # check that the list contains elements of same type
         self.assertTrue(all(isinstance(t[0], type(t[1])) for t in result))
 
     def test_transform(self):
-        """Test NLTKPreprocessor `fit` method."""
+        """Test NLTKPreprocessor `transform` method."""
         # custom parameters
         prep = NLTKPreprocessor(
             stopwords=True,
@@ -95,11 +89,11 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
     def test_pipeline(self):
         """Test NLTKPreprocessor as a single pipeline unit."""
-        # should raise, since NLTKPreprocessor does not implement `fit` method
-        with pytest.raises(TypeError):
-            _ = Pipeline([
-                ('preprocessor', NLTKPreprocessor)
-            ])
+        # should not raise, since NLTKPreprocessor does implement `fit `
+        # and `transform` methods
+        _ = Pipeline([
+            ('preprocessor', NLTKPreprocessor)
+        ])
 
 
 class TestNVDFeedPreprocessor(unittest.TestCase):
@@ -119,7 +113,7 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
         self.assertIsInstance(prep, NVDFeedPreprocessor)
 
     def test_transform(self):
-        """Test NVDFeedPreprocessor `fit` method."""
+        """Test NVDFeedPreprocessor `transform` method."""
         # custom parameters
         prep = NVDFeedPreprocessor(
             attributes=TEST_CVE_ATTR  # only extract cve_id
@@ -172,11 +166,11 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
 
     def test_pipeline(self):
         """Test NVDFeedPreprocessor as a single pipeline unit."""
-        # should raise, since NLTKPreprocessor does not implement `fit` method
-        with pytest.raises(TypeError):
-            _ = Pipeline([
-                ('preprocessor', NVDFeedPreprocessor)
-            ])
+        # should not raise, since NLTKPreprocessor does implement `fit`
+        # and `transform` methods
+        _ = Pipeline([
+            ('preprocessor', NVDFeedPreprocessor)
+        ])
 
 
 class TestLabelPreprocessor(unittest.TestCase):
@@ -186,7 +180,7 @@ class TestLabelPreprocessor(unittest.TestCase):
         hook = Hook(key='label', func=lambda x: x)
         attributes = ['project']
 
-        label_prep = LabelPreprocessor(attributes=attributes,
+        label_prep = LabelPreprocessor(feed_attributes=attributes,
                                        hook=hook)
 
         self.assertIsInstance(label_prep, LabelPreprocessor)
@@ -204,7 +198,7 @@ class TestLabelPreprocessor(unittest.TestCase):
         feed_prep = NVDFeedPreprocessor(attributes, skip_duplicity=True)
         test_data = feed_prep.transform(X=test_data)
 
-        label_prep = LabelPreprocessor(attributes=attributes,
+        label_prep = LabelPreprocessor(feed_attributes=attributes,
                                        hook=hook)
         test_data = label_prep.fit(test_data)
         self.assertFalse(not test_data)
@@ -224,7 +218,7 @@ class TestLabelPreprocessor(unittest.TestCase):
         feed_prep = NVDFeedPreprocessor(attributes, skip_duplicity=True)
         test_data = feed_prep.transform(X=test_data)
 
-        label_prep = LabelPreprocessor(attributes=attributes,
+        label_prep = LabelPreprocessor(feed_attributes=attributes,
                                        hook=hook)
 
         test_data = label_prep.fit_transform(test_data)

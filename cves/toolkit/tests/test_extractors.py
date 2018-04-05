@@ -55,7 +55,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # apply default extractors transformation
         prep = FeatureExtractor()
 
-        sent, label = tokenized[0]
+        sent = tokenized[0]
         result = prep._extract_features(sent, word_pos=0)
 
         self.assertIsInstance(result, dict)
@@ -65,14 +65,14 @@ class TestFeatureExtractor(unittest.TestCase):
 
     @clear
     def test_transform(self):
-        """Test FeatureExtractor `fit` method."""
+        """Test FeatureExtractor `transform` method."""
         # preprocess the sentences
         tokenizer = NLTKPreprocessor()
         tokenized = tokenizer.transform(TEST_DATA)
 
         # apply default extractors transformation
         prep = FeatureExtractor()
-        transform = prep.transform(X=tokenized[:, 0])
+        transform = prep.transform(X=tokenized)
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that all elements ale dicts
@@ -102,11 +102,11 @@ class TestFeatureExtractor(unittest.TestCase):
     @clear
     def test_pipeline(self):
         """Test FeatureExtractor as a single pipeline unit."""
-        # should raise, since NLTKPreprocessor does not implement `fit` method
-        with pytest.raises(TypeError):
-            _ = Pipeline([
-                ('preprocessor', FeatureExtractor)
-            ])
+        # should not raise, since NLTKPreprocessor does implement `fit`
+        # and `transform` methods
+        _ = Pipeline([
+            ('preprocessor', FeatureExtractor)
+        ])
 
 
 # noinspection PyPep8Naming
