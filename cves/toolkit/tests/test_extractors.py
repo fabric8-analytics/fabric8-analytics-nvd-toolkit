@@ -6,9 +6,9 @@ import unittest
 from sklearn.pipeline import Pipeline
 
 from toolkit.preprocessing import NLTKPreprocessor
-from toolkit.pipeline import FeatureExtractor, Hook
+from toolkit.transformers import FeatureExtractor, Hook
 # noinspection PyProtectedMember
-from toolkit.pipeline.extractors import _FeatureExtractor  # pylint: disable=protected-access
+from toolkit.transformers.extractors import _FeatureExtractor  # pylint: disable=protected-access
 from toolkit.utils import clear
 
 TEST_DATA = [
@@ -76,7 +76,7 @@ class TestFeatureExtractor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that all elements ale dicts
-        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
+        self.assertTrue(all([isinstance(obj, dict) for obj in transform[:, 1]]))
 
         # delete to get rid of old keys
         del prep
@@ -97,7 +97,7 @@ class TestFeatureExtractor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that all elements ale lists
-        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 0]))
+        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 1]))
 
     @clear
     def test_pipeline(self):

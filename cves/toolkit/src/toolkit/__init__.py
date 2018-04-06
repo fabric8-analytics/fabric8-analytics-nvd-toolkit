@@ -1,8 +1,8 @@
-from . import config
-from . import pipeline
-from . import preprocessing
-from . import scripts
-from . import utils
+from toolkit import config
+from toolkit import transformers
+from toolkit import preprocessing
+from toolkit import pipelines
+from toolkit import utils
 
 
 __version__ = '0.1.1'

@@ -10,7 +10,7 @@ import typing
 import numpy as np
 from sklearn.base import TransformerMixin
 
-from toolkit.pipeline.hooks import Hook
+from toolkit.transformers.hooks import Hook
 
 
 # noinspection PyTypeChecker
@@ -28,12 +28,13 @@ class FeatureExtractor(TransformerMixin):
     """
 
     def __init__(self,
-                 features=None):
+                 features=None,
+                 share_hooks=False):
         if isinstance(features, dict):
             # create hooks from the dictionary
-            features = [Hook(k, v) for k, v in features.items()]
+            features = [Hook(k, v, reuse=share_hooks) for k, v in features.items()]
 
-        self._extractor = _FeatureExtractor().update(features or [])
+        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(features or [])
 
     @property
     def feature_keys(self):
@@ -89,7 +90,7 @@ class FeatureExtractor(TransformerMixin):
         for (tagged_sent, label) in X:
             transformed.extend([
                 (
-                    self._extract_features(tagged_sent, word_pos=j, skip=skip),
+                    tagged_sent[j], self._extract_features(tagged_sent, word_pos=j, skip=skip),
                     # whether the token matches the label
                     label == tagged_sent[j][0] if label else None
                 ) for j in range(len(tagged_sent))
@@ -115,15 +116,15 @@ class FeatureExtractor(TransformerMixin):
 class _FeatureExtractor(object):
     """Core of the FeatureExtractor handling hook operations."""
 
-    def __init__(self):
+    def __init__(self, share_hooks=False):
         # default hooks to be called by FeatureExtractor
         self._hooks = [
-            Hook('prev-word', self._prev_ngram, n=1),
-            Hook('prev-tag', self._prev_ngram, n=1),
-            Hook('prev-bigram', self._prev_ngram, n=2),
-            Hook('next-bigram', self._next_ngram, n=2),
-            Hook('prev-bigram-tags', self._prev_ngram_tags, n=2),
-            Hook('next-bigram-tags', self._next_ngram_tags, n=2)
+            Hook('prev-word', self._prev_ngram, reuse=share_hooks, n=1),
+            Hook('prev-tag', self._prev_ngram, reuse=share_hooks, n=1),
+            Hook('prev-bigram', self._prev_ngram, reuse=share_hooks, n=2),
+            Hook('next-bigram', self._next_ngram, reuse=share_hooks, n=2),
+            Hook('prev-bigram-tags', self._prev_ngram_tags, reuse=share_hooks, n=2),
+            Hook('next-bigram-tags', self._next_ngram_tags, reuse=share_hooks, n=2)
         ]
 
     @property

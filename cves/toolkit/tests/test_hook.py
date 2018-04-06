@@ -3,7 +3,7 @@
 import pytest
 import unittest
 
-from toolkit.pipeline import Hook
+from toolkit.transformers import Hook
 
 
 class TestHook(unittest.TestCase):

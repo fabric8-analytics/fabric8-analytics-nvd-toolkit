@@ -15,7 +15,7 @@ from collections import namedtuple
 from sklearn.base import TransformerMixin
 
 from toolkit.preprocessing import GitHubHandler
-from toolkit.pipeline import Hook
+from toolkit.transformers import Hook
 from toolkit import utils
 
 
@@ -170,7 +170,8 @@ class LabelPreprocessor(TransformerMixin):
     def __init__(self,
                  feed_attributes: list,
                  hook: "Hook",
-                 output_attributes: list = None):
+                 output_attributes: list = None,
+                 allow_nan_labels=False):
         self._feed_attributes = feed_attributes
         self._output_attributes = output_attributes or self._feed_attributes
         if not isinstance(hook, Hook):
@@ -178,6 +179,7 @@ class LabelPreprocessor(TransformerMixin):
                             .format(Hook, type(hook)))
         self._hook = hook
         self._labels = None
+        self._allow_nan_labels = allow_nan_labels
 
     @property
     def labels(self):
@@ -204,10 +206,16 @@ class LabelPreprocessor(TransformerMixin):
         """Transforms the data provided in `X` by extracting output attributes specified
         while initialization."""
 
+        def allow_label(l):
+            if l is None:
+                return self._allow_nan_labels
+
+            return True
+
         # noinspection PyTypeChecker
         return np.array([
             (getattr(x, attr), label) for attr in self._output_attributes
-            for x, label in zip(X, self._labels)
+            for x, label in zip(X, self._labels) if allow_label(label)
         ])
 
     # noinspection PyPep8Naming

@@ -4,7 +4,7 @@ of data from NVD feed."""
 import re
 import typing
 
-from toolkit.pipeline.hooks import Hook
+from toolkit.transformers.hooks import Hook
 
 
 # noinspection PyPep8Naming

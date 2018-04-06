@@ -22,13 +22,19 @@ class Hook(object):
         foo_hook = Hook('foo', foo, verbose=True)
         # and on the call
         foo_hook(x=None)  # prints 'verbosity on'
+
+    :param reuse: whether to reuse (share) the Hook
     """
 
     __INSTANCES = weakref.WeakSet()
 
-    def __init__(self, key: str, func, **default_kwargs):
+    def __init__(self, key: str, func, reuse=False, **default_kwargs):
         if key in Hook.get_current_keys():
-            raise ValueError("Hook with key `%s` already exists" % key)
+            if not reuse:
+                raise ValueError("Hook with key `%s` already exists" % key)
+            else:
+                # TODO: share the existing hook instead of creating a new one
+                pass
 
         # attr initialization
         self._key = str(key)

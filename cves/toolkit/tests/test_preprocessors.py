@@ -11,7 +11,7 @@ from toolkit.preprocessing import \
     LabelPreprocessor,\
     NLTKPreprocessor
 
-from toolkit.pipeline import Hook
+from toolkit.transformers import Hook
 from toolkit.config import GITHUB_BASE_URL
 from toolkit.utils import clear
 
