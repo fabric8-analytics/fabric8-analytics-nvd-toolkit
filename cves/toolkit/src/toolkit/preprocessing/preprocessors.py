@@ -128,23 +128,23 @@ class NVDFeedPreprocessor(TransformerMixin):
         handler = self._handler(url=ref)
 
         # attribute creator
-        Attributes = namedtuple(
-            'Attributes',
+        Series = namedtuple(
+            'Series',
             handler.default_properties + self._cve_attributes
         )
 
         # initialize with handlers default data
         data = list()
         for prop in handler.default_properties:
-            attr = getattr(handler, prop, None)
+            attr = getattr(handler, prop)
             if attr is not None:
                 data.append(attr)
 
         data.extend([
-            getattr(cve, attr, None) for attr in self._cve_attributes
+            getattr(cve, attr) for attr in self._cve_attributes
         ])
 
-        return Attributes(*data)
+        return Series(*data)
 
 
 class LabelPreprocessor(TransformerMixin):
@@ -168,17 +168,28 @@ class LabelPreprocessor(TransformerMixin):
     """
 
     def __init__(self,
-                 feed_attributes: list,
                  hook: "Hook",
+                 feed_attributes: list,
                  output_attributes: list = None,
                  allow_nan_labels=False):
+
+        if not isinstance(feed_attributes, typing.Iterable):
+            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(feed_attributes)))
+
         self._feed_attributes = feed_attributes
-        self._output_attributes = output_attributes or self._feed_attributes
+        self._output_attributes = output_attributes or [] or self._feed_attributes
+
+        if not isinstance(self._output_attributes, typing.Iterable):
+            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
+
         if not isinstance(hook, Hook):
             raise TypeError("Argument `hook` expected to be of type `{}`, got `{}"
                             .format(Hook, type(hook)))
         self._hook = hook
         self._labels = None
+
         self._allow_nan_labels = allow_nan_labels
 
     @property
@@ -186,15 +197,15 @@ class LabelPreprocessor(TransformerMixin):
         return self._labels
 
     # noinspection PyPep8Naming
-    def fit(self, X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
+    def fit(self, X: typing.Union[list, np.ndarray], y=None, **fitparams):  # pylint: disable=invalid-name
         """Fit the preprocessor to the given data."""
 
-        Attribute = namedtuple('Attributes', field_names=self._feed_attributes)
+        Series = namedtuple('Attributes', field_names=self._feed_attributes)
 
         self._labels = [None] * len(X)
         for i, x in enumerate(X):
             # noinspection PyTypeChecker
-            self._labels[i] = self._hook(*Attribute(
+            self._labels[i] = self._hook(*Series(
                 *tuple(getattr(x, attr) for attr in self._feed_attributes)
             ))
 
@@ -212,11 +223,27 @@ class LabelPreprocessor(TransformerMixin):
 
             return True
 
+        Series = namedtuple('Series', [*self._output_attributes, 'label'])
+
+        if self._labels is None:
+            self._labels = [None] * len(X)
+
         # noinspection PyTypeChecker
-        return np.array([
-            (getattr(x, attr), label) for attr in self._output_attributes
+        result = [
+            getattr(x, attr) for attr in self._output_attributes
             for x, label in zip(X, self._labels) if allow_label(label)
-        ])
+        ]
+
+        # create relevant labels
+        labels = [label for label in self._labels if allow_label(label)]
+
+        # in case no label was found, return Series of empty values
+        if not result:
+            result = [[]] * len(self._output_attributes)
+
+        return [
+            Series(res, label) for res, label in zip(result, labels)
+        ]
 
     # noinspection PyPep8Naming
     def fit_transform(self,
@@ -270,11 +297,14 @@ class NLTKPreprocessor(TransformerMixin):
         self._lang = lang
         self._tag_dict = tag_dict or dict()
 
+        # prototyped
         self._y = None
+        self._feed_attributes = None
+        self._output_attributes = None
 
     # noinspection PyPep8Naming
     @staticmethod
-    def inverse_transform(X: typing.Union[list, np.ndarray]) -> np.ndarray:  # pylint: disable=invalid-name
+    def inverse_transform(X: typing.Union[list, np.ndarray]) -> list:  # pylint: disable=invalid-name
         """Inverse operation to the `transform` method.
 
         Returns list of shape (len(X),) with the tokens stored in X.
@@ -284,55 +314,121 @@ class NLTKPreprocessor(TransformerMixin):
         are not reversible operations and for memory sake, lowercase changes
         are not stored in memory either.
         """
-        return np.array([
+
+        return [
             x[0] for x in X
-        ])
+        ]
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X: typing.Union[list, np.ndarray], y=None):  # pyling: disable=invalid-name,unused-argument
-        """Fits the preprocessor to the given data."""
-        # store the targets
-        if y is not None:
-            if not isinstance(y, np.ndarray):
-                y = np.array(y)
+    def fit(self, X: typing.Iterable, y=None, **fit_params):  # pyling: disable=invalid-name,unused-argument
+        """Fits the preprocessor to the given data.
 
+        :param X: Iterable, each element should be a string to be tokenized
+        :param y: Iterable, labels for each element in X (must be the same
+        length as `X`)
+        :param fit_params: kwargs, optional arguments to be used during fitting
+        and transformation
+
+            feed_attributes: # TODO
+            output_attributes:
+        """
+        # store the targets
+        self._feed_attributes = fit_params.get('feed_attributes', [])
+        self._output_attributes = fit_params.get('output_attributes', [])
+
+        if not isinstance(self._feed_attributes, list):
+            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
+
+        if not isinstance(self._output_attributes, typing.Iterable):
+            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
+        if y is not None:
             assert len(list(X)) == len(list(y)), "len(X) != len(y)"
+
+            self._output_attributes = [*self._output_attributes, 'labels']
+
         self._y = y
 
         return self
 
     # noinspection PyPep8Naming
     def transform(self,
-                  X: typing.Union[list, np.ndarray]) -> typing.Any:  # pylint: disable=invalid-name
+                  X: typing.Iterable) -> typing.Any:  # pylint: disable=invalid-name
         """Fit to each element in X.
 
         This transformation outputs list of the shape (len(X), 2)
         where each element of the list is a tuple of (token, tag).
 
-        :param X: list or ndarray, each element should be a string to be tokenized
-        :param y: list or ndarray, labels for each element in X (must be the same
-        length as `X`)
+        :param X: Iterable, each element should be a string to be tokenized
 
-        :returns: np.ndarray of shape (len(x), 2)
+        :returns: namedtuple of the same shape as `X` if `y` is None, otherwise
+        adds one dimension for `y` elements
         """
-        if self._y is not None:
-            result = np.array([
-                [self.tokenize(sent), y] for sent, y in zip(X, self._y)
-            ])
+
+        if self._feed_attributes:
+            X_feed = [
+                getattr(x, attr) for attr in self._feed_attributes
+                for x in X
+            ]
+
+            intermediate_result = [
+                self.tokenize(x) for x in X_feed
+            ]
 
         else:
-            result = np.array([
-                list(self.tokenize(sent)) for sent in X
-            ])
+            intermediate_result = [
+                self.tokenize(sent) for sent in X
+            ]
+
+        Series = namedtuple('Series', ['tagged'] + self._output_attributes)
+
+        additional_output = [
+            getattr(x, attr) for attr in self._output_attributes
+            for x in X
+        ]
+
+        if additional_output:
+            result = [
+                Series(res, adds) for res, adds in zip(intermediate_result, additional_output)
+            ]
+        else:
+            result = [
+                Series(res) for res in intermediate_result
+            ]
 
         return result
 
-    def tokenize(self, sentence: str):
-        """Performs tokenization of a given sentence.
+    # noinspection PyPep8Naming
+    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
+        """Convenient method combining `fit` and `transform` methods.
 
-        This is key method for transformation process."""
-        # Tokenize the sentence with the given tokenizer
-        tokenized = self._tokenizer.tokenize(sentence)
+        Speeds up the transformation process.
+
+        :param X: Iterable, each element should be a string to be tokenized
+        :param y: Iterable, labels for each element in X (must be the same
+        length as `X`)
+        :param fit_params: kwargs, optional arguments to be used during fitting
+        and transformation
+
+            transform_along_axis: int, if specified, `X` is transformed along this axis and the
+            rest of data is returned unchanged
+
+        :returns: namedtuple the same shape as `X` if `y` is None, otherwise
+        adds one dimension for `y` elements
+        """
+        self.fit(X, y, **fit_params)
+
+        return self.transform(X)
+
+    def tokenize(self, stream: str):
+        """Performs tokenization of each sentence given in the list."""
+
+        if not isinstance(stream, str):
+            raise TypeError("Tokenization process expects input of type `{}`,"
+                            "got `{}`".format(str, type(stream)))
+
+        tokenized = self._tokenizer.tokenize(stream)
 
         result = list()
         for token, tag in nltk.pos_tag(tokenized, tagset='universal'):
@@ -364,14 +460,16 @@ class NLTKPreprocessor(TransformerMixin):
 
             result.append((token, tag))
 
-        return np.array(result)
+        return result
 
     def stem(self, token: str):
         """Stem the word and return the stem."""
+        return token  # FIMXE: DEBUG
         return self._stemmer.stem(token)
 
     def lemmatize(self, token: str, tag: str):
         """Lemmatize the token based on its tag and return the lemma."""
         # The lemmatizer expects the `pos` argument to be first letter
         # of positional tag of the universal set (which we use by default)
+        return token  # FIMXE: DEBUG
         return self._lemmatizer.lemmatize(token, pos=tag[0].lower())

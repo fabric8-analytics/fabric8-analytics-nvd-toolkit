@@ -1,6 +1,5 @@
 """Tests for extractors module."""
 
-import pytest
 import unittest
 
 from sklearn.pipeline import Pipeline
@@ -50,13 +49,13 @@ class TestFeatureExtractor(unittest.TestCase):
         """Test FeatureExtractor `_extract_features` method"""
         # preprocess the sentences
         tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.transform(TEST_DATA)
+        tokenized = tokenizer.fit_transform(TEST_DATA)
+        sent = tokenized.values[0][0]
 
         # apply default extractors transformation
         prep = FeatureExtractor()
-
-        sent = tokenized[0]
         result = prep._extract_features(sent, word_pos=0)
+        print(result)
 
         self.assertIsInstance(result, dict)
         # check few expected results
@@ -64,19 +63,21 @@ class TestFeatureExtractor(unittest.TestCase):
         self.assertEqual(result['prev-tag'], '<start>')
 
     @clear
-    def test_transform(self):
-        """Test FeatureExtractor `transform` method."""
+    def test_fit_transform(self):
+        """Test FeatureExtractor `fit_transform` method."""
         # preprocess the sentences
         tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.transform(TEST_DATA)
+        tokenized = tokenizer.fit_transform(TEST_DATA)
+
+        data = tokenized.values
 
         # apply default extractors transformation
         prep = FeatureExtractor()
-        transform = prep.transform(X=tokenized)
+        result = prep.fit_transform(X=data)
 
-        self.assertTrue(len(transform), len(TEST_DATA))
+        self.assertEqual(len(result), len(data))
         # check that all elements ale dicts
-        self.assertTrue(all([isinstance(obj, dict) for obj in transform[:, 1]]))
+        self.assertTrue(all([isinstance(obj, dict) for obj in result[0, :1]]))
 
         # delete to get rid of old keys
         del prep
@@ -87,17 +88,18 @@ class TestFeatureExtractor(unittest.TestCase):
                 'useless-feature': lambda s, w, t: True,
             }
         )
-        with pytest.raises(TypeError):
+
+        with self.assertRaises(TypeError):
             # raises if skip=False (default), since arguments `s`, `w`, `t`
             # were not fed
-            _ = prep.transform(X=tokenized)
+            _ = prep.fit_transform(X=data)
 
         # skip=True
-        transform = prep.transform(X=tokenized, skip=True)
+        result = prep.fit_transform(X=data, skip_unfed_hooks=True)
 
-        self.assertTrue(len(transform), len(TEST_DATA))
+        self.assertEqual(len(result), len(TEST_DATA))
         # check that all elements ale lists
-        self.assertTrue(all(isinstance(obj, dict) for obj in transform[:, 1]))
+        self.assertTrue(all(isinstance(obj, dict) for obj in result[:, :1]))
 
     @clear
     def test_pipeline(self):
@@ -136,7 +138,7 @@ class Test_FeatureExtractor(unittest.TestCase):
         _prep = _FeatureExtractor().update(hook)
 
         # feed the extractor with skip=True
-        result = _prep.feed({'x': 'test'}, skip=True)
+        result = _prep.feed({'x': 'test'}, skip_unfed_hooks=True)
         self.assertIsInstance(result, dict)
 
         key, value = list(*result.items())
@@ -145,8 +147,8 @@ class Test_FeatureExtractor(unittest.TestCase):
         self.assertEqual(value, 'test')
 
         # feed and disable skip
-        with pytest.raises(TypeError):
-            result = _prep.feed({'x': 'test'}, skip=False)
+        with self.assertRaises(TypeError):
+            result = _prep.feed({'x': 'test'}, skip_unfed_hooks=False)
             key, value = list(*result.items())
 
             self.assertEqual(key, 'key')

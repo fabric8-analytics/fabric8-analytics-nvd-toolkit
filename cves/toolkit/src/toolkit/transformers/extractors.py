@@ -4,7 +4,6 @@ The transformers are used in train and predict pipelines and implement
 the `transform` or `fit_transform` methods for this purpose
 """
 
-import sys
 import typing
 
 import numpy as np
@@ -36,72 +35,95 @@ class FeatureExtractor(TransformerMixin):
 
         self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(features or [])
 
+        # prototyped
+        self._y = None
+        self._skip_unfed_hooks = False
+
     @property
     def feature_keys(self):
         """Return list of hooks of selected feature_keys."""
         return self._extractor.keys
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X, y=None):  # pylint: disable=invalid-name,unused-argument
-        """Auxiliary method to enable pipeline functionality."""
+    def fit(self, X, y=None, **fit_params):  # pylint: disable=invalid-name,unused-argument
+        """Fits the transformer to the given data.
+
+        :param X: Iterable, each element should be a list of tuples (token, tag)
+
+            Ie. an input should be a list of tuples List[(token, tag)],
+            which is expected to be the output of NLTKPreprocessor or custom
+            tokenization process.
+
+        :param y: Iterable of len(X), target values
+
+        :param fit_params:
+
+            skip_unfed_hooks: bool, whether to skip unfed hooks
+        """
+        self._skip_unfed_hooks = fit_params.get('skip_unfed_hooks', False)
+
+        if y is None:
+            y = [None] * len(X)
+
+        self._y = y
+
         return self
 
     # noinspection PyPep8Naming
     def transform(self,
-                  X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
-                  skip=False) -> typing.List[typing.List[dict]]:
+                  X: typing.Iterable  # pylint: disable=invalid-name
+                  ) -> list:
         """Apply transformation to each element in X.
 
-        This transformation outputs list of the shape (len(X),)
-        where each element of the list is a tupele of dictionary{feature_key: value},
-        classification label (if provided). The classification label is a bool
-        indicating whether the label provided by `y` matches the token.
+        :param X: Iterable, each element should be a list of tuples (token, tag)
 
-        :param X: list or ndarray, each element should be tuple of (tagged_sentence, label)
-
-            Ie. an input should be a list of tuples (List[(token, tag)], label),
+            Ie. an input should be a list of tuples List[(token, tag)],
             which is expected to be the output of NLTKPreprocessor or custom
             tokenization process.
 
-        :param skip: bool, whether to skip unfed hooks
+        :returns: list
 
-        :returns: List[Tuple[dict, label]]
-
-            Each element of the list represents extracted features for the given token,
-            which is a list of features per each word in the sentence.
+            This transformation outputs list of the shape (len(X),)
+            where each element of the list is a nested list of tuples of type
+            (tagged_word, dictionary{feature_key: value}, classification label).
+            The classification label is a bool indicating whether the label
+            provided by `y` to the `fit` matches the token.
 
             The keys of those features (dictionaries), are names of the feature_keys, ie.
             hooks and the values are the values of those extracted feature_keys.
+
         """
         transformed = list()
 
-        if isinstance(X, list):
-            X = np.array(X)
+        for tagged_sent, label in zip(X, self._y):
+            transformed.append(
+                [
+                    (
+                        tagged_sent[j],
+                        self._extract_features(tagged_sent, word_pos=j,
+                                               skip_unfed_hooks=self._skip_unfed_hooks),
+                        # whether the token matches the label
+                        label == tagged_sent[j][0] if label else None
+                    ) for j in range(len(tagged_sent))
+                ]
+            )
 
-        # shape should be (?, 2) if labels are provided
-        if len(X.shape) > 2:
-            # assume labels are missing
-            print("in FeatureExtractor.transform: WARNING:"
-                  " unexpected value of `X.shape`, assuming labels were"
-                  " not provided.", file=sys.stderr)
-            # fill the labels
-            X = np.array([[x, None] for x in X])
+        return transformed
 
-        for (tagged_sent, label) in X:
-            transformed.extend([
-                (
-                    tagged_sent[j], self._extract_features(tagged_sent, word_pos=j, skip=skip),
-                    # whether the token matches the label
-                    label == tagged_sent[j][0] if label else None
-                ) for j in range(len(tagged_sent))
-            ])
+    # noinspection PyPep8Naming
+    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
+        """Convenient method combining `fit` and `transform` methods.
 
-        return np.array(transformed)
+        The method combines `fit` and `transformation` methods.
+        """
+        self.fit(X, y, **fit_params)
+
+        return self.transform(X)
 
     def _extract_features(self,
                           tagged_sent: list,
                           word_pos: int,
-                          skip=False,
+                          skip_unfed_hooks=False,
                           **kwargs) -> dict:
         """Feeds the hooks and extract feature_keys based on those hooks."""
         feed_dict = {
@@ -110,7 +132,7 @@ class FeatureExtractor(TransformerMixin):
         }
         feed_dict.update(kwargs)
 
-        return self._extractor.feed(feed_dict=feed_dict, skip=skip)
+        return self._extractor.feed(feed_dict=feed_dict, skip_unfed_hooks=skip_unfed_hooks)
 
 
 class _FeatureExtractor(object):
@@ -152,7 +174,7 @@ class _FeatureExtractor(object):
 
         return self
 
-    def feed(self, feed_dict: dict, skip=False) -> dict:
+    def feed(self, feed_dict: dict, skip_unfed_hooks=False) -> dict:
         """Calls each hook with the arguments given by values of `feed_dict`.
 
         :param feed_dict: dict of arguments to be fed into hooks
@@ -161,7 +183,7 @@ class _FeatureExtractor(object):
             element of the dict is key, value pair where key is the arguments
             name, value is the arguments value.
 
-        :param skip: bool, False by default
+        :param skip_unfed_hooks: bool, False by default
 
             If True, allows skipping unfed hooks, otherwise raises AttributeError
 
@@ -175,7 +197,7 @@ class _FeatureExtractor(object):
             try:
                 result[hook.key] = hook(**feed_dict, **hook.default_kwargs)
             except TypeError as e:
-                if skip:
+                if skip_unfed_hooks:
                     continue
                 else:
                     raise e

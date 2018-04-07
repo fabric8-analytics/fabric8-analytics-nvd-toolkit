@@ -4,6 +4,7 @@ import re
 import typing
 import unittest
 
+from collections import namedtuple
 from sklearn.pipeline import Pipeline
 
 from toolkit.preprocessing import \
@@ -35,6 +36,7 @@ _ = [
     setattr(TestCVE, attr, val)
     for attr, val in zip(TEST_CVE_ATTR, TEST_CVE_ATTR_VALS)
 ]
+
 TEST_CVE = TestCVE()
 
 
@@ -63,29 +65,48 @@ class TestNLTKPreprocessor(unittest.TestCase):
             stopwords=True,
             lower=True
         )
-        result = prep.tokenize(TEST_SENT)
+        result = prep.tokenize([TEST_SENT])
         self.assertIsInstance(result, typing.Iterable)
-
         print(result)
-        # check that punctuation has been got rid of
-        self.assertFalse(any(re.match(u"[,.]", t[0]) for t in result))
+
+        # check that punctuation has been gotten rid of
+        self.assertFalse(any(re.match(u"[,.]", t[0][0]) for t in result))
         # check that the list contains elements of same type
         self.assertTrue(all(isinstance(t[0], type(t[1])) for t in result))
 
-    def test_transform(self):
-        """Test NLTKPreprocessor `transform` method."""
+    def test_fit_transform(self):
+        """Test NLTKPreprocessor `fit_transform` method."""
         # custom parameters
         prep = NLTKPreprocessor(
             stopwords=True,
             lower=True
         )
-        transform = prep.transform(X=TEST_DATA)
+        transform = prep.fit_transform(X=TEST_DATA)
+        print(transform)
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that the array is not empty
-        self.assertTrue(transform.size > 0)
+        self.assertFalse(not transform)
 
-        # rest of the tests should be covered by `test_tokenize`
+        # create series to simulate output of LabelPreprocessor and make
+        # use of `feed_attributes` argument
+        Series = namedtuple('Series', 'descriptions labels')
+        data = Series(TEST_DATA, ['label'] * len(TEST_DATA))
+
+        transform = prep.fit_transform(X=data, feed_attributes=['descriptions'])
+
+        self.assertTrue(len(transform), len(data))
+        # check that the array is not empty
+        self.assertFalse(not transform)
+
+        # perform transformation and output labels as well
+        transform = prep.fit_transform(X=data,
+                                       feed_attributes=['descriptions'],
+                                       output_attributes=['labels'])
+
+        self.assertTrue(len(transform), len(data))
+        # check that the array is not empty
+        self.assertFalse(not transform)
 
     def test_pipeline(self):
         """Test NLTKPreprocessor as a single pipeline unit."""
@@ -200,11 +221,8 @@ class TestLabelPreprocessor(unittest.TestCase):
 
         label_prep = LabelPreprocessor(feed_attributes=attributes,
                                        hook=hook)
-        test_data = label_prep.fit(test_data)
+        test_data = label_prep.transform(test_data)
         self.assertFalse(not test_data)
-
-        res = test_data,
-        self.assertTrue(res, TEST_REPOSITORY)
 
     @clear
     def test_fit_transform(self):
@@ -221,10 +239,12 @@ class TestLabelPreprocessor(unittest.TestCase):
         label_prep = LabelPreprocessor(feed_attributes=attributes,
                                        hook=hook)
 
-        test_data = label_prep.fit_transform(test_data)
-        # check that correct label is returned by the Hook
-        label = test_data[0, 1]
+        result = label_prep.fit_transform(test_data)
+        print(result)
 
-        self.assertTrue(test_data.size > 0)
+        # check not empty
+        self.assertFalse(not result)
+        # check that correct label is returned by the Hook
+        label, = result.labels
         self.assertEqual(label, 'label')
 
