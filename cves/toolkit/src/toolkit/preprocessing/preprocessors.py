@@ -12,6 +12,7 @@ import nltk.corpus as corpus
 import numpy as np
 
 from collections import namedtuple
+
 from sklearn.base import TransformerMixin
 
 from toolkit.preprocessing import GitHubHandler
@@ -230,7 +231,7 @@ class LabelPreprocessor(TransformerMixin):
 
         # noinspection PyTypeChecker
         result = [
-            getattr(x, attr) for attr in self._output_attributes
+            [getattr(x, attr) for attr in self._output_attributes]
             for x, label in zip(X, self._labels) if allow_label(label)
         ]
 
@@ -241,8 +242,14 @@ class LabelPreprocessor(TransformerMixin):
         if not result:
             result = [[]] * len(self._output_attributes)
 
+        assert len(result) == len(labels)
+
+        # assign label to each set of attributes
+        for i in range(len(result)):
+            result[i].append(labels[i])
+
         return [
-            Series(res, label) for res, label in zip(result, labels)
+            Series(*r) for r in result
         ]
 
     # noinspection PyPep8Naming
@@ -287,8 +294,8 @@ class NLTKPreprocessor(TransformerMixin):
                  strip=False,
                  lang='english'):
         self._tokenizer = tokenizer or nltk.TreebankWordTokenizer()
-        self._lemmatizer = lemmatizer or nltk.WordNetLemmatizer()
-        self._stemmer = stemmer or nltk.SnowballStemmer(language=lang)
+        self._lemmatizer = lemmatizer  # or nltk.WordNetLemmatizer()
+        self._stemmer = stemmer  # or nltk.SnowballStemmer(language=lang)
 
         self._lower = lower
         self._strip = strip
@@ -336,7 +343,7 @@ class NLTKPreprocessor(TransformerMixin):
         self._feed_attributes = fit_params.get('feed_attributes', [])
         self._output_attributes = fit_params.get('output_attributes', [])
 
-        if not isinstance(self._feed_attributes, list):
+        if not isinstance(self._feed_attributes, typing.Iterable):
             raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
                             " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
 
@@ -451,12 +458,15 @@ class NLTKPreprocessor(TransformerMixin):
             if tag == '.':
                 continue
 
-            token = self.stem(token)
-            try:
-                token = self.lemmatize(token, tag)
-            except KeyError:
-                # skip if the token can not be lemmatized (eg. tags 'PRT')
-                continue
+            if self._stemmer:
+                token = self.stem(token)
+
+            if self._lemmatizer:
+                try:
+                    token = self.lemmatize(token, tag)
+                except KeyError:
+                    # skip if the token can not be lemmatized (eg. tags 'PRT')
+                    continue
 
             result.append((token, tag))
 
@@ -464,12 +474,10 @@ class NLTKPreprocessor(TransformerMixin):
 
     def stem(self, token: str):
         """Stem the word and return the stem."""
-        return token  # FIMXE: DEBUG
         return self._stemmer.stem(token)
 
     def lemmatize(self, token: str, tag: str):
         """Lemmatize the token based on its tag and return the lemma."""
         # The lemmatizer expects the `pos` argument to be first letter
         # of positional tag of the universal set (which we use by default)
-        return token  # FIMXE: DEBUG
         return self._lemmatizer.lemmatize(token, pos=tag[0].lower())

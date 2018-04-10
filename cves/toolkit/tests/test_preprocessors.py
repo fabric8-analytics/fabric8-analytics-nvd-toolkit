@@ -16,6 +16,9 @@ from toolkit.transformers import Hook
 from toolkit.config import GITHUB_BASE_URL
 from toolkit.utils import clear
 
+
+# ----- TEST DATA -----
+
 TEST_SENT = "Test sentence, better not to worry too much."
 TEST_DATA = [
     "Test sentence, better not to worry too much.",
@@ -38,6 +41,8 @@ _ = [
 ]
 
 TEST_CVE = TestCVE()
+
+# -----
 
 
 class TestNLTKPreprocessor(unittest.TestCase):
@@ -65,7 +70,7 @@ class TestNLTKPreprocessor(unittest.TestCase):
             stopwords=True,
             lower=True
         )
-        result = prep.tokenize([TEST_SENT])
+        result = prep.tokenize(TEST_SENT)
         self.assertIsInstance(result, typing.Iterable)
         print(result)
 
@@ -81,8 +86,8 @@ class TestNLTKPreprocessor(unittest.TestCase):
             stopwords=True,
             lower=True
         )
+        # test without feed argument and simple data
         transform = prep.fit_transform(X=TEST_DATA)
-        print(transform)
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that the array is not empty
@@ -90,10 +95,13 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
         # create series to simulate output of LabelPreprocessor and make
         # use of `feed_attributes` argument
-        Series = namedtuple('Series', 'descriptions labels')
-        data = Series(TEST_DATA, ['label'] * len(TEST_DATA))
+        Series = namedtuple('Series', 'description label')
+        data = [
+            Series(d, 'label')
+            for d in TEST_DATA
+        ]
 
-        transform = prep.fit_transform(X=data, feed_attributes=['descriptions'])
+        transform = prep.fit_transform(X=data, feed_attributes=['description'])
 
         self.assertTrue(len(transform), len(data))
         # check that the array is not empty
@@ -101,8 +109,8 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
         # perform transformation and output labels as well
         transform = prep.fit_transform(X=data,
-                                       feed_attributes=['descriptions'],
-                                       output_attributes=['labels'])
+                                       feed_attributes=['description'],
+                                       output_attributes=['label'])
 
         self.assertTrue(len(transform), len(data))
         # check that the array is not empty
@@ -208,23 +216,6 @@ class TestLabelPreprocessor(unittest.TestCase):
         self.assertIsInstance(label_prep._hook, Hook)  # pylint: disable=protected-access
 
     @clear
-    def test_transform(self):
-        """Test LabelPreprocessor `transform` method"""
-        hook = Hook(key='label', func=lambda x: x)
-        attributes = ['repository']
-
-        test_data = [TEST_CVE]
-
-        # prepare the data for label preprocessor
-        feed_prep = NVDFeedPreprocessor(attributes, skip_duplicity=True)
-        test_data = feed_prep.transform(X=test_data)
-
-        label_prep = LabelPreprocessor(feed_attributes=attributes,
-                                       hook=hook)
-        test_data = label_prep.transform(test_data)
-        self.assertFalse(not test_data)
-
-    @clear
     def test_fit_transform(self):
         """Test LabelPreprocessor `fit_transform` method"""
         hook = Hook(key='label', func=lambda p, d: 'label')
@@ -237,14 +228,14 @@ class TestLabelPreprocessor(unittest.TestCase):
         test_data = feed_prep.transform(X=test_data)
 
         label_prep = LabelPreprocessor(feed_attributes=attributes,
+                                       output_attributes=['description'],
                                        hook=hook)
 
         result = label_prep.fit_transform(test_data)
-        print(result)
 
         # check not empty
         self.assertFalse(not result)
         # check that correct label is returned by the Hook
-        label, = result.labels
+        label = result[0].label
         self.assertEqual(label, 'label')
 

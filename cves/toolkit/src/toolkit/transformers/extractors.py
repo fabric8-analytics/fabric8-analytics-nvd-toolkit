@@ -108,7 +108,7 @@ class FeatureExtractor(TransformerMixin):
                 ]
             )
 
-        return transformed
+        return np.array(transformed)
 
     # noinspection PyPep8Naming
     def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name

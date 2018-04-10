@@ -4,16 +4,11 @@ import unittest
 
 from sklearn.pipeline import Pipeline
 
-from toolkit.preprocessing import NLTKPreprocessor
+from toolkit.pipelines import get_preprocessing_pipeline
 from toolkit.transformers import FeatureExtractor, Hook
 # noinspection PyProtectedMember
 from toolkit.transformers.extractors import _FeatureExtractor  # pylint: disable=protected-access
 from toolkit.utils import clear
-
-TEST_DATA = [
-    "Test sentence, better not to worry too much.",
-    "Test sentence, better not to worry too much.",
-]
 
 
 class TestFeatureExtractor(unittest.TestCase):
@@ -48,14 +43,13 @@ class TestFeatureExtractor(unittest.TestCase):
     def test_extract_features(self):
         """Test FeatureExtractor `_extract_features` method"""
         # preprocess the sentences
-        tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.fit_transform(TEST_DATA)
-        sent = tokenized.values[0][0]
+        test_data = _get_preprocessed_test_data()
+        # get tokenized sentence
+        sent = test_data[0].tagged
 
         # apply default extractors transformation
         prep = FeatureExtractor()
         result = prep._extract_features(sent, word_pos=0)
-        print(result)
 
         self.assertIsInstance(result, dict)
         # check few expected results
@@ -66,18 +60,14 @@ class TestFeatureExtractor(unittest.TestCase):
     def test_fit_transform(self):
         """Test FeatureExtractor `fit_transform` method."""
         # preprocess the sentences
-        tokenizer = NLTKPreprocessor()
-        tokenized = tokenizer.fit_transform(TEST_DATA)
-
-        data = tokenized.values
+        test_data = _get_preprocessed_test_data()
 
         # apply default extractors transformation
         prep = FeatureExtractor()
-        result = prep.fit_transform(X=data)
+        result = prep.fit_transform(X=test_data)
 
-        self.assertEqual(len(result), len(data))
-        # check that all elements ale dicts
-        self.assertTrue(all([isinstance(obj, dict) for obj in result[0, :1]]))
+        self.assertEqual(len(result), len(test_data))
+        self.assertTrue(all([len(r) == len(result[0]) for r in result]))
 
         # delete to get rid of old keys
         del prep
@@ -92,14 +82,13 @@ class TestFeatureExtractor(unittest.TestCase):
         with self.assertRaises(TypeError):
             # raises if skip=False (default), since arguments `s`, `w`, `t`
             # were not fed
-            _ = prep.fit_transform(X=data)
+            _ = prep.fit_transform(X=test_data)
 
         # skip=True
-        result = prep.fit_transform(X=data, skip_unfed_hooks=True)
+        result = prep.fit_transform(X=test_data, skip_unfed_hooks=True)
 
-        self.assertEqual(len(result), len(TEST_DATA))
-        # check that all elements ale lists
-        self.assertTrue(all(isinstance(obj, dict) for obj in result[:, :1]))
+        self.assertEqual(len(result), len(test_data))
+        self.assertTrue(all([len(r) == len(result[0]) for r in result]))
 
     @clear
     def test_pipeline(self):
@@ -153,3 +142,35 @@ class Test_FeatureExtractor(unittest.TestCase):
 
             self.assertEqual(key, 'key')
             self.assertEqual(value, 'test')
+
+
+def _get_preprocessed_test_data():
+    """Return preprocessed data.
+
+    Note: used for tests only."""
+    from nvdlib.nvd import NVD
+
+    feed = NVD.from_feeds(feed_names=['recent'])
+    # download and update
+    feed.update()
+
+    # get the sample cves
+    __cve_iter = feed.cves()
+    __records = 500
+
+    data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
+    pipeline = get_preprocessing_pipeline()
+    steps, preps = list(zip(*pipeline.steps))
+
+    # set up fit parameters (see sklearn fit_params notation)
+    fit_params = {
+        "%s__feed_attributes" % steps[2]: ['description'],
+        "%s__output_attributes" % steps[2]: ['label']
+    }
+
+    prep_data = pipeline.fit_transform(
+        X=data,
+        **fit_params
+    )
+
+    return prep_data
