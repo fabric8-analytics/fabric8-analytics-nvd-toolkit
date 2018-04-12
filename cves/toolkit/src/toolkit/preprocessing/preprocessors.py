@@ -65,7 +65,7 @@ class NVDFeedPreprocessor(TransformerMixin):
         self._handler = handler
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X, y=None):  # pyling: disable=invalid-name,unused-argument
+    def fit(self, X, y=None, **fit_params):  # pyling: disable=invalid-name,unused-argument
         """Auxiliary method to enable pipeline functionality."""
         return self
 
@@ -89,14 +89,6 @@ class NVDFeedPreprocessor(TransformerMixin):
         return [
             self._get_cve_attributes(t) for t in cve_tuples
         ]
-
-    # noinspection PyPep8Naming
-    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
-        """Alias for `transform` method.
-
-        Required by sklearn Pipeline.
-        """
-        return self.transform(X)
 
     def _filter_by_handler(self, cves: typing.Union[list, np.ndarray]) -> typing.List[tuple]:
         """Filter the given elements by specified handler.
@@ -179,7 +171,7 @@ class LabelPreprocessor(TransformerMixin):
                             " got `{}`".format(typing.Iterable, type(feed_attributes)))
 
         self._feed_attributes = feed_attributes
-        self._output_attributes = output_attributes or [] or self._feed_attributes
+        self._output_attributes = output_attributes or self._feed_attributes
 
         if not isinstance(self._output_attributes, typing.Iterable):
             raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
@@ -252,16 +244,6 @@ class LabelPreprocessor(TransformerMixin):
             Series(*r) for r in result
         ]
 
-    # noinspection PyPep8Naming
-    def fit_transform(self,
-                      X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
-                      y=None,
-                      **fit_params):
-
-        self.fit(X)
-
-        return self.transform(X)
-
 
 class NLTKPreprocessor(TransformerMixin):
     """Preprocessor implementing `transform` method for scikit pipelines.
@@ -285,6 +267,8 @@ class NLTKPreprocessor(TransformerMixin):
     """
 
     def __init__(self,
+                 feed_attributes: list = None,
+                 output_attributes: list = None,
                  lemmatizer=None,
                  stemmer=None,
                  tokenizer=None,
@@ -293,6 +277,17 @@ class NLTKPreprocessor(TransformerMixin):
                  lower=False,
                  strip=False,
                  lang='english'):
+        self._feed_attributes = feed_attributes or []
+        self._output_attributes = output_attributes or []
+
+        if not isinstance(self._feed_attributes, typing.Iterable):
+            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
+
+        if not isinstance(self._output_attributes, typing.Iterable):
+            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
+
         self._tokenizer = tokenizer or nltk.TreebankWordTokenizer()
         self._lemmatizer = lemmatizer  # or nltk.WordNetLemmatizer()
         self._stemmer = stemmer  # or nltk.SnowballStemmer(language=lang)
@@ -306,8 +301,6 @@ class NLTKPreprocessor(TransformerMixin):
 
         # prototyped
         self._y = None
-        self._feed_attributes = None
-        self._output_attributes = None
 
     # noinspection PyPep8Naming
     @staticmethod
@@ -339,9 +332,10 @@ class NLTKPreprocessor(TransformerMixin):
             feed_attributes: # TODO
             output_attributes:
         """
-        # store the targets
-        self._feed_attributes = fit_params.get('feed_attributes', [])
-        self._output_attributes = fit_params.get('output_attributes', [])
+        # allow defining attributes in the fit function as well, since
+        # user might want to specify it directly in the pipeline
+        self._feed_attributes = fit_params.get('feed_attributes', []) or self._feed_attributes
+        self._output_attributes = fit_params.get('output_attributes', []) or self._output_attributes
 
         if not isinstance(self._feed_attributes, typing.Iterable):
             raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
@@ -388,7 +382,7 @@ class NLTKPreprocessor(TransformerMixin):
                 self.tokenize(sent) for sent in X
             ]
 
-        Series = namedtuple('Series', ['tagged'] + self._output_attributes)
+        Series = namedtuple('Series', ['values'] + self._output_attributes)
 
         additional_output = [
             getattr(x, attr) for attr in self._output_attributes
@@ -400,33 +394,9 @@ class NLTKPreprocessor(TransformerMixin):
                 Series(res, adds) for res, adds in zip(intermediate_result, additional_output)
             ]
         else:
-            result = [
-                Series(res) for res in intermediate_result
-            ]
+            result = intermediate_result
 
         return result
-
-    # noinspection PyPep8Naming
-    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
-        """Convenient method combining `fit` and `transform` methods.
-
-        Speeds up the transformation process.
-
-        :param X: Iterable, each element should be a string to be tokenized
-        :param y: Iterable, labels for each element in X (must be the same
-        length as `X`)
-        :param fit_params: kwargs, optional arguments to be used during fitting
-        and transformation
-
-            transform_along_axis: int, if specified, `X` is transformed along this axis and the
-            rest of data is returned unchanged
-
-        :returns: namedtuple the same shape as `X` if `y` is None, otherwise
-        adds one dimension for `y` elements
-        """
-        self.fit(X, y, **fit_params)
-
-        return self.transform(X)
 
     def tokenize(self, stream: str):
         """Performs tokenization of each sentence given in the list."""

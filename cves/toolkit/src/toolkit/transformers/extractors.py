@@ -19,7 +19,7 @@ class FeatureExtractor(TransformerMixin):
     By default, constructs vanilla feature extractor with basic features
     and positional context information.
 
-    :param features: dict, {feature_key: Hook}
+    :param feature_hooks: dict, {feature_key: Hook}
 
         Specify features which should be extracted from the given set.
         The hooks are called for each element of the set and return
@@ -27,13 +27,13 @@ class FeatureExtractor(TransformerMixin):
     """
 
     def __init__(self,
-                 features=None,
+                 feature_hooks=None,
                  share_hooks=False):
-        if isinstance(features, dict):
+        if isinstance(feature_hooks, dict):
             # create hooks from the dictionary
-            features = [Hook(k, v, reuse=share_hooks) for k, v in features.items()]
+            feature_hooks = [Hook(k, v, reuse=share_hooks) for k, v in feature_hooks.items()]
 
-        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(features or [])
+        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks or [])
 
         # prototyped
         self._y = None
@@ -109,16 +109,6 @@ class FeatureExtractor(TransformerMixin):
             )
 
         return np.array(transformed)
-
-    # noinspection PyPep8Naming
-    def fit_transform(self, X, y=None, **fit_params):  # pylint: disable=invalid-name
-        """Convenient method combining `fit` and `transform` methods.
-
-        The method combines `fit` and `transformation` methods.
-        """
-        self.fit(X, y, **fit_params)
-
-        return self.transform(X)
 
     def _extract_features(self,
                           tagged_sent: list,

@@ -6,8 +6,8 @@ import unittest
 
 import numpy as np
 
-from toolkit.transformers import FeatureExtractor, NBClassifier, cross_validate
-from toolkit.pipelines import get_preprocessing_pipeline
+from toolkit.transformers import NBClassifier, cross_validate
+from toolkit.pipelines import extract_labeled_features
 
 
 class TestClassifier(unittest.TestCase):
@@ -20,9 +20,9 @@ class TestClassifier(unittest.TestCase):
         self.assertIsNotNone(classifier)
         self.assertIsInstance(classifier, NBClassifier)
 
-        train_data = _get_extracted_test_data()
+        data, _ = _get_extracted_test_data()
 
-        classifier = classifier.fit(X=train_data)
+        classifier = classifier.fit(X=data)
 
         self.assertIsNotNone(classifier)
         self.assertIsInstance(classifier, NBClassifier)
@@ -38,22 +38,22 @@ class TestClassifier(unittest.TestCase):
         self.assertIsNone(classifier.features)
 
         # after fit
-        train_data = _get_extracted_test_data()
-        classifier = classifier.fit(X=train_data)
+        data, _ = _get_extracted_test_data()
+        classifier = classifier.fit(X=data)
 
         self.assertIsNotNone(classifier.features)
 
     def test_predict(self):
         classifier = NBClassifier()
 
-        test_data = _get_extracted_test_data()
+        data, labels = _get_extracted_test_data()
 
-        features = test_data[0][1][1]  # sample features
+        features = data[0][1][1]  # sample features
         # should raise if wasn't fit before
         with self.assertRaises(ValueError):
             classifier.predict(features=features)
 
-        classifier = classifier.fit(test_data)
+        classifier = classifier.fit(data)
 
         # make prediction
         prediction = classifier.predict(features=features, sample=True)
@@ -68,10 +68,11 @@ class TestClassifier(unittest.TestCase):
     def test_fit_predict(self):
         classifier = NBClassifier()
 
-        test_train_data = _get_extracted_test_data()
-        classifier = classifier.fit(test_train_data)
+        data, labels = _get_extracted_test_data()
+        classifier = classifier.fit(data)
 
-        pred_data = [t[1] for t in test_train_data]
+        pred_data = data[:10]
+
         num_candidates = 3
         candidates = classifier.fit_predict(pred_data,
                                             n=num_candidates,
@@ -79,15 +80,15 @@ class TestClassifier(unittest.TestCase):
 
         self.assertIsInstance(candidates, np.ndarray)
         # check correct number of candidates
-        self.assertEqual(len(candidates), num_candidates)
-        # check that all predictions are the same (no flaw appeared)
+        self.assertEqual(candidates.shape[1], num_candidates)
+        self.assertEqual(candidates.shape[2], 2)  # (candidate, proba)
 
     def test_export(self):
         """Test NBClassifier `export` method."""
-        test_train_data = _get_extracted_test_data()
+        data, _ = _get_extracted_test_data()
 
         classifier = NBClassifier()
-        classifier = classifier.fit(test_train_data)
+        classifier = classifier.fit(data)
 
         tmp_dir = tempfile.mkdtemp(prefix='test_export_')
         pickle_path = classifier.export(export_dir=tmp_dir)
@@ -105,10 +106,10 @@ class TestClassifier(unittest.TestCase):
 
     def test_restore(self):
         """Test NBClassifier `restore` method."""
-        test_train_data = _get_extracted_test_data()
+        data, _ = _get_extracted_test_data()
 
         classifier = NBClassifier()
-        classifier = classifier.fit(test_train_data)
+        classifier = classifier.fit(data)
 
         pickle_path = classifier.export()
 
@@ -119,34 +120,44 @@ class TestClassifier(unittest.TestCase):
 
     def test_evaluate(self):
         """Test NBClassifier `evaluate` method."""
-        test_train_data = _get_extracted_test_data()
+        data, labels = _get_extracted_test_data()
 
         classifier = NBClassifier()
-        classifier.fit(test_train_data)
+        classifier.fit(data)
 
         # NOTE: `astype` is a workaround for the dtype incompatibility,
         # which was caused by prototyping the TEST_FEATURES for the test
         # purposes
+        zero_score_labels = [None] * len(data)
         score = classifier.evaluate(
-            X=test_train_data,
-            y=[None] * len(test_train_data),
+            X=data,
+            y=zero_score_labels,
             sample=True
         )
 
         self.assertIsNotNone(score)
         self.assertEqual(score, 0.0)
 
+        score = classifier.evaluate(
+            X=data,
+            y=labels,
+            sample=True
+        )
+
+        self.assertIsNotNone(score)
+        self.assertGreater(score, 0.0)
+
     def test_cross_validate(self):
         """Test NBClassifier `cross_validate` method."""
-        test_train_data = _get_extracted_test_data()
+        data, labels = _get_extracted_test_data()
 
         classifier = NBClassifier()
 
-        labels = [None] * len(test_train_data)
+        zero_score_labels = [None] * len(data)
         score = cross_validate(
             classifier,
-            test_train_data,
-            labels,
+            data,
+            zero_score_labels,
             folds=5,
             shuffle=True,
             sample=True,
@@ -154,6 +165,18 @@ class TestClassifier(unittest.TestCase):
 
         self.assertIsNotNone(score)
         self.assertEqual(score.mean, 0.0)
+
+        score = cross_validate(
+            classifier,
+            data,
+            labels,
+            folds=5,
+            shuffle=True,
+            sample=True,
+        )
+
+        self.assertIsNotNone(score)
+        self.assertGreater(score.mean, 0.0)
 
 
 def _get_extracted_test_data():
@@ -170,25 +193,11 @@ def _get_extracted_test_data():
     __cve_iter = feed.cves()
     __records = 500
 
-    data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
-    pipeline = get_preprocessing_pipeline()
-    steps, preps = list(zip(*pipeline.steps))
+    data = [next(__cve_iter) for _ in range(__records)]
 
-    # set up fit parameters (see sklearn fit_params notation)
-    fit_params = {
-        "%s__feed_attributes" % steps[2]: ['description'],
-        "%s__output_attributes" % steps[2]: ['label']
-    }
-
-    prep_data = pipeline.fit_transform(
-        X=data,
-        **fit_params
+    data, labels = extract_labeled_features(
+        data=data,
+        attributes=['description']
     )
 
-    prep_data = np.array(prep_data)
-    prep_data, prep_labels = prep_data[:, 0], prep_data[:, 1]
-
-    data = FeatureExtractor().fit_transform(prep_data, prep_labels)
-    print(data)
-
-    return data
+    return data, labels

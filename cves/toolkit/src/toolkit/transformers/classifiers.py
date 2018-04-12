@@ -116,7 +116,7 @@ class NBClassifier(TransformerMixin):
 
         :param X: Iterable, test data
 
-            Same shape as for `fit` method
+            Same shape as for `fit` and `fit_predict` methods
 
         :param y: Iterable, of labels
         :param sample:
@@ -131,9 +131,7 @@ class NBClassifier(TransformerMixin):
         if len(X) != len(y):
             raise ValueError("`X` and `y` must be of the same length.")
 
-        candidate_arr = [
-            self.fit_predict(x, n=n, sample=sample) for x in X
-        ]
+        candidate_arr = self.fit_predict(X, n=n, sample=sample)
 
         correctly_predicted = 0
         for candidates, label in zip(candidate_arr, y):
@@ -178,16 +176,19 @@ class NBClassifier(TransformerMixin):
         # noinspection PyTypeChecker
         predictions = [None] * len(X)
         for i, x in enumerate(X):
-            if len(x) == 3:
-                # feature label was provided as part of X set (usual case), ignore it
-                name_tuple, features, _ = x
-            else:
-                name_tuple, features = x
-            predictions[i] = (name_tuple, self.predict(features, sample=sample))
+            candidate_pred = [None] * len(x)
+            for j, candidate in enumerate(x):
+                if len(candidate) == 3:
+                    # feature label was provided as part of X set (usual case), ignore it
+                    name_tuple, features, _ = candidate
+                else:
+                    name_tuple, features = candidate
+                candidate_pred[j] = (name_tuple, self.predict(features, sample=sample))
 
-        sorted_pred = sorted(predictions, key=lambda t: t[1], reverse=True)
+            sorted_pred = sorted(candidate_pred, key=lambda t: t[1], reverse=True)
+            predictions[i] = sorted_pred[:n]
 
-        return np.array(sorted_pred)[:n, 0]
+        return np.array(predictions)
 
     def predict(self, features: dict, sample=None) -> typing.Any:
         """Make predictions based on given features.
@@ -262,12 +263,13 @@ class NBClassifier(TransformerMixin):
         return classifier
 
     @staticmethod
-    def _valid_candidates(candidates: list, label):
+    def _valid_candidates(candidates: typing.Iterable, label):
         """Check whether the correct label is among candidates."""
         for candidate, _ in candidates:
             # FIXME: a bug here, NLTK lets weird things like '**' go through -> causes crash
+            candidate_name, _ = candidate
             try:
-                if re.search(candidate, label, flags=re.IGNORECASE):
+                if re.search(candidate_name, label, flags=re.IGNORECASE):
                     return True
             except:
                 return False

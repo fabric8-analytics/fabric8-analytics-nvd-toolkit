@@ -91,7 +91,7 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(TEST_DATA))
         # check that the array is not empty
-        self.assertFalse(not transform)
+        self.assertTrue(any(transform))
 
         # create series to simulate output of LabelPreprocessor and make
         # use of `feed_attributes` argument
@@ -105,7 +105,7 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(data))
         # check that the array is not empty
-        self.assertFalse(not transform)
+        self.assertTrue(any(transform))
 
         # perform transformation and output labels as well
         transform = prep.fit_transform(X=data,
@@ -114,7 +114,7 @@ class TestNLTKPreprocessor(unittest.TestCase):
 
         self.assertTrue(len(transform), len(data))
         # check that the array is not empty
-        self.assertFalse(not transform)
+        self.assertTrue(any(transform))
 
     def test_pipeline(self):
         """Test NLTKPreprocessor as a single pipeline unit."""
@@ -166,13 +166,13 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
         cves = prep._filter_by_handler(cves)  # pylint: disable=protected-access
 
         # check that cves list is empty
-        self.assertTrue(not cves)
+        self.assertFalse(any(cves))
 
         # noinspection PyTypeChecker
         cves = [TEST_CVE]
         cves = prep._filter_by_handler(cves)  # pylint: disable=protected-access
 
-        self.assertFalse(not cves)
+        self.assertTrue(any(cves))
         self.assertIsInstance(cves[0], tuple)
 
         # resulting tuple
@@ -234,7 +234,7 @@ class TestLabelPreprocessor(unittest.TestCase):
         result = label_prep.fit_transform(test_data)
 
         # check not empty
-        self.assertFalse(not result)
+        self.assertTrue(any(result))
         # check that correct label is returned by the Hook
         label = result[0].label
         self.assertEqual(label, 'label')

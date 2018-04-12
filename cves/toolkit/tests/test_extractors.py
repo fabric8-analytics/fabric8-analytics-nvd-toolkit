@@ -2,6 +2,7 @@
 
 import unittest
 
+import numpy as np
 from sklearn.pipeline import Pipeline
 
 from toolkit.pipelines import get_preprocessing_pipeline
@@ -29,7 +30,7 @@ class TestFeatureExtractor(unittest.TestCase):
         del prep
 
         prep = FeatureExtractor(
-            features={
+            feature_hooks={
                 feature: lambda w, t: True,
             }
         )
@@ -45,7 +46,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # preprocess the sentences
         test_data = _get_preprocessed_test_data()
         # get tokenized sentence
-        sent = test_data[0].tagged
+        sent = test_data[0].values
 
         # apply default extractors transformation
         prep = FeatureExtractor()
@@ -61,20 +62,22 @@ class TestFeatureExtractor(unittest.TestCase):
         """Test FeatureExtractor `fit_transform` method."""
         # preprocess the sentences
         test_data = _get_preprocessed_test_data()
+        test_data = np.array(test_data)
+
+        test_data, test_labels = test_data[:, 0], test_data[:, 1]
 
         # apply default extractors transformation
         prep = FeatureExtractor()
         result = prep.fit_transform(X=test_data)
 
         self.assertEqual(len(result), len(test_data))
-        self.assertTrue(all([len(r) == len(result[0]) for r in result]))
 
         # delete to get rid of old keys
         del prep
 
         # apply transformation with custom feature_keys
         prep = FeatureExtractor(
-            features={
+            feature_hooks={
                 'useless-feature': lambda s, w, t: True,
             }
         )
@@ -88,7 +91,6 @@ class TestFeatureExtractor(unittest.TestCase):
         result = prep.fit_transform(X=test_data, skip_unfed_hooks=True)
 
         self.assertEqual(len(result), len(test_data))
-        self.assertTrue(all([len(r) == len(result[0]) for r in result]))
 
     @clear
     def test_pipeline(self):
@@ -109,7 +111,7 @@ class Test_FeatureExtractor(unittest.TestCase):
         """Test _FeatureExtractor initialization."""
         _prep = _FeatureExtractor()
 
-        self.assertFalse(not _prep._hooks)  # pylint: disable=protected-access
+        self.assertTrue(any(_prep._hooks))  # pylint: disable=protected-access
 
     @clear
     def test_update(self):
