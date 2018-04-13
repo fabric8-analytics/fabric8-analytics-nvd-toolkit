@@ -1,61 +1,53 @@
-# This repository contains POC for issue #2485
+# nvd-toolkit
+ 
+###### Tools for processing National Vulnerability Database feeds. 
 
-> Assignee: Marek Cermak <macermak@redhat.com>\
-> Issue: https://github.com/openshiftio/openshift.io/issues/2485 
+<br>
 
-### Description
+#### Installation steps and requirements
 
-> Mapping CVE entries to actual package names is much easier when we at least know name of a project (e.g. "Apache NiFi", or "Apache POI") that is affected by given vulnerability. Knowing the project name will help us to get better results and less false positives.
+The toolkit currently uses [nvdlib] to download the [NVD feed]
+and assumes CVE object to compy with the [CVE](https://github.com/msrb/nvdlib/blob/master/nvdlib/model.py)
+model schema.
 
-#### Input
+To install [nvdlib] first, proceed with these steps:
+```bash
+git clone https://github.com/msrb/nvdlib
+cd nvdlib
+python3 setup.py install
+```
 
-One [NVD] CVE record.
+[nvdlib]: (https://github.com/msrb/nvdlib)
 
+**NOTE:**
+The `toolkit` is currently under development and setup is yet to be done,
+you can try it out, however, by exploring [examples](/examples).
+Some information is also provided by the [examples/README.md](/examples/README.md).
 
-#### Output
+<br>
 
-The output of this task should be a function that takes one NVD CVE record
-on input and returns list of possible project name candidates.
+#### Key Concepts of the toolkit
 
-Having confidence score for each candidate would be nice, but is not necessary.
+Currently the toolkit aims at extracting CVE information from its description in the [NVD]
+feed.
 
----
+It provides a set of tools to pre-process the data, extract relevant information
+and make inference (see [classifiers module](/src/toolkit/transformers/classifiers.py)).
 
-# POC
+Such tools can be assembled together in *pipelines* to improve performance, provide code
+readability and ease of use.
 
-#### Initial intention:  
-Since it is not evident whether the NVD descriptions evince a latent pattern,
-the first part of the POC will focus on exploring whether a pattern is present and to what
-extent it can be used to predict project name candidates.
+The concept of the pipelines is inspired by [scikit-learn]
+and is also used in the similar manner (see the [examples](/exampes) to get familiar with
+the pipelines).
 
-If such pattern is discovered, proceed with implementation of classifier and evaluate
-its accuracy.
+Some of the building blocks of the pipelines can be fed custom [hooks](/src/toolkit/transformers/hooks.py)
+and therefore modified to the users purpose.
 
-
-#### Sub tasks
-- [x] Have a set of labeled data to train, validate and test accuracy with.
-- [x] Discover whether the data evinces latent pattern. 
-- [x] Model selection based on the description pattern properties
-- [x] Classifier implementation
-- [x] Accuracy evaluation
-
-
-#### Sub tasks evaluation
-- The data used for this task was a sub set of the [NVD] record which directly references
-GitHub. This allows for labeling the data with the project name infered from the GitHub repository
-
-- To discover a latent pattern, a Naive Bayes Classifier for chosen for a model.
-Vanilla feature extractors were based on simple text feature_keys such as positional tags.
-[NLTK] was used for these purposes.
-
-- Naive Bayes Classifier provided decent results on the toy data set and hence with feature
-extractor improvements, it was selected as a base model for this POC.
-
-#### Conclusions
-
-# TODO
-
-[NLTK]: https://www.nltk.org/
 [NVD]: https://nvd.nist.gov/
+[NVD feed]: https://nvd.nist.gov/vuln/data-feeds#JSON_FEED
+[scikit-learn]: (http://scikit-learn.org/stable/)
 
+<br>
 
+> Marek Cermak <macermak@redhat.com>

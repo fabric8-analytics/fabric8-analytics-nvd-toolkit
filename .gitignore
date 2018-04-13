@@ -1,2 +1,7 @@
-.idea/
+# Folders to ignore
 *.pyc
+**/export/
+.idea/
+
+# Files to ignore
+*.ipynb
