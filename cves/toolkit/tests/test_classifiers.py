@@ -102,7 +102,7 @@ class TestClassifier(unittest.TestCase):
 
         f, = files
         self.assertIsNotNone(files)
-        self.assertTrue(f.endswith('.pickle'))
+        self.assertTrue(f.endswith('.checkpoint'))
 
     def test_restore(self):
         """Test NBClassifier `restore` method."""

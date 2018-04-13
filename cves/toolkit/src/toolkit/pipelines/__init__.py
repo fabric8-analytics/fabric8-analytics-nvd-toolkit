@@ -15,4 +15,4 @@ from toolkit.pipelines.pipelines import \
     extract_features,\
     extract_labeled_features
 
-from toolkit.pipelines.train import FEATURES
+from toolkit.pipelines.train import FEATURE_HOOKS

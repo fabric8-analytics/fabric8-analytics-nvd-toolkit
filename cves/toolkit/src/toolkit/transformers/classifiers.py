@@ -234,33 +234,58 @@ class NBClassifier(TransformerMixin):
     def export(self, export_dir=None, export_name=None) -> str:
         """Exports timestamped pickled classifier to the given directory.
 
-        :returns: path to the timestamped .pickle file
+        :returns: path to the timestamped .checkpoint file
         """
         export_dir = export_dir or 'export/'
         export_name = export_name or 'classifier'
 
-        if not export_name.endswith('.pickle'):
-            export_name += '.pickle'
+        if export_name.endswith('.checkpoint'):
+            export_name = ".".join(export_name.split('.')[:-1])
 
-        time_stamped_dir = os.path.join(export_dir, str(datetime.datetime.now().timestamp()))
-        # create timestamped export directory
-        os.makedirs(time_stamped_dir)
+        time_stamp = str(datetime.datetime.now().timestamp())
 
-        time_stamped_fname = os.path.join(time_stamped_dir, export_name)
+        # create export directory
+        os.makedirs(export_dir, exist_ok=True)
+
+        time_stamped_fname = ".".join([export_name, time_stamp, 'checkpoint'])
+        time_stamped_fpath = os.path.join(export_dir, time_stamped_fname)
+
         # pickle and export the classifier
-        with open(time_stamped_fname, 'wb') as exp_file:
+        with open(time_stamped_fpath, 'wb') as exp_file:
             pickle.dump(self, exp_file)
 
         return time_stamped_fname
 
     @staticmethod
-    def restore(export_file) -> "NBClassifier":
-        """Restores the classifier from a pickled file."""
-        with open(export_file, 'rb') as exp_file:
-            # load the exported classifier
-            classifier = pickle.load(exp_file)
+    def restore(checkpoint) -> "NBClassifier":
+        """Restores the classifier from a checkpoint file.
 
-        return classifier
+        :param checkpoint: path to directory or specific checkpoint
+
+            If path to directory provided, the newest checkpoint
+            is restored.
+        """
+        def _restore_checkpoint(fp):
+            with open(fp, 'rb') as checkpoint_file:
+                # load the exported classifier
+                return pickle.load(checkpoint_file)
+
+        if os.path.isdir(checkpoint):
+            checkpoint_dir = checkpoint
+            checkpoints = [
+                os.path.join(checkpoint_dir, f) for f in os.listdir(checkpoint) if f.endswith('.checkpoint')
+            ]
+            # find the latest
+            if not checkpoints:
+                raise ValueError("No checkpoints were found in `{}`."
+                                 .format(checkpoint))
+            latest_checkpoint = sorted(checkpoints)[-1]
+            clf = _restore_checkpoint(latest_checkpoint)
+
+        else:
+            clf = _restore_checkpoint(checkpoint)
+
+        return clf
 
     @staticmethod
     def _valid_candidates(candidates: typing.Iterable, label):
@@ -359,4 +384,5 @@ def precision(total: int, correct: int) -> float:
 
 def weighted_precision(y_true, y_pred, weights):
     """Calculate weighted precision."""
-    raise NotImplementedError
+    raise NotImplementedError("The feature has not been implemented yet."
+                              " Sorry for the inconvenience.")

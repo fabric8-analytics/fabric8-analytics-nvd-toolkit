@@ -6,14 +6,20 @@ given data.
 """
 
 import argparse
-import os
+import textwrap
 
 from toolkit import pipelines
 from toolkit.transformers import classifiers
-from toolkit.pipelines.train import FEATURES
+from toolkit.pipelines.train import FEATURE_HOOKS
 
 
 __parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+
+__parser.add_argument(
+    '-clf', '--path-to-classifier',
+    required=True,
+    help="Path to the stored classifier checkpoints.",
+)
 __parser.add_argument(
     '-n', '--num-candidates',
     type=int,
@@ -22,39 +28,34 @@ __parser.add_argument(
 )
 
 __parser.add_argument(
-    '-clf', '--path-to-classifier',
-    required=True,
-    help="Path to the stored classifier checkpoints.",
-)
-
-__parser.add_argument(
     'description',
     help="The description to use for prediction.",
 )
 
 
-def restore_classifier(export_file: str) -> classifiers.NBClassifier:
-    """Restores the classifier from given checkpoints."""
-    if not os.path.isfile(export_file):
-        raise FileNotFoundError("Incorrect path to classifier: File `{}` not found."
-                                .format(export_file))
-
-    return classifiers.NBClassifier.restore(export_file)
-
-
 def main():
     args = __parser.parse_args()
 
-    clf = restore_classifier(args.path_to_classifier)
+    clf = classifiers.NBClassifier.restore(args.path_to_classifier)
     prediction_pipeline = pipelines.get_prediction_pipeline(
         classifier=clf,
-        feature_hooks=FEATURES
+        feature_hooks=FEATURE_HOOKS
     )
 
-    prediction = prediction_pipeline.fit_predict(X=[args.description],
-                                                 classifier__n=args.num_candidates,
-                                                 classifier__sample=True)
-    print(prediction)
+    prediction, = prediction_pipeline.fit_predict(X=[args.description],
+                                                  classifier__n=args.num_candidates,
+                                                  classifier__sample=True)
+
+    print("Prediction results:")
+    print("-------------------")
+    for (name, tag), score in prediction:
+        formated_prediction = """\
+        Candidate : {name}
+        Tag       : {tag}
+        Confidence: {score}
+        """.format(name=name, tag=tag, score=score)
+
+        print(textwrap.dedent(formated_prediction))
 
 
 if __name__ == '__main__':

@@ -203,14 +203,14 @@ def extract_features(
 def extract_labeled_features(
         data: typing.Union[list, np.ndarray],
         attributes: list,
-        **kwargs) -> tuple:
+        feature_hooks: list = None,
+        labeling_func=None) -> tuple:
     """Extract data by concatenating and fitting
     the preprocessing and extraction pipeline.
 
     :returns: tuple, (featureset, classification labels)
     """
 
-    labeling_func = kwargs.get('labeling_func', None)
     prep_pipeline = get_preprocessing_pipeline(
         labeling_func=labeling_func
     )
@@ -231,7 +231,9 @@ def extract_labeled_features(
     prep_data = np.array(prep_data)
     features, labels = prep_data[:, 0], prep_data[:, 1]
 
-    extractor = transformers.FeatureExtractor()
+    extractor = transformers.FeatureExtractor(
+        feature_hooks=feature_hooks
+    )
 
     featuresets = extractor.fit_transform(
         X=features, y=labels

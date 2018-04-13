@@ -6,6 +6,7 @@ to fit on the data.
 """
 
 import argparse
+import os
 import sys
 
 import numpy as np
@@ -14,21 +15,34 @@ from nvdlib.nvd import NVD
 from sklearn.model_selection import train_test_split
 
 from toolkit import pipelines
-from toolkit.transformers import extractors, classifiers
-from toolkit.pipelines.train import FEATURES
+from toolkit.transformers import classifiers
+from toolkit.pipelines.train import FEATURE_HOOKS
+
+
+class BooleanAction(argparse.Action):
+    """Argparse function to handle --flag and --no-flag arguments."""
+    def __init__(self, option_strings, dest, nargs=0, **kwargs):
+        super(BooleanAction, self).__init__(
+            option_strings, dest, nargs=nargs, **kwargs
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest,
+                False if option_string.startswith('--no') else True)
+
 
 __parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 feed_group = __parser.add_mutually_exclusive_group(required=True)
 
 __parser.add_argument(
-    '-p', '--path-to-classifier',
+    '-clf', '--path-to-classifier',
     required=True,
     help="Path to the stored classifier checkpoints.",
 )
 
 feed_group.add_argument(
     '--from-feeds',
-    type=int,
+    type=str,
     nargs='+',
     dest='nvd_feeds',
     help="On ore more NVD Feeds to be chosen to train on."
@@ -43,15 +57,15 @@ feed_group.add_argument(
 )
 
 __parser.add_argument(
-    '-eval', '--evaluate',
-    action='store_true',
-    default=False
+    '--eval', '--no-eval',
+    action=BooleanAction,
+    default=True
 )
 
 __parser.add_argument(
-    '-xval', '--cross-validate',
-    action='store_true',
-    default=False
+    '-xval', '--cross-validate', '--no-cross-validate',
+    action=BooleanAction,
+    default=True
 )
 
 __parser.add_argument(
@@ -73,8 +87,9 @@ def main():
     args = __parser.parse_args()
 
     if args.csv:
-        raise NotImplementedError
         # TODO
+        raise NotImplementedError("The feature has not been implemented yet."
+                                  " Sorry for the inconvenience.")
     else:
         print("Getting NVD Feed...")
         feed = NVD.from_feeds(feed_names=args.nvd_feeds)
@@ -83,9 +98,10 @@ def main():
 
     # transform and transform the data with the pre-processing pipeline
     print("Preprocessing...")
-    data, labels = pipelines.extract_labeled_features(
-        X=data,
-        nltk_preprocessor__feed_attributes=['description'],
+    features, labels = pipelines.extract_labeled_features(
+        data=data,
+        feature_hooks=FEATURE_HOOKS,
+        attributes=['description'],
     )
     print("Preprocessing done.")
 
@@ -94,22 +110,18 @@ def main():
               " or modify preprocessing pipeline.", file=sys.stderr)
         exit(1)
 
-    classifier = classifiers.NBClassifier.restore(args.path_to_classifier)
-
-    extractor = extractors.FeatureExtractor(
-        features=FEATURES
-    )
-    featureset = extractor.fit_transform(X=features, y=labels)
+    path_to_classifier = os.path.join(os.getcwd(), args.path_to_classifier)
+    classifier = classifiers.NBClassifier.restore(path_to_classifier)
 
     # noinspection PyPep8Naming
     X_train, X_test, y_train, y_test = train_test_split(  # pylint: disable=invalid-name
-        featureset, labels,
+        features, labels,
         test_size=0.2,
         random_state=np.random.randint(0, 100),
         shuffle=True
     )
 
-    if args.evaluate:
+    if args.eval:
         score = classifier.evaluate(X_test, y_test, sample=True, n=args.num_candidates)
 
         print("Evaluation accuracy:", score)
