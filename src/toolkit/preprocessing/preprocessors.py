@@ -40,7 +40,7 @@ class NVDFeedPreprocessor(TransformerMixin):
 
     def __init__(self,
                  attributes: typing.Union[list, np.ndarray] = None,
-                 handler=GitHubHandler,
+                 handler=None,
                  skip_duplicity=False):
 
         if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
@@ -49,9 +49,13 @@ class NVDFeedPreprocessor(TransformerMixin):
                 .format(typing.Union[list, np.ndarray], type(attributes))
             )
 
+        self._handler = handler
+        if handler is None:
+            self._handler = GitHubHandler
+
         attributes = tuple(attributes) if attributes else ('cve_id', 'references', 'description')
         for attr in attributes:
-            if attr in handler.default_properties and not skip_duplicity:
+            if attr in self._handler.default_properties and not skip_duplicity:
                 raise ValueError("Attribute `{}` is already present in handlers "
                                  "default properties.".format(attr))
 
@@ -59,14 +63,23 @@ class NVDFeedPreprocessor(TransformerMixin):
         # leave only those not present in handlers default properties
         self._cve_attributes = tuple([
             attr for attr in self._cve_attributes
-            if attr not in handler.default_properties
+            if attr not in self._handler.default_properties
         ])
 
-        self._handler = handler
+        self._use_filter = False
 
     # noinspection PyPep8Naming, PyUnusedLocal
     def fit(self, X, y=None, **fit_params):  # pyling: disable=invalid-name,unused-argument
-        """Auxiliary method to enable pipeline functionality."""
+        """Auxiliary method to enable pipeline functionality.
+
+        :param fit_params: optional parameters
+
+            use_filter: whether to filter the data by handler, default True
+                        *NOTE*: This argument is especially important when labeling
+                                the data follows after this preprocessor
+        """
+        self._use_filter = fit_params.get('use_filter', True)
+
         return self
 
     # noinspection PyPep8Naming
@@ -83,14 +96,17 @@ class NVDFeedPreprocessor(TransformerMixin):
             Each element of the resulting list is a namedtuple of cve attributes
         """
 
-        # filter the cves by the given handler
-        cve_tuples = self._filter_by_handler(X)
+        if self._use_filter:
+            # filter the cves by the given handler
+            cve_iter = self._filter_by_handler(X)
+        else:
+            cve_iter = iter(X)
 
         return [
-            self._get_cve_attributes(t) for t in cve_tuples
+            self._get_cve_attributes(t) for t in cve_iter
         ]
 
-    def _filter_by_handler(self, cves: typing.Union[list, np.ndarray]) -> typing.List[tuple]:
+    def _filter_by_handler(self, cves: typing.Union[list, np.ndarray]) -> typing.Iterator:
         """Filter the given elements by specified handler.
 
         NOTE: The only supported handler ATM is `GitHubHandler`, hence
@@ -98,40 +114,50 @@ class NVDFeedPreprocessor(TransformerMixin):
 
         :returns: list of tuples of type (cve, reference)
         """
-        filtered_cves = list()
-        for cve in cves:
-            # TODO: modify this approach by creating handler-specific filter method
-            #   such method would take CVE and returned bool whether
-            #   it could operate on it or not
-            ref = utils.get_reference(cve, pattern=self._handler.pattern)
-            if ref is None:
-                continue
-
-            # include the ref in the tuple instead iterating over
-            # the references later again
-            filtered_cves.append((cve, ref))
+        # TODO: modify this approach by creating handler-specific filter method
+        #   such method would take CVE and returned bool whether
+        #   it could operate on it or not
+        filtered_cves = filter(
+            lambda cve: utils.has_reference(cve, pattern=self._handler.pattern),
+            cves
+        )
 
         return filtered_cves
 
-    def _get_cve_attributes(self, cve_tuple):
+    def _get_cve_attributes(self, cve):
         """Get the selected attributes from the CVE object."""
-        cve, ref = cve_tuple
-
         # initialize handler
-        handler = self._handler(url=ref)
+        ref = utils.get_reference(cve, pattern=self._handler.pattern)
 
-        # attribute creator
-        Series = namedtuple(
-            'Series',
-            handler.default_properties + self._cve_attributes
-        )
-
-        # initialize with handlers default data
         data = list()
-        for prop in handler.default_properties:
-            attr = getattr(handler, prop)
-            if attr is not None:
-                data.append(attr)
+        if ref is not None:
+            handler = self._handler(url=ref)
+
+            # attribute creator
+            Series = namedtuple(
+                'Series',
+                handler.default_properties + self._cve_attributes
+            )
+
+            # initialize with handlers default data
+            for prop in handler.default_properties:
+                attr = getattr(handler, prop)
+                if attr is not None:
+                    data.append(attr)
+
+        elif not self._use_filter:
+            # if the use_filter was False, the handler may have not extracted anything
+            Series = namedtuple(
+                'Series',
+                self._cve_attributes
+            )
+
+        else:
+            # something is wrong, since the cve passed the filter but handler
+            # did not extracted any attributes
+            raise ValueError("Unexpected error occured. `use_filter=True`, but"
+                             " reference `{}` did not match handlers pattern."
+                             .format(ref))
 
         data.extend([
             getattr(cve, attr) for attr in self._cve_attributes

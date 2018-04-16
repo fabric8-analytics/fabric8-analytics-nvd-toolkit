@@ -1,7 +1,12 @@
 # Folders to ignore
 *.pyc
 **/export/
+
 .idea/
 
 # Files to ignore
 *.ipynb
+
+# Exceptions in the examples folder
+!examples/export/
+!examples/*.ipynb

@@ -213,7 +213,7 @@ class _FeatureExtractor(object):
             return ''
         if pos == 0:
             return '<start>'
-        tag = tagged[pos - 1][0]
+        tag = tagged[pos - 1][1]
         return " ".join([
             _FeatureExtractor._prev_ngram_tags(tagged, pos - 1, n - 1), tag
         ]).strip()

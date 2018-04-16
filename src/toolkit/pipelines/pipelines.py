@@ -195,7 +195,11 @@ def extract_features(
 
     steps, _ = list(zip(*extraction_pipeline.steps))
 
-    featureset = extraction_pipeline.fit_transform(data)
+    featureset = extraction_pipeline.fit_transform(
+        data,
+        # it is important not to filter the data by the handler here
+        nvd_feed_preprocessor__use_filter=False
+    )
 
     return featureset
 

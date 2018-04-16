@@ -118,6 +118,7 @@ class TestPipeline(unittest.TestCase):
         )
 
         self.assertTrue(any(featuresets))
+        self.assertEqual(len(featuresets), len(test_data))
 
     def test_extract_labeled_features(self):
         """Test labeled feature extraction."""
