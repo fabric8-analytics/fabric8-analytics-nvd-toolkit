@@ -10,7 +10,8 @@ from toolkit import preprocessing, transformers, utils
 
 
 def get_preprocessing_pipeline(attributes: list = None,
-                               labeling_func=None) -> Pipeline:
+                               labeling_func=None,
+                               share_hooks=False) -> Pipeline:
     """Build the preprocessing pipeline using existing classifier.
 
     The preprocessing pipeline takes as an input a list of CVE objects
@@ -28,6 +29,8 @@ def get_preprocessing_pipeline(attributes: list = None,
         The `labeling_func` is used to create a hook for `LabelPreprocessor`
         (see `LabelPreprocessor` documentation for more info).
         By default `toolkit.utils.find_` function is used for that purpose.
+
+    :param share_hooks: boolean, whether to reuse hooks
     """
 
     if labeling_func is None:
@@ -45,13 +48,15 @@ def get_preprocessing_pipeline(attributes: list = None,
                     feed_attributes=['project', 'description'],
                     # output only description attribute for NLTK processing
                     output_attributes=attributes,
-                    hook=transformers.Hook(key='label_hook', func=labeling_func)
+                    hook=transformers.Hook(key='label_hook',
+                                           func=labeling_func,
+                                           reuse=share_hooks)
                 ),
             ),
             (
                 'nltk_preprocessor',
                 preprocessing.NLTKPreprocessor(
-                    feed_attributes=attributes
+                    feed_attributes=attributes,
                 )
             )
         ]
@@ -138,7 +143,8 @@ def get_prediction_pipeline(classifier: transformers.NBClassifier,
 
 
 def get_extraction_pipeline(attributes,
-                            feature_hooks: list = None) -> Pipeline:
+                            feature_hooks: list = None,
+                            share_hooks=False) -> Pipeline:
     """Build the extraction pipeline.
 
     :param attributes: list, attributes for NLTKPreprocessor
@@ -152,6 +158,8 @@ def get_extraction_pipeline(attributes,
         Specify features which should be extracted from the given set.
         The hooks are called for each element of the set and return
         corresponding features.
+
+    :param share_hooks: boolean, whether to reuse hooks
     """
 
     return Pipeline(
@@ -171,7 +179,7 @@ def get_extraction_pipeline(attributes,
                 transformers.FeatureExtractor(
                     feature_hooks=feature_hooks,
                     # make hooks sharable (useful if training pipeline was used before)
-                    share_hooks=True
+                    share_hooks=share_hooks
                 )
             ),
         ]
@@ -181,6 +189,7 @@ def get_extraction_pipeline(attributes,
 def extract_features(
         data: typing.Union[list, np.ndarray],
         attributes: list,
+        share_hooks=True,
         **kwargs):
     """Extract data by fitting the extraction pipeline.
 
@@ -190,7 +199,8 @@ def extract_features(
     feature_hooks = kwargs.get('feature_hooks', None)
     extraction_pipeline = get_extraction_pipeline(
         attributes=attributes,
-        feature_hooks=feature_hooks
+        feature_hooks=feature_hooks,
+        share_hooks=share_hooks
     )
 
     steps, _ = list(zip(*extraction_pipeline.steps))
@@ -208,7 +218,8 @@ def extract_labeled_features(
         data: typing.Union[list, np.ndarray],
         attributes: list,
         feature_hooks: list = None,
-        labeling_func=None) -> tuple:
+        labeling_func=None,
+        share_hooks=True) -> tuple:
     """Extract data by concatenating and fitting
     the preprocessing and extraction pipeline.
 
@@ -216,7 +227,8 @@ def extract_labeled_features(
     """
 
     prep_pipeline = get_preprocessing_pipeline(
-        labeling_func=labeling_func
+        labeling_func=labeling_func,
+        share_hooks=share_hooks
     )
 
     steps, preps = list(zip(*prep_pipeline.steps))
