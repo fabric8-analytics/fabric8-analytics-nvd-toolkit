@@ -10,3 +10,6 @@
 # Exceptions in the examples folder
 !examples/export/
 !examples/*.ipynb
+
+# Virtual env directory
+venv/
