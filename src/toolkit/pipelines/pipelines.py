@@ -32,7 +32,6 @@ def get_preprocessing_pipeline(attributes: list = None,
 
     :param share_hooks: boolean, whether to reuse hooks
     """
-
     if labeling_func is None:
         labeling_func = utils.find_
 
@@ -78,7 +77,6 @@ def get_training_pipeline(feature_hooks=None) -> Pipeline:
         The hooks are called for each element of the set and return
         corresponding features.
     """
-
     return Pipeline(
         steps=[
             (
@@ -117,7 +115,6 @@ def get_prediction_pipeline(classifier: transformers.NBClassifier,
         The hooks are called for each element of the set and return
         corresponding features.
     """
-
     return Pipeline(
         steps=[
             (
@@ -161,7 +158,6 @@ def get_extraction_pipeline(attributes,
 
     :param share_hooks: boolean, whether to reuse hooks
     """
-
     return Pipeline(
         steps=[
             (
@@ -195,7 +191,6 @@ def extract_features(
 
     :returns: ndarray, featureset
     """
-
     feature_hooks = kwargs.get('feature_hooks', None)
     extraction_pipeline = get_extraction_pipeline(
         attributes=attributes,
@@ -220,12 +215,13 @@ def extract_labeled_features(
         feature_hooks: list = None,
         labeling_func=None,
         share_hooks=True) -> tuple:
-    """Extract data by concatenating and fitting
-    the preprocessing and extraction pipeline.
+    """Extract data.
+
+     Extraction by concatenating and fitting the preprocessing
+     and extraction pipeline.
 
     :returns: tuple, (featureset, classification labels)
     """
-
     prep_pipeline = get_preprocessing_pipeline(
         labeling_func=labeling_func,
         share_hooks=share_hooks

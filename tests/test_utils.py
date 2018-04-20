@@ -71,6 +71,7 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(ret, [None, k][v])
 
     def test_find_(self):
+        """Test utils.find_ function."""
         word = 'project'
         # test case insensitive (default)
         sample = 'This document belongs to the Project.'

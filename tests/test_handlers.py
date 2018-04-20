@@ -31,20 +31,19 @@ class TestGitHubHandler(unittest.TestCase):
             pass
 
     def test_strip_src_url(self):
-        """Test correct source url stripping by handlers
-        `strip_src_url` function."""
+        """Test GitHubHandler `strip_src_url` method."""
         repo = GitHubHandler(url=TEST_REPO_BLOB_URL)
 
         self.assertEqual(repo.repository, TEST_REPO_SRC_URL)
 
     def test_get_user_project(self):
-        """Test correct user and project is returned by
-        handlers `get_user_project` function."""
+        """Test GitHubHandler `get_user_project` method."""
         repo = GitHubHandler(url=TEST_REPO_BLOB_URL)
         user, project = repo.user, repo.project
 
         self.assertEqual((user, project), TEST_USER_PROJ)
 
     def test_languages(self):
+        """Test GitHubHandler `languages` property."""
         # TODO: think of how to provide public OAUTH_TOKEN for testing
         pass

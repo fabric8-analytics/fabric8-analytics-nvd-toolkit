@@ -44,6 +44,7 @@ class TestClassifier(unittest.TestCase):
         self.assertIsNotNone(classifier.features)
 
     def test_predict(self):
+        """Test NBClassifier `predict` method."""
         classifier = NBClassifier()
 
         data, labels = _get_extracted_test_data()
@@ -66,6 +67,7 @@ class TestClassifier(unittest.TestCase):
         self.assertIsInstance(prediction, dict)
 
     def test_fit_predict(self):
+        """Test NBClassifier `fit_predict` method."""
         classifier = NBClassifier()
 
         data, labels = _get_extracted_test_data()
@@ -182,7 +184,8 @@ class TestClassifier(unittest.TestCase):
 def _get_extracted_test_data():
     """Return preprocessed data.
 
-    Note: used for tests only."""
+    Note: used for tests only.
+    """
     from nvdlib.nvd import NVD
 
     feed = NVD.from_feeds(feed_names=['recent'])

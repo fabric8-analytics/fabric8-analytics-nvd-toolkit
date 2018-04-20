@@ -132,7 +132,7 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(any(labels))
 
     def test_evaluation(self):
-        """Test evaluation of extracted features"""
+        """Test evaluation of extracted features."""
         test_data = _get_test_data()
         featuresets, _ = pipelines.extract_labeled_features(
             data=test_data,
@@ -163,7 +163,8 @@ class TestPipeline(unittest.TestCase):
 def _get_test_data(n_records=500):
     """Return preprocessed data.
 
-    Note: used for tests only."""
+    Note: used for tests only.
+    """
     from nvdlib.nvd import NVD
 
     feed = NVD.from_feeds(feed_names=['recent'])

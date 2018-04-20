@@ -42,7 +42,7 @@ class TestFeatureExtractor(unittest.TestCase):
 
     @clear
     def test_extract_features(self):
-        """Test FeatureExtractor `_extract_features` method"""
+        """Test FeatureExtractor `_extract_features` method."""
         # preprocess the sentences
         test_data = _get_preprocessed_test_data()
         # get tokenized sentence
@@ -116,7 +116,6 @@ class Test_FeatureExtractor(unittest.TestCase):
     @clear
     def test_update(self):
         """Test _FeatureExtractor update method."""
-
         hook = Hook(key='key', func=lambda: None)
         _prep = _FeatureExtractor().update(hook)
 
@@ -149,7 +148,8 @@ class Test_FeatureExtractor(unittest.TestCase):
 def _get_preprocessed_test_data():
     """Return preprocessed data.
 
-    Note: used for tests only."""
+    Note: used for tests only.
+    """
     from nvdlib.nvd import NVD
 
     feed = NVD.from_feeds(feed_names=['recent'])

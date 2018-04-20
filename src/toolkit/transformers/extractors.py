@@ -115,7 +115,7 @@ class FeatureExtractor(TransformerMixin):
                           word_pos: int,
                           skip_unfed_hooks=False,
                           **kwargs) -> dict:
-        """Feeds the hooks and extract feature_keys based on those hooks."""
+        """Feed the hooks and extract feature_keys based on those hooks."""
         feed_dict = {
             'tagged': tagged_sent,
             'pos': word_pos,
@@ -145,7 +145,7 @@ class _FeatureExtractor(object):
         return [hook.key for hook in self._hooks]
 
     def update(self, hooks: typing.Union[list, Hook]):
-        """Updates the hooks used for feature extraction.
+        """Update the hooks used for feature extraction.
 
         :param hooks: list[Hook], custom hooks used for feature extraction
 
@@ -165,7 +165,7 @@ class _FeatureExtractor(object):
         return self
 
     def feed(self, feed_dict: dict, skip_unfed_hooks=False) -> dict:
-        """Calls each hook with the arguments given by values of `feed_dict`.
+        """Call each hook with the arguments given by values of `feed_dict`.
 
         :param feed_dict: dict of arguments to be fed into hooks
 

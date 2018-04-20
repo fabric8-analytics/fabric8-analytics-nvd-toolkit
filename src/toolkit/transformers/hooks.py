@@ -58,12 +58,12 @@ class Hook(object):
 
     @classmethod
     def get_current_hooks(cls) -> list:
-        """Returns instances of this class."""
+        """Return instances of this class."""
         return list(cls.__INSTANCES)
 
     @classmethod
     def get_current_keys(cls) -> set:
-        """Returns keys to the instances of this class."""
+        """Return keys to the instances of this class."""
         return set([hook.key for hook in cls.__INSTANCES])
 
     @classmethod
