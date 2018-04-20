@@ -206,6 +206,7 @@ class TestLabelPreprocessor(unittest.TestCase):
     """Tests for LabelPreprocessor class."""
 
     def test_init(self):
+        """Test LabelPreprocessor initialization."""
         hook = Hook(key='label', func=lambda x: x)
         attributes = ['project']
 
@@ -217,7 +218,7 @@ class TestLabelPreprocessor(unittest.TestCase):
 
     @clear
     def test_fit_transform(self):
-        """Test LabelPreprocessor `fit_transform` method"""
+        """Test LabelPreprocessor `fit_transform` method."""
         hook = Hook(key='label', func=lambda p, d: 'label')
         attributes = ['project', 'description']
 

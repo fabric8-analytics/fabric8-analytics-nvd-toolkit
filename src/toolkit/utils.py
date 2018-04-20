@@ -1,5 +1,4 @@
-"""Module containing utilities for processing and extraction
-of data from NVD feed."""
+"""Module containing utilities for processing data from NVD feed."""
 
 import re
 import typing
@@ -41,8 +40,7 @@ class classproperty(object):  # pylint: disable=invalid-name
 
 
 def has_reference(cve, url=None, pattern=None) -> bool:
-    """Iterate over references of the given CVE and reports existence
-    based on {url, pattern} given.
+    """Report reference existence based on {url, pattern} given.
 
     :param cve: CVE object whose `references` attribute is of type Iterable[str]
     :param url: str, if specified, requires exact match of cve reference
@@ -69,9 +67,9 @@ def has_reference(cve, url=None, pattern=None) -> bool:
 
 
 def get_reference(cve, url=None, pattern=None) -> typing.Union[str, None]:
-    """Iterate over references of the given CVE and returns reference (if exists)
-    based on {url, pattern} given. If multiple references are present, only the first
-    encountered is returned.
+    """Return reference (if exists) based on {url, pattern}.
+
+    If multiple references are present, only the first encountered is returned.
 
     :param cve: CVE object whose `references` attribute is an iterable of str references
     :param url: str, if specified, requires exact match of cve reference with the given `url`
@@ -98,7 +96,7 @@ def get_reference(cve, url=None, pattern=None) -> typing.Union[str, None]:
 
 # this function is meant to be used as a hook for LabelPreprocessor
 def find_(word, stream, ignore_case=True):
-    """Trys to find the `word` in the `stream`.
+    """Find the `word` in the `stream`.
 
     :param word: str, word or pattern to be searched in stream
     :param stream: str, stream to be searched in
@@ -118,7 +116,7 @@ def find_(word, stream, ignore_case=True):
 
 def nvd_to_dataframe(cve_list: list,
                      handler):
-    """Creates a pandas DataFrame from nvdlib.NVD object.
+    """Create a pandas DataFrame from nvdlib.NVD object.
 
     NOTE: This function requires `pandas` package to be installed
     (which is not a requirement for the standard installation or
@@ -151,7 +149,8 @@ def nvd_to_dataframe(cve_list: list,
 
         username, project = handle.user, handle.project
         if (username, project) in projects:
-            # Multiple CVEs are possible for a project, but not important to cover for package prediction
+            # Multiple CVEs are possible for a project, # but not important
+            # to cover for package prediction
             continue
         projects.add((username, project))
 
@@ -182,7 +181,6 @@ def nvd_to_dataframe(cve_list: list,
 
 def clear(func):
     """Decorator which performs cleanup before function call."""
-
     # noinspection PyUnusedLocal,PyUnusedLocal
     def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
         # perform cleanup

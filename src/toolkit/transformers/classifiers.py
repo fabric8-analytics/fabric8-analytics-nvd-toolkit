@@ -65,6 +65,7 @@ class NBClassifier(TransformerMixin):
 
     @property
     def features(self):
+        """Return features most informative for classification."""
         if self._classifier is None:
             return None
 
@@ -82,7 +83,6 @@ class NBClassifier(TransformerMixin):
 
         :param y: redundant (included to preserve base class method definition)
         """
-
         # NLTK classifier expects stacked featuresets for the training,
         # so we need to reduce the dimenstionality
         labeled_featuresets = list()
@@ -103,7 +103,6 @@ class NBClassifier(TransformerMixin):
     # noinspection PyPep8Naming, PyUnusedLocal
     def transform(self, X):  # pylint: disable=invalid-name,unused-argument
         """Auxiliary function to be used in pipeline."""
-
         return self
 
     # noinspection PyPep8Naming
@@ -119,11 +118,10 @@ class NBClassifier(TransformerMixin):
             Same shape as for `fit` and `fit_predict` methods
 
         :param y: Iterable, of labels
-        :param sample:
+        :param sample: one of labels to get the prediction for
 
-        one of labels to get the prediction for (for example,
-                                                 if labels are ['class_A', 'class_B', 'class_C'], the sample
-        could be 'class_A'.
+            For example, if labels are ['class_A', 'class_B', 'class_C'], the sample
+            could be 'class_A'.
 
         :param n: int, number of candidates to output
         """
@@ -144,13 +142,14 @@ class NBClassifier(TransformerMixin):
 
     # noinspection PyPep8Naming
     def fit_predict(self, X: typing.Iterable, y=None, **fit_params):  # pylint: disable=invalid-name,unused-argument
-        """Makes prediction about the given data.
+        """Make prediction about the given data.
 
         :param X: Iterable, prediction data
 
-            The prediction data is expected to be of type List[(name_tuple, feature_set [,feature,label)]
-            where feature_set corresponds to the output of FeatureExtractor and feature labels (if provided)
-            should be None (will be ignored anyway).
+            The prediction data is expected to be of type
+            List[(name_tuple, feature_set [,feature,label)] where feature_set
+            corresponds to the output of FeatureExtractor and feature
+            labels (if provided) should be None (will be ignored anyway).
 
         :param y: redundant (included to preserve bace class method definition)
         :param fit_params: kwargs, fit parameters
@@ -226,13 +225,14 @@ class NBClassifier(TransformerMixin):
         return probs
 
     def show_most_informative_features(self):
+        """Print features most informative for classification."""
         if self._classifier is None:
             return
 
         self._classifier.show_most_informative_features()
 
     def export(self, export_dir=None, export_name=None) -> str:
-        """Exports timestamped pickled classifier to the given directory.
+        """Export timestamped pickled classifier to the given directory.
 
         :returns: path to the timestamped .checkpoint file
         """
@@ -273,7 +273,8 @@ class NBClassifier(TransformerMixin):
         if os.path.isdir(checkpoint):
             checkpoint_dir = checkpoint
             checkpoints = [
-                os.path.join(checkpoint_dir, f) for f in os.listdir(checkpoint) if f.endswith('.checkpoint')
+                os.path.join(checkpoint_dir, f)
+                for f in os.listdir(checkpoint) if f.endswith('.checkpoint')
             ]
             # find the latest
             if not checkpoints:
@@ -378,7 +379,6 @@ def cross_validate(classifier,
 
 def precision(total: int, correct: int) -> float:
     """Calculate precision."""
-
     return float(correct / total)
 
 

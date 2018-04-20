@@ -11,6 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class StatusError(Exception):
+    """Custom exception returned by Git Hub API."""
 
     def __init__(self, status: int):
         """Initialize custom exception."""
@@ -21,15 +22,16 @@ class StatusError(Exception):
 
 class GitHubHandler(object):
     """
-    The handler manages GitHub repository, strips its source directory
-    and handles access to GitHub API making it easy to interact with
-    the repository.
+    The handler manages Git Hub repository.
 
-    :param url: str, url of any GitHub repository or blob
+    Strips its source directory and handles access to Git Hub API
+    making it easy to interact with the repository.
+
+    :param url: str, url of any Git Hub repository or blob
     """
 
-    __URL_BASE_PATTERN = u"http[s]://github.com/([\w-]+)/([\w-]+[.]*[\w-]*)"
-    __API_URL = u"https://api.github.com/repos/{user}/{project}/languages"
+    __URL_BASE_PATTERN = r"http[s]://github.com/([\w-]+)/([\w-]+[.]*[\w-]*)"
+    __API_URL = r"https://api.github.com/repos/{user}/{project}/languages"
     __DEFAULT_PROPERTIES = ('user', 'project', 'repository')
 
     def __init__(self, url: str = None):
@@ -43,34 +45,40 @@ class GitHubHandler(object):
     # noinspection PyMethodParameters
     @classproperty
     def pattern(cls):
+        """Reference pattern handled by the handler."""
         return cls.__URL_BASE_PATTERN
 
     # noinspection PyMethodParameters
     @classproperty
     def default_properties(cls):
+        """Default handler's properties."""
         return cls.__DEFAULT_PROPERTIES
 
     @property
     def repository(self):
+        """Git Hub repository source url."""
         return self._src_url
 
     @property
     def user(self):
+        """Git Hub repository owner."""
         return self._user
 
     @property
     def project(self):
+        """Git Hub project name."""
         return self._project
 
     @property
     def languages(self):
+        """Languages used by the project."""
         if not self._languages:
             # query API only the first time
             self._languages = self.get_languages()
         return self._languages
 
     def strip_src_url(self, url: str) -> str:
-        """Strips the source url from a given url.
+        """Strip the source url from a given url.
 
         :param url: str, url to be stripped
 
@@ -87,22 +95,22 @@ class GitHubHandler(object):
 
     @staticmethod
     def get_user_project(src_url: str) -> tuple:
-        """Splits the source url and extracts username and project name.
+        """Split the source url and extracts username and project name.
 
         :param src_url: url to the source repository of a project
 
         :returns: tuple (username, project)
         """
         # TODO: improve the splitting with regex .. this way it misses some projects
-        gh_user, gh_project = src_url.rsplit('/', 2)[-2:]
+        gh_user, gh_project = src_url.rsplit(r'/', 2)[-2:]
 
         return gh_user, gh_project
 
     def get_languages(self) -> dict:
         """
-        Query GitHub API languages used for the given user/project.
+        Query Git Hub API languages used for the given user/project.
 
-        Note: GitHub will most likely require OAUTH_TOKEN specified,
+        Note: Git Hub will most likely require OAUTH_TOKEN specified,
         provide your token via environment variable OAUTH_TOKEN.
 
         :returns: dict, {"str"language: "int"bytes_of_code} or None

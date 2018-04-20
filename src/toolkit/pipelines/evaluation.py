@@ -21,6 +21,7 @@ from toolkit.pipelines.train import FEATURE_HOOKS
 
 class BooleanAction(argparse.Action):
     """Argparse function to handle --flag and --no-flag arguments."""
+
     def __init__(self, option_strings, dest, nargs=0, **kwargs):
         super(BooleanAction, self).__init__(
             option_strings, dest, nargs=nargs, **kwargs

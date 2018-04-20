@@ -69,7 +69,10 @@ class NVDFeedPreprocessor(TransformerMixin):
         self._use_filter = False
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X, y=None, **fit_params):  # pyling: disable=invalid-name,unused-argument
+    def fit(self,
+            X,  # pylint: disable=invalid-name,unused-argument
+            y=None,  # pylint: disable=unused-argument
+            **fit_params):
         """Auxiliary method to enable pipeline functionality.
 
         :param fit_params: optional parameters
@@ -95,7 +98,6 @@ class NVDFeedPreprocessor(TransformerMixin):
         :returns: list of shape (len(x), len(attr_list))
             Each element of the resulting list is a namedtuple of cve attributes
         """
-
         if self._use_filter:
             # filter the cves by the given handler
             cve_iter = self._filter_by_handler(X)
@@ -213,12 +215,12 @@ class LabelPreprocessor(TransformerMixin):
 
     @property
     def labels(self):
+        """Processed labels."""
         return self._labels
 
     # noinspection PyPep8Naming
     def fit(self, X: typing.Union[list, np.ndarray], y=None, **fitparams):  # pylint: disable=invalid-name
         """Fit the preprocessor to the given data."""
-
         Series = namedtuple('Attributes', field_names=self._feed_attributes)
 
         self._labels = [None] * len(X)
@@ -233,9 +235,7 @@ class LabelPreprocessor(TransformerMixin):
     # noinspection PyPep8Naming
     def transform(self,
                   X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
-        """Transforms the data provided in `X` by extracting output attributes specified
-        while initialization."""
-
+        """Transform the data provided in `X` by extracting output attributes."""
         def allow_label(l):
             if l is None:
                 return self._allow_nan_labels
@@ -330,7 +330,8 @@ class NLTKPreprocessor(TransformerMixin):
 
     # noinspection PyPep8Naming
     @staticmethod
-    def inverse_transform(X: typing.Union[list, np.ndarray]) -> list:  # pylint: disable=invalid-name
+    def inverse_transform(
+            X: typing.Union[list, np.ndarray]) -> list:  # pylint: disable=invalid-name
         """Inverse operation to the `transform` method.
 
         Returns list of shape (len(X),) with the tokens stored in X.
@@ -340,13 +341,15 @@ class NLTKPreprocessor(TransformerMixin):
         are not reversible operations and for memory sake, lowercase changes
         are not stored in memory either.
         """
-
         return [
             x[0] for x in X
         ]
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X: typing.Iterable, y=None, **fit_params):  # pyling: disable=invalid-name,unused-argument
+    def fit(self,
+            X: typing.Iterable,  # pylint: disable=invalid-name
+            y=None,  # pylint: disable=unused-argument
+            **fit_params):
         """Fits the preprocessor to the given data.
 
         :param X: Iterable, each element should be a string to be tokenized
@@ -392,7 +395,6 @@ class NLTKPreprocessor(TransformerMixin):
         :returns: namedtuple of the same shape as `X` if `y` is None, otherwise
         adds one dimension for `y` elements
         """
-
         if self._feed_attributes:
             X_feed = [
                 getattr(x, attr) for attr in self._feed_attributes
@@ -425,8 +427,7 @@ class NLTKPreprocessor(TransformerMixin):
         return result
 
     def tokenize(self, stream: str):
-        """Performs tokenization of each sentence given in the list."""
-
+        """Perform tokenization of each sentence given in the list."""
         if not isinstance(stream, str):
             raise TypeError("Tokenization process expects input of type `{}`,"
                             "got `{}`".format(str, type(stream)))
