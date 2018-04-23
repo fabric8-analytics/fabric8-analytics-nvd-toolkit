@@ -1,7 +1,12 @@
 """Module containing handlers for source control management systems."""
 
 import json
+import os
+import sys
 import re
+import shlex
+import subprocess
+import tempfile
 import urllib3
 
 from toolkit import config
@@ -13,11 +18,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class StatusError(Exception):
     """Custom exception returned by Git Hub API."""
 
-    def __init__(self, status: int):
+    def __init__(self, status: int, *args):
         """Initialize custom exception."""
-        msg = "Response status returned: `%d`" % status
+        msg = "Response status returned: `%d`" % int(status)
 
-        super(StatusError, self).__init__(msg)
+        super(StatusError, self).__init__(msg, *args)
 
 
 class GitHubHandler(object):
@@ -126,3 +131,108 @@ class GitHubHandler(object):
             raise StatusError(status=response.status)
 
         return json.loads(response.data)
+
+
+class GitHandler(object):
+    """The handler manages local git repository."""
+
+    def __init__(self, path: str):
+        if not os.path.isdir(path):
+            raise FileNotFoundError("path `%s` is not a directory." % path)
+
+        self._cwd = os.getcwd()
+        self._chdir = os.path.abspath(path)
+
+        # check directory correctness only (status raises error if incorrect)
+        _, __ = self.status
+
+    def __enter__(self):
+        """Enter the git context manager."""
+        os.chdir(self._chdir)
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the git context manager."""
+        os.chdir(self._cwd)
+
+    @property
+    def repository(self):
+        return self._chdir
+
+    @property
+    def status(self):
+        """Return git status of the current repository."""
+        return self.exec_cmd("git status", chdir=self._chdir)
+
+    @classmethod
+    def clone(cls, url: str):
+        """Initialize handler from a repository url."""
+        tmp_dir = tempfile.mkdtemp(prefix='nvd-toolkit_', suffix='_clone')
+
+        clone_cmd = "git clone {url} {dest}".format(
+            url=url,
+            dest=tmp_dir
+        )
+
+        _, __ = cls.exec_cmd(clone_cmd)
+
+        return cls(path=tmp_dir)
+
+    def get_modified_files(self, commit: str) -> list:
+        """Get modified files by a commit hash."""
+        if not isinstance(commit, str):
+            raise TypeError("Argument `commit` expected to be of type str,"
+                            " got `{}`".format(type(commit)))
+
+        stdout, _ = self.exec_cmd(
+            cmd='git diff-tree --no-commit-id --name-only -r %s' % commit,
+            chdir=self._chdir
+        )
+
+        mod_files = [
+            os.path.join(self._chdir, f) for f in stdout.split()
+        ]
+
+        return mod_files
+
+    @staticmethod
+    def exec_cmd(cmd, chdir=None):
+        """Execute git command.
+
+        :param cmd: command to execute
+        :param chdir: change directory to use as current working dir
+
+        :returns: tuple (stdout, stderr), output of the command
+        """
+        cwd = os.getcwd()
+        if chdir is not None:
+            os.chdir(chdir)
+
+        # ensure every argument is shell-quoted
+        # to prevent accidental shell injection
+        cmd = [
+            shlex.quote(arg) for arg in shlex.split(cmd)
+        ]
+
+        if cmd[0].lower() != 'git':
+            raise ValueError("Invalid command `{}`, expected `git`"
+                             .format(cmd[0]))
+
+        pcs = subprocess.Popen(
+            cmd,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        stdout, stderr = pcs.communicate()
+        ec = pcs.wait()
+
+        if ec != 0:
+            print(stderr, file=sys.stderr)
+            raise StatusError(ec, stderr)
+
+        # change the cwd back to the original one
+        os.chdir(cwd)
+
+        return stdout, stderr
