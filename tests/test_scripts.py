@@ -5,10 +5,10 @@ import subprocess
 import tempfile
 import unittest
 
-from toolkit.scripts.get_packages_by_commit import get_packages_by_commit
+from toolkit.scripts.get_packages_by_commit import get_packages_by_commits
 
 TEST_REPO = "https://github.com/inversoft/prime-jwt/"
-TEST_COMMIT = "0d94dcef0133d699f21d217e922564adbb83a227"
+TEST_COMMITS = ["0d94dcef0133d699f21d217e922564adbb83a227"]
 
 
 class TestScripts(unittest.TestCase):
@@ -33,9 +33,9 @@ class TestScripts(unittest.TestCase):
 
         self.assertEqual(pcs.returncode, 0)
 
-        maven_package, = get_packages_by_commit(
+        maven_package, = get_packages_by_commits(
             repository=tmp_dir,
-            commit=TEST_COMMIT,
+            commits=TEST_COMMITS,
             ecosystem='maven',
         )
 

@@ -15,7 +15,7 @@ TEST_REPO_BLOB_URL = TEST_REPO_SRC_URL + u'/blob/master'
 TEST_GIT_REPO_URL = u'https://github.com/fabric8-analytics/fabric8-analytics-nvd-toolkit'
 TEST_GIT_REPO = u'fabric8-analytics-nvd-toolkit'
 
-TEST_COMMIT = u'6cd15101c976c5de3b9fdc834d0b4d3f'
+TEST_COMMITS = ['6cd15101c976c5de3b9fdc834d0b4d3f']
 
 
 class TestGitHubHandler(unittest.TestCase):
@@ -99,6 +99,11 @@ class TestGitHandler(unittest.TestCase):
 
         handler = GitHandler.clone(url=TEST_GIT_REPO_URL)
 
-        mod_file, = handler.get_modified_files(commit=TEST_COMMIT)
+        mod_file, = handler.get_modified_files(commits=TEST_COMMITS)
 
         self.assertEqual(os.path.basename(mod_file), 'README.md')
+
+        # test multiple commits
+        mod_files = handler.get_modified_files(commits=TEST_COMMITS * 2)
+
+        self.assertEqual(len(mod_files), 2)

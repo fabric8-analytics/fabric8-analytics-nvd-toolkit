@@ -181,9 +181,7 @@ class Maven(object):
 
         # get xml namespace
         namespace = re.search(r"({.*})(.*)", root.tag)
-        if namespace is None:
-            raise ValueError("namespace was not found in the xml file")
-        namespace = namespace.group(1)
+        namespace = namespace.group(1) if namespace else ''
 
         attributes = [
             'groupId', 'artifactId', 'name',
@@ -195,7 +193,16 @@ class Maven(object):
             try:
                 val = tree.find(namespace + attr).text
             except AttributeError:
-                val = None
+                # try to look the attr up in the parent tag
+                parent = tree.find(namespace + 'parent')
+                if parent:
+                    try:
+                        val = parent.find(namespace + attr).text
+                    except AttributeError:
+                        val = None
+                else:
+                    val = None
+
             package_spec[attr] = val
 
         package = MavenPackage(

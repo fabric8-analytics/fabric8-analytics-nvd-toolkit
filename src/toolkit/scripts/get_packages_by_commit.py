@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import sys
 
 from toolkit.preprocessing.handlers import GitHandler
 from toolkit.preprocessing.ecos import Maven
@@ -25,9 +26,11 @@ __parser.add_argument(
     help="Path to local git repository or url to remote git repository."
 )
 __parser.add_argument(
-    '-c', '--commit',
+    '-c', '--commits',
+    nargs='+',
+    type=str,
     required=True,
-    help="Commit hash to search the modified files by."
+    help="List of commit hashes to search the modified files by."
 )
 __parser.add_argument(
     '-n', '--package-limit',
@@ -64,15 +67,16 @@ def main():
     """Main function."""
     args = __parser.parse_args()
 
-    packages = get_packages_by_commit(
+    packages = get_packages_by_commits(
         repository=args.repository,
-        commit=args.commit,
+        commits=args.commits,
         package_limit=args.package_limit,
         ecosystem=args.ecosystem
     )
+
     if args.json:
-        print(json.dumps(
-            [p.get_attributes(skip_none=True) for p in packages],
+        (json.dumps(
+            [p.get_attributes(skip_none=False) for p in packages],
             indent=4,
             sort_keys=True
         ))
@@ -88,9 +92,9 @@ def main():
     exit(0)
 
 
-def get_packages_by_commit(
+def get_packages_by_commits(
         repository: str,
-        commit: str,
+        commits: list,
         package_limit=1,
         ecosystem='maven') -> list:
     """Get package name from git repository and commit hash.
@@ -108,23 +112,25 @@ def get_packages_by_commit(
         If url is provided, to repository will be cloned into
         a temporary folder (at /tmp)
 
-    :param commit: commit hash to search the modified files by
+    :param commits: list, commit hashes to search the modified files by
     :param package_limit: int or None, limit number of packages
 
         The limit is applied per modified file.
-        If all packages found in the path should be listed, provide None or 0
+        If all packages found in the path should be listed,
+        provide None or 0
 
     :param ecosystem: ecosystem the repository belongs to
 
         {maven, npm, python}, by default 'maven' is assumed
     """
     if repository.startswith('http'):
+        print('\nCloning repository...\n', file=sys.stderr)
         handler = GitHandler.clone(url=repository)
     else:
         handler = GitHandler(path=repository)
 
     with handler as git:
-        mod_files = git.get_modified_files(commit=commit)
+        mod_files = git.get_modified_files(commits=commits)
 
     mod_files = sorted(mod_files, key=len, reverse=True)
     eco_namespace = _get_namespace_by_eco(ecosystem)
