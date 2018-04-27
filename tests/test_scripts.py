@@ -5,7 +5,9 @@ import subprocess
 import tempfile
 import unittest
 
-from toolkit.scripts.get_packages_by_commit import get_packages_by_commits
+from toolkit.scripts.get_packages_by_commit import \
+    main,\
+    get_packages_by_commits
 
 TEST_REPO = "https://github.com/inversoft/prime-jwt/"
 TEST_COMMITS = ["0d94dcef0133d699f21d217e922564adbb83a227"]
@@ -14,7 +16,30 @@ TEST_COMMITS = ["0d94dcef0133d699f21d217e922564adbb83a227"]
 class TestScripts(unittest.TestCase):
     """Test various scripts in scripts module."""
 
-    def test_get_packages_by_commit(self):
+    def test_main_help(self):
+        """Test argument parser's help."""
+        argv = ['--help']
+        with self.assertRaises(SystemExit):
+            main(argv)
+
+    def test_main_no_args(self):
+        """Test main function with no arguments."""
+        argv = []
+        with self.assertRaises(SystemExit) as exc:
+            main(argv)
+
+        self.assertNotEqual(exc.exception.code, 0)
+
+    def test_main_default(self):
+        """Test main function with default arguments."""
+        argv = ['-repo', TEST_REPO,
+                '--commits', *TEST_COMMITS]
+        ret_val = main(argv)
+
+        self.assertIsNone(ret_val)
+
+    def test_get_packages_by_commits(self):
+        """Test package retrieval by commit messages."""
         tmp_dir = tempfile.mkdtemp(prefix="unittest_",
                                    suffix="_get_package")
 

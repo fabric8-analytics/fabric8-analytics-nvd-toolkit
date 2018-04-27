@@ -29,6 +29,7 @@ class Hook(object):
     __INSTANCES = weakref.WeakSet()
 
     def __init__(self, key: str, func, reuse=False, **default_kwargs):
+        """Initialize hook."""
         if key in Hook.get_current_keys():
             if not reuse:
                 raise ValueError("Hook with key `%s` already exists" % key)
@@ -46,14 +47,16 @@ class Hook(object):
 
     @property
     def key(self):
+        """Get hook key."""
         return self._key
 
     @property
     def default_kwargs(self):
+        """Get hook default keyword arguments."""
         return self._default_kwargs
 
     def __call__(self, *args, **kwargs):
-
+        """Call the hooked function."""
         return self._func(*args, **kwargs)
 
     @classmethod

@@ -194,9 +194,8 @@ def _get_extracted_test_data():
 
     # get the sample cves
     __cve_iter = feed.cves()
-    __records = 500
 
-    data = [next(__cve_iter) for _ in range(__records)]
+    data = list(__cve_iter)
 
     data, labels = extract_labeled_features(
         data=data,

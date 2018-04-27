@@ -96,7 +96,6 @@ class TestGitHandler(unittest.TestCase):
 
     def test_get_modified_files(self):
         """Test GitHandler's `get_modified_files` method."""
-
         handler = GitHandler.clone(url=TEST_GIT_REPO_URL)
 
         mod_file, = handler.get_modified_files(commits=TEST_COMMITS)

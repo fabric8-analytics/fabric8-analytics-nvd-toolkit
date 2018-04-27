@@ -3,7 +3,10 @@
 import pytest
 import unittest
 
+from nvdlib.nvd import NVD
+
 from toolkit import utils
+from toolkit.preprocessing.handlers import GitHubHandler, StatusError
 
 TEST_REFERENCE_HTTP = 'http://github.com/user/project/blob/master'
 TEST_REFERENCE_HTTPS = 'https://github.com/user/project/blob/master'
@@ -88,5 +91,15 @@ class TestUtils(unittest.TestCase):
 
     def test_nvd_to_dataframe(self):
         """Test NVD feed transformation to pandas.DataFrame object."""
-        # TODO
-        pass
+        from pandas import DataFrame
+
+        # test without handler
+        cves = list(NVD.from_feeds(['recent']).cves())
+        df = utils.nvd_to_dataframe(cves)
+
+        self.assertIsNotNone(df)
+        self.assertIsInstance(df, DataFrame)
+
+        # test with handler - should raise cause of missing gh token
+        with self.assertRaises(StatusError):
+            _ = utils.nvd_to_dataframe(cves, handler=GitHubHandler)

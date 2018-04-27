@@ -7,15 +7,15 @@ called by sklearn pipeline and can be integrated with it.
 import re
 import typing
 
+from collections import namedtuple
+
 import nltk
 import nltk.corpus as corpus
 import numpy as np
 
-from collections import namedtuple
-
 from sklearn.base import TransformerMixin
 
-from toolkit.preprocessing import GitHubHandler
+from toolkit.preprocessing.handlers import GitHubHandler
 from toolkit.transformers import Hook
 from toolkit import utils
 
@@ -42,7 +42,7 @@ class NVDFeedPreprocessor(TransformerMixin):
                  attributes: typing.Union[list, np.ndarray] = None,
                  handler=None,
                  skip_duplicity=False):
-
+        """Initialize NVDFeedPreprocessor."""
         if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
             raise TypeError(
                 "Argument `attributes` expected to be of type `{}`, got `{}`"
@@ -136,7 +136,7 @@ class NVDFeedPreprocessor(TransformerMixin):
             handler = self._handler(url=ref)
 
             # attribute creator
-            Series = namedtuple(
+            Series = namedtuple(  # pylint: disable=invalid-name
                 'Series',
                 handler.default_properties + self._cve_attributes
             )
@@ -149,7 +149,7 @@ class NVDFeedPreprocessor(TransformerMixin):
 
         elif not self._use_filter:
             # if the use_filter was False, the handler may have not extracted anything
-            Series = namedtuple(
+            Series = namedtuple(  # pylint: disable=invalid-name
                 'Series',
                 self._cve_attributes
             )
@@ -193,7 +193,7 @@ class LabelPreprocessor(TransformerMixin):
                  feed_attributes: list,
                  output_attributes: list = None,
                  allow_nan_labels=False):
-
+        """Initialize LabelPreprocessor."""
         if not isinstance(feed_attributes, typing.Iterable):
             raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
                             " got `{}`".format(typing.Iterable, type(feed_attributes)))
@@ -215,13 +215,16 @@ class LabelPreprocessor(TransformerMixin):
 
     @property
     def labels(self):
-        """Processed labels."""
+        """Get processed labels."""
         return self._labels
 
     # noinspection PyPep8Naming
     def fit(self, X: typing.Union[list, np.ndarray], y=None, **fitparams):  # pylint: disable=invalid-name
         """Fit the preprocessor to the given data."""
-        Series = namedtuple('Attributes', field_names=self._feed_attributes)
+        Series = namedtuple(  # pylint: disable=invalid-name
+            'Attributes',
+            field_names=self._feed_attributes
+        )
 
         self._labels = [None] * len(X)
         for i, x in enumerate(X):
@@ -237,6 +240,7 @@ class LabelPreprocessor(TransformerMixin):
                   X: typing.Union[list, np.ndarray]):  # pylint: disable=invalid-name
         """Transform the data provided in `X` by extracting output attributes."""
         def allow_label(l):
+            """Return whether the label is allowed."""
             if l is None:
                 return self._allow_nan_labels
 
@@ -304,6 +308,7 @@ class NLTKPreprocessor(TransformerMixin):
                  lower=False,
                  strip=False,
                  lang='english'):
+        """Initialize NLTKPreprocessor."""
         self._feed_attributes = feed_attributes or []
         self._output_attributes = output_attributes or []
 
@@ -329,7 +334,7 @@ class NLTKPreprocessor(TransformerMixin):
 
         # update the token dict with a default version pattern
         self._token_dict.update({
-            u'(\d[.]?)+[-_]?(\w)*': '<VERSION>'
+            r"(\d[.]?)+[-_]?(\w)*": '<VERSION>'
         })
 
         # prototyped
@@ -417,7 +422,9 @@ class NLTKPreprocessor(TransformerMixin):
                 self.tokenize(sent) for sent in X
             ]
 
-        Series = namedtuple('Series', ['values'] + self._output_attributes)
+        Series = namedtuple(  # pylint: disable=invalid-name
+            'Series',
+            ['values'] + self._output_attributes)
 
         additional_output = [
             getattr(x, attr) for attr in self._output_attributes

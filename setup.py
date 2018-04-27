@@ -1,3 +1,5 @@
+"""Python setup script."""
+
 import os
 import sys
 

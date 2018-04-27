@@ -1,11 +1,13 @@
+"""Package containing pre-build pipelines and CLIs."""
+
 __all__ = [
-    "pipelines.get_preprocessing_pipeline",
-    "pipelines.get_training_pipeline",
-    "pipelines.get_prediction_pipeline",
-    "pipelines.extract_features",
-    "pipelines.extract_labeled_features",
-    "predict.restore_classifier",
-    "train.FEATURES"
+    "toolkit.pipelines.pipelines.get_preprocessing_pipeline",
+    "toolkit.pipelines.pipelines.get_training_pipeline",
+    "toolkit.pipelines.pipelines.get_prediction_pipeline",
+    "toolkit.pipelines.pipelines.extract_features",
+    "toolkit.pipelines.pipelines.extract_labeled_features",
+    "toolkit.pipelines.predict.restore_classifier",
+    "toolkit.pipelines.train.FEATURE_HOOKS"
 ]
 
 from toolkit.pipelines.pipelines import \

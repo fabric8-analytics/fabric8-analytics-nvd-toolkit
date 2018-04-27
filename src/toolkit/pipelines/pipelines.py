@@ -198,8 +198,6 @@ def extract_features(
         share_hooks=share_hooks
     )
 
-    steps, _ = list(zip(*extraction_pipeline.steps))
-
     featureset = extraction_pipeline.fit_transform(
         data,
         # it is important not to filter the data by the handler here
@@ -227,7 +225,7 @@ def extract_labeled_features(
         share_hooks=share_hooks
     )
 
-    steps, preps = list(zip(*prep_pipeline.steps))
+    steps, _ = list(zip(*prep_pipeline.steps))
     fit_params = {
         "%s__feed_attributes" % steps[2]: attributes,
         "%s__output_attributes" % steps[2]: ['label']

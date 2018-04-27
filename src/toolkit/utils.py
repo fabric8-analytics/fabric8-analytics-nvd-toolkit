@@ -11,11 +11,13 @@ class BooleanAction(argparse.Action):
     """Argparse function to handle --flag and --no-flag arguments."""
 
     def __init__(self, option_strings, dest, nargs=0, **kwargs):
+        """Initialize BooleanAction."""
         super(BooleanAction, self).__init__(
             option_strings, dest, nargs=nargs, **kwargs
         )
 
     def __call__(self, parser, namespace, values, option_string=None):
+        """Call BooleanAction instance."""
         setattr(namespace, self.dest,
                 False if option_string.startswith('--no') else True)
 
@@ -31,6 +33,7 @@ class classproperty(object):  # pylint: disable=invalid-name
     """
 
     def __init__(self, fget=None):  # only getter needed atm
+        """Initialize classproperty."""
         if fget is not None and hasattr(fget, '__doc__'):
             doc = fget.__doc__
         else:
@@ -40,6 +43,7 @@ class classproperty(object):  # pylint: disable=invalid-name
         self.__doc = doc
 
     def __get__(self, instance, cls=None):
+        """Return class property."""
         if cls is None:
             raise AttributeError("instance type not filled")
         if self.__get is None:
@@ -47,9 +51,11 @@ class classproperty(object):  # pylint: disable=invalid-name
         return self.__get(cls)
 
     def __set__(self, inst, value):
+        """Set class property - DISABLED."""
         raise AttributeError("can't set attribute")
 
     def __delete__(self, inst):
+        """Delete class property - DISABLED."""
         raise AttributeError("can't delete attribute")
 
 
@@ -128,8 +134,8 @@ def find_(word, stream, ignore_case=True):
     return match
 
 
-def nvd_to_dataframe(cve_list: list,
-                     handler):
+def nvd_to_dataframe(cve_list: typing.Iterable,
+                     handler=None):
     """Create a pandas DataFrame from nvdlib.NVD object.
 
     NOTE: This function requires `pandas` package to be installed
@@ -143,42 +149,52 @@ def nvd_to_dataframe(cve_list: list,
     """
     from pandas import DataFrame, Series
 
-    projects = set()
-    "set of tuples ('str'username, 'str'project)"
-    languages = set()
-    "set of languages present in all projects"
-    project_langs = dict()
-    "dict of ('tuple'(username, project), 'dict'(lang, byte))"
-
     data = list()
+    projects = set()
+    # type: typing.Tuple[str(username), str(project)]
+
+    languages = set()
+    project_langs = dict()
+    # type: typing.Dict[tuple(username, project), dict{lang: int}]
+
     for cve in cve_list:
         # Get reference supported by the handler to gather information
         # about the CVE
-        ref = get_reference(cve, pattern=handler.pattern)
-        if ref is None:
-            continue
+        username = project = None
+        handle = None
 
-        # initialize handler
-        handle = handler(url=ref)
+        if handler is not None:
+            ref = get_reference(cve, pattern=handler.pattern)
+            if ref is None:
+                # does not match handlers pattern
+                continue
 
-        username, project = handle.user, handle.project
-        if (username, project) in projects:
-            # Multiple CVEs are possible for a project, # but not important
-            # to cover for package prediction
-            continue
-        projects.add((username, project))
+            # initialize handler
+            handle = handler(url=ref)
 
-        # query GitHub API for project languages
-        cve_languages = handle.languages()
-        if not cve_languages:
-            cve_languages = dict()
+            username, project = handle.user, handle.project
+            if (username, project) in projects:
+                # Multiple CVEs are possible for a project, # but not important
+                # to cover for package prediction
+                continue
+            projects.add((username, project))
 
-        languages |= set(cve_languages)
-        project_langs[(username, project)] = cve_languages
+            # query GitHub API for project languages
+            cve_languages = handle.languages()
+            if not cve_languages:
+                cve_languages = dict()
 
-        data.append([username, project, handle.repository])
+            languages |= set(cve_languages)
+            project_langs[(username, project)] = cve_languages
 
-    columns = ['username', 'project', 'url']
+        data.append([
+            cve.cve_id,
+            cve.description,
+            username, project,
+            getattr(handle, 'repository', None)
+        ])
+
+    columns = ['id', 'description', 'username', 'project', 'url']
 
     # Create list of series representing each language and their data
     lang_data = list()
@@ -194,9 +210,10 @@ def nvd_to_dataframe(cve_list: list,
 
 
 def clear(func):
-    """Decorator which performs cleanup before function call."""
+    """Decorate with cleanup before function call."""
     # noinspection PyUnusedLocal,PyUnusedLocal
     def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
+        """Wrap inner function."""
         # perform cleanup
         Hook.clear_current_instances()
         exc = None
@@ -205,15 +222,10 @@ def clear(func):
         # run the function
         try:
             ret_values = func(*args, **kwargs)
-        except BaseException as e:
-            # caught any exceptions which will be reraised
-            exc = e
+        except Exception as exc:
+            raise exc
         finally:
             # cleanup again
             Hook.clear_current_instances()
-
-            if exc is not None:
-                raise exc
-            return ret_values
 
     return wrapper

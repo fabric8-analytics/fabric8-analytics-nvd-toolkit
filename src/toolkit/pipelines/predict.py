@@ -6,6 +6,7 @@ given data.
 """
 
 import argparse
+import sys
 import textwrap
 
 from toolkit import pipelines
@@ -13,28 +14,33 @@ from toolkit.transformers import classifiers
 from toolkit.pipelines.train import FEATURE_HOOKS
 
 
-__parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+def parse_args(argv):
+    """Parse arguments."""
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
-__parser.add_argument(
-    '-clf', '--path-to-classifier',
-    required=True,
-    help="Path to the stored classifier checkpoints.",
-)
-__parser.add_argument(
-    '-n', '--num-candidates',
-    type=int,
-    default=3,
-    help="Number of candidates to output by the classifier."
-)
+    parser.add_argument(
+        '-clf', '--path-to-classifier',
+        required=True,
+        help="Path to the stored classifier checkpoints.",
+    )
+    parser.add_argument(
+        '-n', '--num-candidates',
+        type=int,
+        default=3,
+        help="Number of candidates to output by the classifier."
+    )
 
-__parser.add_argument(
-    'description',
-    help="The description to use for prediction.",
-)
+    parser.add_argument(
+        'description',
+        help="The description to use for prediction.",
+    )
+
+    return parser.parse_args(args=argv)
 
 
-def main():
-    args = __parser.parse_args()
+def main(argv):
+    """Run."""
+    args = parse_args(argv)
 
     clf = classifiers.NBClassifier.restore(args.path_to_classifier)
     prediction_pipeline = pipelines.get_prediction_pipeline(
@@ -59,4 +65,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
