@@ -75,7 +75,7 @@ def main():
     )
 
     if args.json:
-        (json.dumps(
+        print(json.dumps(
             [p.get_attributes(skip_none=False) for p in packages],
             indent=4,
             sort_keys=True
