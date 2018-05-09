@@ -17,20 +17,7 @@ from sklearn.model_selection import train_test_split
 from toolkit import pipelines
 from toolkit.transformers import classifiers
 from toolkit.pipelines.train import FEATURE_HOOKS
-
-
-class BooleanAction(argparse.Action):
-    """Argparse function to handle --flag and --no-flag arguments."""
-
-    def __init__(self, option_strings, dest, nargs=0, **kwargs):
-        super(BooleanAction, self).__init__(
-            option_strings, dest, nargs=nargs, **kwargs
-        )
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest,
-                False if option_string.startswith('--no') else True)
-
+from toolkit.utils import BooleanAction
 
 __parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 feed_group = __parser.add_mutually_exclusive_group(required=True)

@@ -110,7 +110,8 @@ class NBClassifier(TransformerMixin):
                  X: typing.Iterable,  # pylint: disable=invalid-name
                  y: typing.Iterable,
                  sample,
-                 n=3):
+                 n=3,
+                 filter_hooks=None):
         """Perform evaluation of the classifier instance.
 
         :param X: Iterable, test data
@@ -124,12 +125,17 @@ class NBClassifier(TransformerMixin):
             could be 'class_A'.
 
         :param n: int, number of candidates to output
+
+        :param filter_hooks: list of hooks, will be used to filter predictions
+
+            The hook should take a tuple of ((word, tag), score) as its parameter
+            and output boolean whether or not it passes the filter.
         """
         # noinspection PyTypeChecker,PyTypeChecker
         if len(X) != len(y):
             raise ValueError("`X` and `y` must be of the same length.")
 
-        candidate_arr = self.fit_predict(X, n=n, sample=sample)
+        candidate_arr = self.fit_predict(X, n=n, sample=sample, filter_hooks=filter_hooks or [])
 
         correctly_predicted = 0
         for candidates, label in zip(candidate_arr, y):
@@ -158,6 +164,10 @@ class NBClassifier(TransformerMixin):
             sample: one of labels to get the prediction for (for example,
             if labels are ['class_A', 'class_B', 'class_C'], the sample
             could be 'class_A'.
+            filter_hooks: list of hooks, will be used to filter predictions
+
+                The hook should take a tuple of ((word, tag), score) as its parameter
+                and output boolean whether or not it passes the filter.
         """
         # get fit parameters
         n = fit_params.get('n', 3)
@@ -185,6 +195,10 @@ class NBClassifier(TransformerMixin):
                 candidate_pred[j] = (name_tuple, self.predict(features, sample=sample))
 
             sorted_pred = sorted(candidate_pred, key=lambda t: t[1], reverse=True)
+
+            for hook in fit_params.get('filter_hooks', []):
+                sorted_pred = list(filter(hook, sorted_pred))
+
             predictions[i] = sorted_pred[:n]
 
         return np.array(predictions)
@@ -254,7 +268,7 @@ class NBClassifier(TransformerMixin):
         with open(time_stamped_fpath, 'wb') as exp_file:
             pickle.dump(self, exp_file)
 
-        return time_stamped_fname
+        return time_stamped_fpath
 
     @staticmethod
     def restore(checkpoint) -> "NBClassifier":
@@ -310,6 +324,7 @@ def cross_validate(classifier,
                    sample,
                    n=3,
                    folds=10,
+                   filter_hooks=None,
                    shuffle=True):
     """Evaluate cross-validation accuracy of the classifier.
 
@@ -331,6 +346,11 @@ def cross_validate(classifier,
 
     :param n: int, number of candidates to output
     :param folds: int, number of folds to be used for cross-validation
+    :param filter_hooks: list of hooks, will be used to filter predictions
+
+        The hook should take a tuple of ((word, tag), score) as its parameter
+        and output boolean whether or not it passes the filter.
+
     :param shuffle: whether to shuffle the data
 
         If None, no cross-validaiton is performed
@@ -365,7 +385,8 @@ def cross_validate(classifier,
         clf.fit(X_train)
 
         # make predictions
-        score = clf.evaluate(X_test, y_test, n=n, sample=sample)
+        score = clf.evaluate(X_test, y_test, n=n, sample=sample,
+                             filter_hooks=filter_hooks or [])
 
         # compute the accuracy
         accuracy.append(score)

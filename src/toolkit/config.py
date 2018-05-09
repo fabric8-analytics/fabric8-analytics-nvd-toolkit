@@ -13,3 +13,4 @@ HEADERS = {
     'Authorization': 'token %s' % OAUTH_TOKEN,
 }
 
+SUPPORTED_ECOSYSTEMS = ('maven', 'npm', 'python')

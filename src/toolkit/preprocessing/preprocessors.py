@@ -157,7 +157,7 @@ class NVDFeedPreprocessor(TransformerMixin):
         else:
             # something is wrong, since the cve passed the filter but handler
             # did not extracted any attributes
-            raise ValueError("Unexpected error occured. `use_filter=True`, but"
+            raise ValueError("Unexpected error occurred. `use_filter=True`, but"
                              " reference `{}` did not match handlers pattern."
                              .format(ref))
 
@@ -300,6 +300,7 @@ class NLTKPreprocessor(TransformerMixin):
                  tokenizer=None,
                  stopwords=False,
                  tag_dict=None,
+                 token_dict=None,
                  lower=False,
                  strip=False,
                  lang='english'):
@@ -324,6 +325,12 @@ class NLTKPreprocessor(TransformerMixin):
 
         self._lang = lang
         self._tag_dict = tag_dict or dict()
+        self._token_dict = token_dict or dict()
+
+        # update the token dict with a default version pattern
+        self._token_dict.update({
+            u'(\d[.]?)+[-_]?(\w)*': '<VERSION>'
+        })
 
         # prototyped
         self._y = None
@@ -440,6 +447,13 @@ class NLTKPreprocessor(TransformerMixin):
             for pattern, correction in self._tag_dict.items():
                 if re.match(pattern, tag):
                     tag = correction
+                    # do not allow ambiguity of tags (assume user took care of this)
+                    break
+
+            # Check and correct (if applicable) the token against given patterns
+            for pattern, correction in self._token_dict.items():
+                if re.match(pattern, token):
+                    token = correction
                     # do not allow ambiguity of tags (assume user took care of this)
                     break
 

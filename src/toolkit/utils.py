@@ -1,9 +1,23 @@
 """Module containing utilities for processing data from NVD feed."""
 
+import argparse
 import re
 import typing
 
 from toolkit.transformers.hooks import Hook
+
+
+class BooleanAction(argparse.Action):
+    """Argparse function to handle --flag and --no-flag arguments."""
+
+    def __init__(self, option_strings, dest, nargs=0, **kwargs):
+        super(BooleanAction, self).__init__(
+            option_strings, dest, nargs=nargs, **kwargs
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest,
+                False if option_string.startswith('--no') else True)
 
 
 # noinspection PyPep8Naming

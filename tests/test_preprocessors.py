@@ -72,7 +72,6 @@ class TestNLTKPreprocessor(unittest.TestCase):
         )
         result = prep.tokenize(TEST_SENT)
         self.assertIsInstance(result, typing.Iterable)
-        print(result)
 
         # check that punctuation has been gotten rid of
         self.assertFalse(any(re.match(u"[,.]", t[0][0]) for t in result))
@@ -170,17 +169,12 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
 
         # noinspection PyTypeChecker
         cves = [TEST_CVE]
-        cves = prep._filter_by_handler(cves)  # pylint: disable=protected-access
+        cves = list(prep._filter_by_handler(cves))  # pylint: disable=protected-access
 
         self.assertTrue(any(cves))
-        self.assertIsInstance(cves[0], tuple)
-
-        # resulting tuple
-        cve, ref = cves[0]
 
         # check that cves list is not empty
-        self.assertIsInstance(cve, TestCVE)
-        self.assertIsInstance(ref, str)
+        self.assertIsInstance(cves[0], TestCVE)
 
     # noinspection PyUnresolvedReferences
     def test_get_cve_attributes(self):
