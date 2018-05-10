@@ -233,4 +233,3 @@ class TestLabelPreprocessor(unittest.TestCase):
         # check that correct label is returned by the Hook
         label = result[0].label
         self.assertEqual(label, 'label')
-

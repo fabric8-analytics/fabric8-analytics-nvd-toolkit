@@ -30,7 +30,8 @@ setup(
     long_description=(
         "The toolkit currently aims to provide the possibility to construct custom "
         "processing and classification pipelines. To do that, various preprocessors, "
-        "transformers and classifiers can be used and customized with Hooks and attribute extractors."
+        "transformers and classifiers can be used and customized "
+        "with Hooks and attribute extractors."
     ),
 
     classifiers=[
