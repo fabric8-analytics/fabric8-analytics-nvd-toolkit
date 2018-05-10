@@ -1,4 +1,4 @@
-# nvd-toolkit
+# nvd-toolkit &nbsp; [![Build Status](https://ci.centos.org/buildStatus/icon?job=devtools-fabric8-analytics-nvd-toolkit-fabric8-analytics)](https://ci.centos.org/job/devtools-fabric8-analytics-nvd-toolkit-fabric8-analytics/)
  
 ###### Tools for processing National Vulnerability Database feeds. 
 
@@ -79,9 +79,6 @@ and therefore modified to the users purpose.
 
 <br>
 
-> Marek Cermak <macermak@redhat.com>
-
-
 ### Footnotes
 
 #### Coding standards
@@ -110,3 +107,6 @@ The first script measures cyclomatic complexity of all Python sources found in t
 
 The second script measures maintainability index of all Python sources found in the repository. Please see [the following link](https://radon.readthedocs.io/en/latest/commandline.html#the-mi-command) with explanation of this measurement.
 
+<br>
+
+> Marek Cermak <macermak@redhat.com>
