@@ -72,7 +72,10 @@ class NBClassifier(TransformerMixin):
         return self._classifier.most_informative_features()
 
     # noinspection PyPep8Naming, PyUnusedLocal
-    def fit(self, X: typing.Iterable, y=None, **fit_params):  # pylint: disable=invalid-name,unused-argument
+    def fit(self,
+            X: typing.Iterable,  # pylint: disable=invalid-name
+            y=None,  # pylint: disable=unused-argument
+            **fit_params):
         """Fits the classifier to the given data set.
 
         :param X: Iterable, output of FeatureExtractor
@@ -147,7 +150,10 @@ class NBClassifier(TransformerMixin):
         return precision(total=len(y), correct=correctly_predicted)
 
     # noinspection PyPep8Naming
-    def fit_predict(self, X: typing.Iterable, y=None, **fit_params):  # pylint: disable=invalid-name,unused-argument
+    def fit_predict(self,
+                    X: typing.Iterable,  # pylint: disable=invalid-name
+                    y=None,  # pylint: disable=unused-argument
+                    **fit_params):
         """Make prediction about the given data.
 
         :param X: Iterable, prediction data
@@ -311,7 +317,7 @@ class NBClassifier(TransformerMixin):
             try:
                 if re.search(candidate_name, label, flags=re.IGNORECASE):
                     return True
-            except:
+            except Exception:
                 return False
 
         return False

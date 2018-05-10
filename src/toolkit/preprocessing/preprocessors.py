@@ -219,7 +219,10 @@ class LabelPreprocessor(TransformerMixin):
         return self._labels
 
     # noinspection PyPep8Naming
-    def fit(self, X: typing.Union[list, np.ndarray], y=None, **fitparams):  # pylint: disable=invalid-name
+    def fit(self,
+            X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
+            y=None,
+            **fitparams):
         """Fit the preprocessor to the given data."""
         Series = namedtuple(  # pylint: disable=invalid-name
             'Attributes',
