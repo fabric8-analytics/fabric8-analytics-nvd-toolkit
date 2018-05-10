@@ -40,6 +40,7 @@ class GitHubHandler(object):
     __DEFAULT_PROPERTIES = ('user', 'project', 'repository')
 
     def __init__(self, url: str = None):
+        """Initialize GitHubHandler."""
         self._src_url = self.strip_src_url(url)
         self._user, self._project = self.get_user_project(self._src_url)
         self._http = urllib3.PoolManager()
@@ -49,14 +50,14 @@ class GitHubHandler(object):
 
     # noinspection PyMethodParameters
     @classproperty
-    def pattern(cls):
-        """Reference pattern handled by the handler."""
+    def pattern(cls):  # pylint: disable=no-self-argument
+        """Get reference pattern handled by the handler."""
         return cls.__URL_BASE_PATTERN
 
     # noinspection PyMethodParameters
     @classproperty
-    def default_properties(cls):
-        """Default handler's properties."""
+    def default_properties(cls):  # pylint: disable=no-self-argument
+        """Get default handler's properties."""
         return cls.__DEFAULT_PROPERTIES
 
     @property
@@ -137,6 +138,7 @@ class GitHandler(object):
     """The handler manages local git repository."""
 
     def __init__(self, path: str):
+        """Initialize GitHandler."""
         if not os.path.isdir(path):
             raise FileNotFoundError("path `%s` is not a directory." % path)
 
@@ -158,6 +160,7 @@ class GitHandler(object):
 
     @property
     def repository(self):
+        """Return change root directory, ie. main git repository."""
         return self._chdir
 
     @property

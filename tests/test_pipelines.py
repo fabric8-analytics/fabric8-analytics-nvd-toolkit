@@ -1,5 +1,6 @@
 """Tests for integration of components into pipelines."""
 
+import os
 import unittest
 
 import numpy as np
@@ -7,6 +8,10 @@ import numpy as np
 from toolkit.preprocessing import preprocessors
 from toolkit.transformers import extractors, classifiers
 from toolkit import pipelines
+
+from toolkit.pipelines import evaluation
+from toolkit.pipelines import predict
+from toolkit.pipelines import train
 
 
 class TestPipeline(unittest.TestCase):
@@ -158,6 +163,98 @@ class TestPipeline(unittest.TestCase):
 
         self.assertIsNotNone(score)
         self.assertEqual(score.mean, 0.0)
+
+
+class TestEvaluation(unittest.TestCase):
+    """Tests for evaluation module."""
+
+    def test_main_help(self):
+        """Test argument parser's help."""
+        argv = ['--help']
+
+        with self.assertRaises(SystemExit) as exc:
+            evaluation.main(argv)
+
+        self.assertEqual(exc.exception.code, 0)
+
+    def test_main_no_args(self):
+        """Test main function with no arguments."""
+        argv = []
+        with self.assertRaises(SystemExit) as exc:
+            evaluation.main(argv)
+
+        self.assertNotEqual(exc.exception.code, 0)
+
+    def test_main_default(self):
+        """Test main function with default arguments."""
+        argv = [
+            '--from-feeds', 'recent',
+            '-clf',
+            os.path.join(os.path.dirname(__file__), 'export/')
+        ]
+        ret_val = evaluation.main(argv)
+
+        self.assertIsNone(ret_val)
+
+
+class TestPredict(unittest.TestCase):
+    """Tests for evaluation module."""
+
+    def test_main_help(self):
+        """Test argument parser's help."""
+        argv = ['--help']
+
+        with self.assertRaises(SystemExit) as exc:
+            predict.main(argv)
+
+        self.assertEqual(exc.exception.code, 0)
+
+    def test_main_no_args(self):
+        """Test main function with no arguments."""
+        argv = []
+        with self.assertRaises(SystemExit) as exc:
+            predict.main(argv)
+
+        self.assertNotEqual(exc.exception.code, 0)
+
+    def test_main_default(self):
+        """Test main function with default arguments."""
+        argv = [
+            '-clf',
+            os.path.join(os.path.dirname(__file__), 'export/'),
+            'Sample description.'
+        ]
+        ret_val = predict.main(argv)
+
+        self.assertIsNone(ret_val)
+
+
+class TestTrain(unittest.TestCase):
+    """Tests for evaluation module."""
+
+    def test_main_help(self):
+        """Test argument parser's help."""
+        argv = ['--help']
+
+        with self.assertRaises(SystemExit) as exc:
+            train.main(argv)
+
+        self.assertEqual(exc.exception.code, 0)
+
+    def test_main_no_args(self):
+        """Test main function with no arguments."""
+        argv = []
+        with self.assertRaises(SystemExit) as exc:
+            train.main(argv)
+
+        self.assertNotEqual(exc.exception.code, 0)
+
+    def test_main_default(self):
+        """Test main function with default arguments."""
+        argv = ['--from-feeds', 'recent']
+        ret_val = train.main(argv)
+
+        self.assertIsNone(ret_val)
 
 
 def _get_test_data(n_records=500):

@@ -29,6 +29,7 @@ class FeatureExtractor(TransformerMixin):
     def __init__(self,
                  feature_hooks=None,
                  share_hooks=False):
+        """Initialize FeatureExtractor."""
         if isinstance(feature_hooks, dict):
             # create hooks from the dictionary
             feature_hooks = [Hook(k, v, reuse=share_hooks) for k, v in feature_hooks.items()]
@@ -46,7 +47,7 @@ class FeatureExtractor(TransformerMixin):
 
     # noinspection PyPep8Naming, PyUnusedLocal
     def fit(self, X, y=None, **fit_params):  # pylint: disable=invalid-name,unused-argument
-        """Fits the transformer to the given data.
+        """Fit the transformer to the given data.
 
         :param X: Iterable, each element should be a list of tuples (token, tag)
 

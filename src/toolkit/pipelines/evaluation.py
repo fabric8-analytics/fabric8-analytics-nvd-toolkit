@@ -19,60 +19,64 @@ from toolkit.transformers import classifiers
 from toolkit.pipelines.train import FEATURE_HOOKS
 from toolkit.utils import BooleanAction
 
-__parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-feed_group = __parser.add_mutually_exclusive_group(required=True)
 
-__parser.add_argument(
-    '-clf', '--path-to-classifier',
-    required=True,
-    help="Path to the stored classifier checkpoints.",
-)
+def parse_args(argv):
+    """Parse arguments."""
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    feed_group = parser.add_mutually_exclusive_group(required=True)
 
-feed_group.add_argument(
-    '--from-feeds',
-    type=str,
-    nargs='+',
-    dest='nvd_feeds',
-    help="On ore more NVD Feeds to be chosen to train on."
-)
+    parser.add_argument(
+        '-clf', '--path-to-classifier',
+        required=True,
+        help="Path to the stored classifier checkpoints.",
+    )
 
-feed_group.add_argument(
-    '--from-csv',
-    dest='csv',
-    help="train on the custom data from `*.csv` format\n"
-         "**NOTE:** The csv data must contain the relevant attributes infered "
-         "by preprocessors."
-)
+    feed_group.add_argument(
+        '--from-feeds',
+        type=str,
+        nargs='+',
+        dest='nvd_feeds',
+        help="On ore more NVD Feeds to be chosen to train on."
+    )
 
-__parser.add_argument(
-    '--eval', '--no-eval',
-    action=BooleanAction,
-    default=True
-)
+    feed_group.add_argument(
+        '--from-csv',
+        dest='csv',
+        help="train on the custom data from `*.csv` format\n"
+             "**NOTE:** The csv data must contain the relevant attributes infered "
+             "by preprocessors."
+    )
 
-__parser.add_argument(
-    '-xval', '--cross-validate', '--no-cross-validate',
-    action=BooleanAction,
-    default=True
-)
+    parser.add_argument(
+        '--eval', '--no-eval',
+        action=BooleanAction,
+        default=True
+    )
 
-__parser.add_argument(
-    '-n', '--num-candidates',
-    type=int,
-    default=3,
-    help="Number of candidates to output by the classifier."
-)
+    parser.add_argument(
+        '-xval', '--cross-validate', '--no-cross-validate',
+        action=BooleanAction,
+        default=True
+    )
 
-__parser.add_argument(
-    '-xvn', '--cross-validation-folds',
-    type=int,
-    default=10,
-)
+    parser.add_argument(
+        '-n', '--num-candidates',
+        type=int,
+        default=3,
+        help="Number of candidates to output by the classifier."
+    )
+
+    parser.add_argument(
+        '-xvn', '--cross-validation-folds',
+        type=int,
+        default=10,
+    )
+    return parser.parse_args(args=argv)
 
 
-# noinspection PyUnusedLocal
-def main():
-    args = __parser.parse_args()
+def main(argv):
+    """Run."""
+    args = parse_args(argv)
 
     if args.csv:
         # TODO
@@ -136,4 +140,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

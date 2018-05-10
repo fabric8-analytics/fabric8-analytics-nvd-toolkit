@@ -7,9 +7,9 @@ import pickle
 import re
 import typing
 
-import numpy as np
-
 from collections import namedtuple
+
+import numpy as np
 
 from nltk import NaiveBayesClassifier
 from nltk.probability import ELEProbDist
@@ -51,7 +51,7 @@ class NBClassifier(TransformerMixin):
                  label_probdist=None,
                  feature_probdist=None,
                  estimator=ELEProbDist):
-
+        """Initialize NBClassifier."""
         self._estimator = estimator
 
         # in case arguments are specified (ie. when restoring the classifier)
@@ -379,7 +379,7 @@ def cross_validate(classifier,
 
     for train_index, test_index in kf.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+        _, y_test = y[train_index], y[test_index]
 
         # fit with the collapsed data
         clf.fit(X_train)
@@ -403,7 +403,7 @@ def precision(total: int, correct: int) -> float:
     return float(correct / total)
 
 
-def weighted_precision(y_true, y_pred, weights):
+def weighted_precision(y_true, y_pred, weights):  # pylint: disable=unused-argument
     """Calculate weighted precision."""
     raise NotImplementedError("The feature has not been implemented yet."
                               " Sorry for the inconvenience.")

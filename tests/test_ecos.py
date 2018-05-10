@@ -16,7 +16,6 @@ class TestMaven(unittest.TestCase):
 
     def test_find_pom_files(self):
         """Test MavenRepository `find_pom_files` method."""
-
         with GitHandler.clone(TEST_MAVEN_REPO_URL) as git:
             repo_dir = git.repository
 

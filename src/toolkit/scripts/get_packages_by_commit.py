@@ -19,53 +19,57 @@ ECO_NAMESPACE = {
 }
 
 
-__parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-__parser.add_argument(
-    '-repo', '--repository',
-    required=True,
-    help="Path to local git repository or url to remote git repository."
-)
-__parser.add_argument(
-    '-c', '--commits',
-    nargs='+',
-    type=str,
-    required=True,
-    help="List of commit hashes to search the modified files by."
-)
-__parser.add_argument(
-    '-n', '--package-limit',
-    default=1,
-    type=int,
-    help="Limit number of packages returned per modified file.\n"
-         "If all packages should be returned, "
-         "pass 0 or None (default 1)."
-)
-__parser.add_argument(
-    '-eco', '--ecosystem',
-    default='maven',
-    help="One of {maven}, the ecosystem the repository belongs to."
-)
+def parse_args(argv):
+    """Parse arguments passed to the script."""
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        '-repo', '--repository',
+        required=True,
+        help="Path to local git repository or url to remote git repository."
+    )
+    parser.add_argument(
+        '-c', '--commits',
+        nargs='+',
+        type=str,
+        required=True,
+        help="List of commit hashes to search the modified files by."
+    )
+    parser.add_argument(
+        '-n', '--package-limit',
+        default=1,
+        type=int,
+        help="Limit number of packages returned per modified file.\n"
+             "If all packages should be returned, "
+             "pass 0 or None (default 1)."
+    )
+    parser.add_argument(
+        '-eco', '--ecosystem',
+        default='maven',
+        help="One of {maven}, the ecosystem the repository belongs to."
+    )
 
-excl_grp = __parser.add_mutually_exclusive_group()
-excl_grp.add_argument(
-    '--json', '--nojson',
-    action=BooleanAction,
-    default=True,
-    help="Dump the result as JSON (NOTE: cannot be used with --format argument)."
-)
-excl_grp.add_argument(
-    '--format',
-    dest='format_str',
-    help="Python format string to be formatted with package attributes.\n"
-         "Possible package attributes are: ecosystem, name, owner, version, "
-         "description, url[, aid, gid].\n"
-         "Example: Name: {name}, owner: {owner}, gid: {gid}, aid: {aid}}"
-)
+    excl_grp = parser.add_mutually_exclusive_group()
+    excl_grp.add_argument(
+        '--json', '--nojson',
+        action=BooleanAction,
+        default=True,
+        help="Dump the result as JSON (NOTE: cannot be used with --format argument)."
+    )
+    excl_grp.add_argument(
+        '--format',
+        dest='format_str',
+        help="Python format string to be formatted with package attributes.\n"
+             "Possible package attributes are: ecosystem, name, owner, version, "
+             "description, url[, aid, gid].\n"
+             "Example: Name: {name}, owner: {owner}, gid: {gid}, aid: {aid}}"
+    )
+
+    return parser.parse_args(argv)
 
 
-def main():
-    """Main function."""
-    args = __parser.parse_args()
+def main(argv):
+    """Run."""
+    args = parse_args(argv)
 
     packages = get_packages_by_commits(
         repository=args.repository,
@@ -81,7 +85,7 @@ def main():
             sort_keys=True
         ))
 
-        exit(0)
+        return
 
     if args.format_str is not None:
         format_str = re.sub(r"{(\w+)}", r"{self.\1}", args.format_str)
@@ -89,7 +93,7 @@ def main():
     else:
         print("\n".join("{!s}".format(p) for p in packages))
 
-    exit(0)
+    return
 
 
 def get_packages_by_commits(
@@ -150,7 +154,6 @@ def get_packages_by_commits(
 
 def _get_namespace_by_eco(ecosystem: str):
     """Return correct handler for given ecosystem."""
-
     if not ecosystem.lower() in ECO_NAMESPACE:
         raise ValueError("Ecosystem `{}` is not supported.\n"
                          .format(ecosystem),
@@ -161,4 +164,4 @@ def _get_namespace_by_eco(ecosystem: str):
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

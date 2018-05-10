@@ -26,37 +26,37 @@ class Package(object):
 
     @property
     def ecosystem(self):
-        """Package ecosystem."""
+        """Get package ecosystem."""
         return self._ecosystem
 
     @property
     def name(self):
-        """Package name."""
+        """Get package name."""
         return self._name
 
     @property
     def owner(self):
-        """Package owner."""
+        """Get package owner."""
         return self._owner
 
     @property
     def version(self):
-        """Package version."""
+        """Get package version."""
         return self._version
 
     @property
     def description(self):
-        """Package description."""
+        """Get package description."""
         return self._description
 
     @property
     def licenses(self):
-        """Licenses used in the repository."""
+        """Get licenses used in the repository."""
         return self._licenses
 
     @property
     def url(self):
-        """Url of the project."""
+        """Get url of the project."""
         return self._url
 
     def __str__(self):
@@ -110,12 +110,12 @@ class MavenPackage(Package):
 
     @property
     def gid(self):
-        """Package group id."""
+        """Get package group id."""
         return self._gid
 
     @property
     def aid(self):
-        """Package artifact id."""
+        """Get package artifact id."""
         return self._aid
 
 
