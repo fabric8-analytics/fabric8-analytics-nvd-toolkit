@@ -19,7 +19,9 @@ class FeatureExtractor(TransformerMixin):
     By default, constructs vanilla feature extractor with basic features
     and positional context information.
 
-    :param feature_hooks: dict, {feature_key: Hook}
+    :param feature_hooks: Union[dict, list]
+
+        either dict of: {feature_key: function}, or list of <class Hook>
 
         Specify features which should be extracted from the given set.
         The hooks are called for each element of the set and return
@@ -27,14 +29,23 @@ class FeatureExtractor(TransformerMixin):
     """
 
     def __init__(self,
-                 feature_hooks=None,
+                 feature_hooks: typing.Union[dict, list] = None,
                  share_hooks=False):
         """Initialize FeatureExtractor."""
-        if isinstance(feature_hooks, dict):
+        if feature_hooks is None:
+            feature_hooks = list()
+
+        elif isinstance(feature_hooks, dict):
             # create hooks from the dictionary
             feature_hooks = [Hook(k, v, reuse=share_hooks) for k, v in feature_hooks.items()]
 
-        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks or [])
+        elif not isinstance(feature_hooks, list):
+            raise TypeError(
+                "Argument `feature_hooks` expected to be of type "
+                f"{typing.Union[dict, list]}, got {type(feature_hooks)}"
+            )
+
+        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks)
 
         # prototyped
         self._y = None
@@ -157,8 +168,7 @@ class _FeatureExtractor(object):
             hooks = [hooks]
 
         if not all([isinstance(hook, Hook) for hook in hooks]):
-            raise ValueError("`hooks` elements expected to be of type `%r`"
-                             % Hook)
+            raise ValueError(f"`hooks` elements expected to be of type {Hook}")
 
         # extend current hooks
         self._hooks.extend(hooks)
