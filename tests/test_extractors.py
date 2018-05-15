@@ -46,7 +46,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # preprocess the sentences
         test_data = _get_preprocessed_test_data()
         # get tokenized sentence
-        sent = test_data[0].values
+        sent = test_data[0].features
 
         # apply default extractors transformation
         prep = FeatureExtractor()

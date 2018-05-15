@@ -13,18 +13,18 @@ class TestFeatureHooks(unittest.TestCase):
         """Test has_uppercase_hook."""
         hook = feature_hooks.has_uppercase_hook
 
-        tagged = [('test', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('test', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, False)
 
-        tagged = [('Test', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('Test', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)
 
-        tagged = [('dayD', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('dayD', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)
 
@@ -32,43 +32,85 @@ class TestFeatureHooks(unittest.TestCase):
         """Test is_alnum_hook."""
         hook = feature_hooks.is_alnum_hook
 
-        tagged = [('test', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('test', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)
 
-        tagged = [('test123', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('test123', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)
 
-        tagged = [('test.alnum', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('test.alnum', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, False)
 
-        tagged = [('test&alnum', '<tag>')]
-        result = hook.__call__(tagged=tagged, pos=0)
+        features = [('test&alnum', '<tag>')]
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, False)
 
     def test_vendor_product_match_hook(self):
         """Test vendor_product_hook."""
         hook = feature_hooks.vendor_product_match_hook
-        tagged = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
 
-        vendor, product = 'proj.io', 'codehouse'
-        result = hook.__call__(tagged, vendor, product)
+        from nvdlib.nvd import NVD
+        feed = NVD.from_feeds(['recent'])
+        feed.update()
+
+        cve_list = list(feed.cves())
+
+        # find application CPE
+        cpe = cve = None
+        for cve in cve_list:
+            try:
+                cpe = cve.configurations[0].cpe[0]
+            except IndexError:
+                continue
+
+            if cpe.is_application():
+                break
+
+        assert all([cve, cpe]), "Failed to gather test data."
+
+        vendor, product = cpe.vendor[0], cpe.product[0]
+
+        # mock CVE with empty configurations instead of searching it
+        empty_cve = type('emptyCVE', (), {})
+        empty_cve.configurations = []
+
+        cve_dict = {
+            cve.cve_id: cve,
+            'empty': empty_cve
+        }
+
+        # empty configurations
+        features = [(product, 'NUM')]
+        result = hook.__call__(features, 0, cve_dict, 'empty')
+
+        self.assertFalse(result)
+
+        # non existing ID
+        result = hook.__call__(features, 0, cve_dict, 'non-existing-id')
+
+        self.assertFalse(result)
+
+        # matching product
+        result = hook.__call__(features, 0, cve_dict, cve.cve_id)
 
         self.assertTrue(result)
 
-        vendor, product = 'codehouse', 'proj.io'
-        result = hook.__call__(tagged, vendor, product)
+        # matching vendor
+        features = [(vendor, 'NUM')]
+        result = hook.__call__(features, 0, cve_dict, cve.cve_id)
 
         self.assertTrue(result)
 
-        vendor, product = 'codehouse', 'test.io'
-        result = hook.__call__(tagged, vendor, product)
+        # neither of vendor and product match
+        features = [('mismatch', 'NUM')]
+        result = hook.__call__(features, 0, cve_dict, cve.cve_id)
 
         self.assertFalse(result)
 
@@ -76,18 +118,18 @@ class TestFeatureHooks(unittest.TestCase):
         """Test ver_follows_hook."""
         hook = feature_hooks.ver_follows_hook
 
-        tagged = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
-        result = hook.__call__(tagged, pos=1)
+        features = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
+        result = hook.__call__(features, pos=1)
 
         self.assertTrue(result)
 
-        tagged = [('1.0.0', '<VERSION>'), ('proj', 'NUM'), ('test', '<tag>')]
-        result = hook.__call__(tagged, pos=1)
+        features = [('1.0.0', '<VERSION>'), ('proj', 'NUM'), ('test', '<tag>')]
+        result = hook.__call__(features, pos=1)
 
         self.assertFalse(result)
 
-        tagged = [('1.0.0-wrong', '<tag>'), ('proj', 'NUM'), ('test', '<tag>')]
-        result = hook.__call__(tagged, pos=1)
+        features = [('1.0.0-wrong', '<tag>'), ('proj', 'NUM'), ('test', '<tag>')]
+        result = hook.__call__(features, pos=1)
 
         self.assertFalse(result)
 
@@ -95,40 +137,40 @@ class TestFeatureHooks(unittest.TestCase):
         """Test ver_pos_hook."""
         hook = feature_hooks.ver_pos_hook
 
-        tagged = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
-        result = hook.__call__(tagged, pos=1)
+        features = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
+        result = hook.__call__(features, pos=1)
 
         self.assertEqual(result, 1)
 
-        tagged = [('1.0.0', '<VERSION>'), ('proj', 'NUM'), ('test', '<tag>')]
-        result = hook.__call__(tagged, pos=1)
+        features = [('1.0.0', '<VERSION>'), ('proj', 'NUM'), ('test', '<tag>')]
+        result = hook.__call__(features, pos=1)
 
         self.assertEqual(result, -1)
 
-        tagged = [('1.0.0', '<VERSION>'), ('test', '<tag>'), ('proj', 'NUM'),
-                  ('1.0.0', '<VERSION>')]
+        features = [('1.0.0', '<VERSION>'), ('test', '<tag>'), ('proj', 'NUM'),
+                    ('1.0.0', '<VERSION>')]
 
-        result = hook.__call__(tagged, pos=2)
+        result = hook.__call__(features, pos=2)
 
         self.assertEqual(result, 1)
 
     def test_word_len_hook(self):
         """Test word_len_hook."""
         hook = feature_hooks.word_len_hook
-        tagged = [('test', '<tag>')]
+        features = [('test', '<tag>')]
 
         # default limit argument
-        result = hook.__call__(tagged=tagged, pos=0)
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)
 
         # raise limit
-        result = hook.__call__(tagged=tagged, pos=0, limit=5)
+        result = hook.__call__(features=features, pos=0, limit=5)
 
         self.assertEqual(result, False)
 
         # custom comparator
-        result = hook.__call__(tagged=tagged, pos=0, cmp=operator.__lt__,
+        result = hook.__call__(features=features, pos=0, cmp=operator.__lt__,
                                limit=5)
 
         self.assertEqual(result, True)

@@ -93,7 +93,7 @@ def main(argv):
     features, labels = pipelines.extract_labeled_features(
         data=data,
         feature_hooks=FEATURE_HOOKS,
-        attributes=['description'],
+        nvd_attributes=['description'],
     )
     print("Preprocessing done.")
 

@@ -48,7 +48,32 @@ class TestPipeline(unittest.TestCase):
         # NOTE: this is a bit risky since there is no assurance that there
         # are suitable cves in the first n records
         self.assertTrue(any(prep_data))
-        self.assertTrue(hasattr(prep_data[0], 'values'))  # default output
+        self.assertTrue(hasattr(prep_data[0], 'features'))  # default output
+        self.assertTrue(hasattr(prep_data[0], 'label'))  # custom attribute
+
+        # ---
+
+        # custom attributes
+        pipeline = pipelines.get_preprocessing_pipeline(
+            attributes=['cve_id', 'description'],
+            share_hooks=True  # reuse already existing hook
+        )
+
+        fit_params = {
+            "%s__feed_attributes" % steps[2]: ['description'],
+            "%s__output_attributes" % steps[2]: ['cve_id', 'label']
+        }
+
+        prep_data = pipeline.fit_transform(
+            X=test_data,
+            **fit_params
+        )
+
+        # sanity check
+        self.assertLessEqual(len(prep_data), len(test_data))
+
+        self.assertTrue(any(prep_data))
+        self.assertTrue(hasattr(prep_data[0], 'features'))  # default output
         self.assertTrue(hasattr(prep_data[0], 'label'))  # custom attribute
 
     def test_training_pipeline(self):
@@ -85,12 +110,34 @@ class TestPipeline(unittest.TestCase):
         self.assertIsNotNone(clf)
         self.assertIsNotNone(clf.features)
 
+    def test_full_training_pipeline(self):
+        """Test full training pipeline."""
+        test_data = _get_test_data()
+
+        train_pipeline = pipelines.get_full_training_pipeline()
+        steps, preps = list(zip(*train_pipeline.steps))
+        fit_params = {
+            "%s__feed_attributes" % steps[0]: ['description'],
+            "%s__feed_attributes" % steps[1]: ['project', 'description'],
+            "%s__feed_attributes" % steps[2]: ['description'],
+            "%s__output_attributes" % steps[2]: ['label']
+        }
+
+        clf = train_pipeline.fit_transform(
+            X=test_data,
+            **fit_params
+        )
+
+        self.assertIsNotNone(clf)
+        self.assertIsInstance(clf, classifiers.NBClassifier)
+        self.assertIsNotNone(clf.features)
+
     def test_prediction_pipeline(self):
         """Test pipeline prediction."""
         test_data = _get_test_data()
         train_data, _ = pipelines.extract_labeled_features(
             test_data,
-            attributes=['description'],
+            nvd_attributes=['description'],
         )
 
         clf = classifiers.NBClassifier().fit(train_data)
@@ -130,10 +177,10 @@ class TestPipeline(unittest.TestCase):
         test_data = _get_test_data()
         featuresets, labels = pipelines.extract_labeled_features(
             data=test_data,
-            attributes=['description'],
+            nvd_attributes=['description'],
         )
 
-        self.assertTrue(any(featuresets))
+        self.assertTrue(np.any(featuresets))
         self.assertTrue(any(labels))
 
     def test_evaluation(self):
@@ -141,7 +188,7 @@ class TestPipeline(unittest.TestCase):
         test_data = _get_test_data()
         featuresets, _ = pipelines.extract_labeled_features(
             data=test_data,
-            attributes=['description'],
+            nvd_attributes=['description'],
         )
 
         clf = classifiers.NBClassifier().fit(featuresets)

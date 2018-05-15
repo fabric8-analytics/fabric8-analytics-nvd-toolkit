@@ -55,6 +55,10 @@ class Hook(object):
         """Get hook default keyword arguments."""
         return self._default_kwargs
 
+    @default_kwargs.setter
+    def default_kwargs(self, kwargs):
+        self._default_kwargs = kwargs
+
     def __call__(self, *args, **kwargs):
         """Call the hooked function."""
         return self._func(*args, **kwargs)

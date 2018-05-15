@@ -199,7 +199,7 @@ def _get_extracted_test_data():
 
     data, labels = extract_labeled_features(
         data=data,
-        attributes=['description']
+        nvd_attributes=['description']
     )
 
     return data, labels

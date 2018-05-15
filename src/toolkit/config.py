@@ -1,4 +1,4 @@
-"""Configurations."""
+"""Configurations module."""
 
 import os
 
