@@ -5,7 +5,7 @@ set -ex
 prep() {
     yum -y update
     yum -y install epel-release
-    yum -y install python34 python34-virtualenv which
+    yum -y install python35 python35-virtualenv which
 }
 
 prep
