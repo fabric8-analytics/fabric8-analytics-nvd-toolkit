@@ -140,18 +140,33 @@ class TestNVDFeedPreprocessor(unittest.TestCase):
         )
         self.assertIsInstance(prep, NVDFeedPreprocessor)
 
-    def test_transform(self):
-        """Test NVDFeedPreprocessor `transform` method."""
+    def test_fit_transform(self):
+        """Test NVDFeedPreprocessor `fit_transform` method."""
+        # default parameters
+        prep = NVDFeedPreprocessor()
+        result, = prep.fit_transform(X=[TEST_CVE])
+
+        # result should return default handler attributes
+        self.assertEqual(result.user, 'python')
+        self.assertEqual(result.project, 'cpython')
+        self.assertEqual(result.cve_id, 'cve_id')
+        self.assertIsNotNone(result.repository)
+        self.assertIsNotNone(result.references)
+
         # custom parameters
         prep = NVDFeedPreprocessor(
             attributes=TEST_CVE_ATTR  # only extract cve_id
         )
-        result, = prep.transform(X=[TEST_CVE])
+        result, = prep.fit_transform(X=[TEST_CVE])
 
-        # result should be a tuple of default handlers and cve attributes
-        # check only the cve attributes here to avoid calling handler
-        # separately
+        self.assertEqual(result.user, 'python')
+        self.assertEqual(result.project, 'cpython')
+        self.assertEqual(result.cve_id, 'cve_id')
+        self.assertIsNotNone(result.repository)
+        self.assertIsNotNone(result.references)
+        # plus description and CVE_ATTR_VALS
         self.assertEqual(result[-len(TEST_CVE_ATTR):], TEST_CVE_ATTR_VALS)
+        self.assertEqual(result.description, 'description')
 
     def test_filter_by_handler(self):
         """Test NVDFeedPreprocessor `_filter_by_handler` method."""

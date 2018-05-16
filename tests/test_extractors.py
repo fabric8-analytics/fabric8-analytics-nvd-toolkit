@@ -161,7 +161,9 @@ def _get_preprocessed_test_data():
     __records = 500
 
     data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
-    pipeline = get_preprocessing_pipeline()
+    pipeline = get_preprocessing_pipeline(
+        attributes=['description']
+    )
     steps, preps = list(zip(*pipeline.steps))
 
     # set up fit parameters (see sklearn fit_params notation)

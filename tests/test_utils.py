@@ -1,6 +1,5 @@
 """Tests for utils module."""
 
-import pytest
 import unittest
 
 from nvdlib.nvd import NVD

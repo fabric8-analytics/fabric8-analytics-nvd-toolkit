@@ -8,7 +8,7 @@ __title__ = "toolkit"
 __summary__ = "Tools for processing National Vulnerability Database feeds."
 __uri__ = "https://github.com/fabric8-analytics/fabric8-analytics-nvd-toolkit"
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 __author__ = "Marek Cermak"
 __email__ = "macermak@redhat.com"

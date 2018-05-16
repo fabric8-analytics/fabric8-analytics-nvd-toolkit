@@ -20,7 +20,10 @@ class TestPipeline(unittest.TestCase):
     def test_preprocessing_pipeline(self):
         """Test preprocessing pipeline."""
         # default prep pipeline
-        pipeline = pipelines.get_preprocessing_pipeline()
+        pipeline = pipelines.get_preprocessing_pipeline(
+            attributes=['description'],
+            share_hooks=True
+        )
 
         # check that the pipeline contains correct steps
         steps, preps = list(zip(*pipeline.steps))
@@ -79,7 +82,9 @@ class TestPipeline(unittest.TestCase):
     def test_training_pipeline(self):
         """Test training pipeline."""
         test_data = _get_test_data()
-        prep_pipeline = pipelines.get_preprocessing_pipeline()
+        prep_pipeline = pipelines.get_preprocessing_pipeline(
+            attributes=['description']
+        )
 
         steps, preps = list(zip(*prep_pipeline.steps))
         fit_params = {
@@ -117,7 +122,7 @@ class TestPipeline(unittest.TestCase):
         train_pipeline = pipelines.get_full_training_pipeline()
         steps, preps = list(zip(*train_pipeline.steps))
         fit_params = {
-            "%s__feed_attributes" % steps[0]: ['description'],
+            "%s__attributes" % steps[0]: ['description'],
             "%s__feed_attributes" % steps[1]: ['project', 'description'],
             "%s__feed_attributes" % steps[2]: ['description'],
             "%s__output_attributes" % steps[2]: ['label']

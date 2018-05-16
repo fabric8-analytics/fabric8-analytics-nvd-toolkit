@@ -31,7 +31,7 @@ class FeatureExtractor(TransformerMixin):
     """
 
     def __init__(self,
-                 feature_hooks: typing.Union[dict, list] = None,
+                 feature_hooks: typing.Union[dict, typing.Iterable] = None,
                  share_hooks=False):
         """Initialize FeatureExtractor."""
         if feature_hooks is None:
@@ -41,10 +41,10 @@ class FeatureExtractor(TransformerMixin):
             # create hooks from the dictionary
             feature_hooks = [Hook(k, v, reuse=share_hooks) for k, v in feature_hooks.items()]
 
-        elif not isinstance(feature_hooks, list):
+        elif not isinstance(feature_hooks, typing.Iterable):
             raise TypeError(
                 "Argument `feature_hooks` expected to be of type "
-                f"{typing.Union[dict, list]}, got {type(feature_hooks)}"
+                f"{typing.Union[dict, typing.Iterable]}, got {type(feature_hooks)}"
             )
 
         self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks)
@@ -206,7 +206,7 @@ class _FeatureExtractor(object):
 
         :param skip_unfed_hooks: bool, False by default
 
-            If True, allows skipping unfed hooks, otherwise raises AttributeError
+            If True, allows skipping unfed hooks, otherwise raises
 
         :returns: dict
             Where the key is the hook key and value is the value returned
@@ -217,7 +217,7 @@ class _FeatureExtractor(object):
             # check that all arguments are provided
             try:
                 result[hook.key] = hook(**feed_dict, **hook.default_kwargs)
-            except TypeError as e:
+            except (TypeError, AttributeError) as e:
                 if skip_unfed_hooks:
                     continue
                 else:

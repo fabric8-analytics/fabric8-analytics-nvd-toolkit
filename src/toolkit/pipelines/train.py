@@ -8,13 +8,33 @@ to fit on the data.
 import argparse
 import sys
 
-import numpy as np
+from collections import namedtuple
+from sklearn.pipeline import Pipeline
+from time import time
+
 from nvdlib.nvd import NVD
 
-from toolkit import pipelines
+from toolkit import preprocessing, transformers
+from toolkit.transformers import feature_hooks
+from toolkit import utils
 
 
-FEATURE_HOOKS = None
+# create this helper class for easier addressing of relevant hooks
+__FeatureHooks = namedtuple('FeatureHooks', [  # pylint: disable=invalid-name
+    'has_uppercase_hook',
+    'is_alnum_hook',
+    'vendor_product_match_hook',
+    'ver_pos_hook',
+    'word_len_hook',
+])
+
+FEATURE_HOOKS = __FeatureHooks(*[
+    feature_hooks.has_uppercase_hook,
+    feature_hooks.is_alnum_hook,
+    feature_hooks.vendor_product_match_hook,
+    feature_hooks.ver_pos_hook,
+    feature_hooks.word_len_hook,
+])
 
 
 def parse_args(argv):
@@ -58,40 +78,61 @@ def main(argv):
         print("Getting NVD Feed...")
         feed = NVD.from_feeds(feed_names=args.nvd_feeds)
         feed.update()
-        data = feed.cves()  # generator
+        data = list(feed.cves())  # generator
 
-    # transform and transform the data with the pre-processing pipeline
-    print("Preprocessing...")
-    prep_pipeline = pipelines.get_preprocessing_pipeline()
-    steps, _ = list(zip(*prep_pipeline.steps))
-    fit_params = {
-        "%s__feed_attributes" % steps[2]: ['description'],
-        "%s__output_attributes" % steps[2]: ['label']
+    cve_dict = {cve.cve_id: cve for cve in data}
+
+    # set up default argument for vendor-product feature hook
+    feature_hooks.vendor_product_match_hook.default_kwargs = {
+        'cve_dict': cve_dict
     }
 
-    prep_data = prep_pipeline.fit_transform(
-        X=data,
-        **fit_params
+    training_pipeline = Pipeline(
+        steps=[
+            (
+                'nvd_feed_preprocessor',
+                preprocessing.NVDFeedPreprocessor(
+                    attributes=['cve_id', 'description']
+                )
+            ),
+            (
+                'label_preprocessor',
+                preprocessing.LabelPreprocessor(
+                    feed_attributes=['project', 'description'],
+                    output_attributes=['cve_id', 'description'],
+                    hook=transformers.Hook(key='label_hook',
+                                           reuse=True,
+                                           func=utils.find_)
+                )
+            ),
+            (
+                'nltk_preprocessor',
+                preprocessing.NLTKPreprocessor(
+                    feed_attributes=['description'],
+                    output_attributes=['cve_id', 'label']
+                )
+            ),
+            (
+                'feature_extractor',
+                transformers.FeatureExtractor(
+                    feature_hooks=FEATURE_HOOKS,
+                    share_hooks=True
+                )
+            ),
+            (
+                'classifier',
+                transformers.NBClassifier()
+            )
+        ]
     )
-    print("Preprocessing done.")
 
-    prep_data = np.array(prep_data)
-    if not prep_data.size > 0:
-        print("No data left after preprocessing. Check the data provided"
-              " or modify preprocessing pipeline.", file=sys.stderr)
-        exit(1)
+    start_time = time()
+    print("Training started")
 
-    # split the data to labels
-    features, labels = prep_data[:, 0], prep_data[:, 1]
-
-    print("Training...")
-    # transform and transform the data with the training pipeline
-    train_pipeline = pipelines.get_training_pipeline(feature_hooks=FEATURE_HOOKS)
-
-    classifier = train_pipeline.fit_transform(
-        X=features, y=labels
-    )
-    print("Training done.")
+    try:
+        classifier = training_pipeline.fit_transform(X=data)
+    finally:
+        print(f"Training finished in {time() - start_time} seconds")
 
     if args.export:
         classifier.export()

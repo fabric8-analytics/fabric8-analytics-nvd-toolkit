@@ -28,44 +28,30 @@ class NVDFeedPreprocessor(TransformerMixin):
         While `transform`, each attribute will be gathered from each element
         of the list fed to the method and return in the resulting tuple.
 
-        If None, ('cve_id', 'references', 'description') are selected by default
+        If None, ('cve_id', 'references') are selected by default
 
     :param handler: data handler, by default GitHubHandler (ATM the only one supported)
     :param skip_duplicity: bool, whether to allow duplicit attributes
 
         Handler provides default handler properties which it extracts from
         the data, if any of attr in `attributes` intersects with those properties,
-        it raises an error if `skip_duplicit` is False (default).
+        it raises an error if `skip_duplicit` is False (default True).
     """
 
     def __init__(self,
                  attributes: typing.Union[list, np.ndarray] = None,
                  handler=None,
-                 skip_duplicity=False):
+                 skip_duplicity=True):
         """Initialize NVDFeedPreprocessor."""
-        if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
-            raise TypeError(
-                "Argument `attributes` expected to be of type `{}`, got `{}`"
-                .format(typing.Union[list, np.ndarray], type(attributes))
-            )
-
         self._handler = handler
-        if handler is None:
+
+        if self._handler is None:
             self._handler = GitHubHandler
 
-        attributes = tuple(attributes) if attributes else ('cve_id', 'references', 'description')
-        for attr in attributes:
-            if attr in self._handler.default_properties and not skip_duplicity:
-                raise ValueError("Attribute `{}` is already present in handlers "
-                                 "default properties.".format(attr))
-
-        # leave only those not present in handlers default properties
-        self._cve_attributes = tuple([
-            attr for attr in attributes
-            if attr not in self._handler.default_properties
-        ])
-
         self._use_filter = False
+        self._skip_duplicity = skip_duplicity
+
+        self._cve_attributes = self._validate_attributes(attributes)
 
     # noinspection PyPep8Naming, PyUnusedLocal
     def fit(self,
@@ -80,7 +66,19 @@ class NVDFeedPreprocessor(TransformerMixin):
 
                 *NOTE*: This argument is especially important when labeling
                 the data follows after this preprocessor
+
+            :attributes: list or ndarray of attributes to extract,
+
+                While `transform`, each attribute will be gathered from each element
+                of the list fed to the method and return in the resulting tuple.
+
+                *NOTE*: If `attributes` were provided during object instantiation,
+                those attributes will be overwritten.
         """
+        attributes = fit_params.get('attributes', None)
+        if attributes:
+            self._cve_attributes = self._validate_attributes(attributes)
+
         self._use_filter = fit_params.get('use_filter', True)
 
         return self
@@ -128,44 +126,60 @@ class NVDFeedPreprocessor(TransformerMixin):
 
     def _get_cve_attributes(self, cve):
         """Get the selected attributes from the CVE object."""
-        # initialize handler
         ref = utils.get_reference(cve, pattern=self._handler.pattern)
 
-        data = list()
-        if ref is not None:
-            handler = self._handler(url=ref)
-
-            # attribute creator
-            Series = namedtuple(  # pylint: disable=invalid-name
-                'Series',
-                handler.default_properties + self._cve_attributes
-            )
-
-            # initialize with handlers default data
-            for prop in handler.default_properties:
-                attr = getattr(handler, prop)
-                if attr is not None:
-                    data.append(attr)
-
-        elif not self._use_filter:
-            # if the use_filter was False, the handler may have not extracted anything
-            Series = namedtuple(  # pylint: disable=invalid-name
-                'Series',
-                self._cve_attributes
-            )
-
-        else:
+        if not ref and self._use_filter:
             # something is wrong, since the cve passed the filter but handler
             # did not extracted any attributes
-            raise ValueError("Unexpected error occurred. `use_filter=True`, but"
-                             " reference `{}` did not match handlers pattern."
-                             .format(ref))
+            raise ValueError("Unexpected error occurred. `use_filter=True`, but "
+                             f"reference `{ref}` did not match handlers pattern.")
+
+        # attribute creator
+        Series = namedtuple(  # pylint: disable=invalid-name
+            'Series',
+            self._handler.default_properties + self._cve_attributes
+        )
+
+        # initialize handler
+        try:
+            handler = self._handler(url=ref)
+        except ValueError:
+            # url does not match handler's base pattern
+            handler = None
+
+        data = list()
+        # initialize with handlers default data
+        for prop in self._handler.default_properties:
+            attr = getattr(handler, prop, None)
+            data.append(attr)
 
         data.extend([
             getattr(cve, attr) for attr in self._cve_attributes
         ])
 
         return Series(*data)
+
+    def _validate_attributes(self, attributes: list) -> tuple:
+        """Check validity of given attributes and return if applicable."""
+        if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
+            raise TypeError(
+                "Argument `attributes` expected to be of type `{}`, got `{}`"
+                .format(typing.Union[list, np.ndarray], type(attributes))
+            )
+
+        attributes = tuple(attributes) if attributes else ('cve_id', 'references')
+        for attr in attributes:
+            if attr in self._handler.default_properties and not self._skip_duplicity:
+                raise ValueError("Attribute `{}` is already present in handlers "
+                                 "default properties.".format(attr))
+
+        # leave only those not present in handlers default properties
+        attributes = tuple([
+            attr for attr in attributes
+            if attr not in self._handler.default_properties
+        ])
+
+        return attributes
 
 
 class LabelPreprocessor(TransformerMixin):
@@ -309,6 +323,7 @@ class LabelPreprocessor(TransformerMixin):
         if not result:
             result = [[]] * len(self._output_attributes)
 
+        # sanity check
         assert len(result) == len(labels)
 
         # assign label to each set of attributes
