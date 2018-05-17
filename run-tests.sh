@@ -1,0 +1,52 @@
+#!/usr/bin/bash
+# run_tests.sh
+
+# set up terminal colors
+NORMAL=$(tput sgr0)
+RED=$(tput bold && tput setaf 1)
+GREEN=$(tput bold && tput setaf 2)
+YELLOW=$(tput bold && tput setaf 3)
+
+function prepare_venv() {
+		# we want tests to run on python3.6
+	printf 'checking alias `python3.6` ... '
+	PYTHON=$(which python3.6 2> /dev/null)
+	if [ "$?" -ne "0" ]; then
+		printf "${YELLOW} NOT FOUND ${NORMAL}\n"
+
+		printf 'checking alias `python3` ... '
+		PYTHON=$(which python3 2> /dev/null)
+
+		let ec=$?
+		[ "$ec" -ne "0" ] && printf "${RED} NOT FOUND ${NORMAL}\n" && return $ec
+	fi
+
+	printf "${GREEN} OK ${NORMAL}\n"
+
+	${PYTHON} -m venv "venv" && source venv/bin/activate
+}
+
+
+[ "$NOVENV" == "1" ] || prepare_venv || exit 1
+
+
+# install nvdlib
+git clone https://github.com/msrb/nvdlib
+pushd nvdlib
+pip install -r requirements.txt
+python setup.py install
+popd
+
+# install the project
+pip install -r requirements.txt
+
+# download nltk data
+python -c "import nltk; nltk.download('stopwords')"
+python -c "import nltk; nltk.download('universal_tagset')"
+python -c "import nltk; nltk.download('averaged_perceptron_tagger')"
+
+# ensure pytest and coverage is available
+pip install pytest pytest-cov
+
+# run tests
+PYTHONPATH=src/ pytest --cov="src/" --cov-report term-missing -vv tests/
