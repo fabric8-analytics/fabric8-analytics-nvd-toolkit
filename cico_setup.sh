@@ -3,7 +3,7 @@
 prep() {
     yum -y update
     yum -y install epel-release
-    yum -y install python36
+    yum -y install python36 git
 }
 
 prep
