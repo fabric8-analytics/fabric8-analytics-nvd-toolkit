@@ -3,15 +3,32 @@ separate_files="setup.py"
 pass=0
 fail=0
 
-function prepare_venv() {
-    VIRTUALENV=`which virtualenv`
-    if [ $? -eq 1 ]; then
-        # python34 which is in CentOS does not have virtualenv binary
-        VIRTUALENV=`which virtualenv-3`
-    fi
 
-    ${VIRTUALENV} -p python3 venv && source venv/bin/activate && python3 `which pip3` install pycodestyle
+# set up terminal colors
+NORMAL=$(tput sgr0)
+RED=$(tput bold && tput setaf 1)
+GREEN=$(tput bold && tput setaf 2)
+YELLOW=$(tput bold && tput setaf 3)
+
+function prepare_venv() {
+		# we want tests to run on python3.6
+	printf 'checking alias `python3.6` ... '
+	PYTHON=$(which python3.6 2> /dev/null)
+	if [ "$?" -ne "0" ]; then
+		printf "${YELLOW} NOT FOUND ${NORMAL}\n"
+
+		printf 'checking alias `python3` ... '
+		PYTHON=$(which python3 2> /dev/null)
+
+		let ec=$?
+		[ "$ec" -ne "0" ] && printf "${RED} NOT FOUND ${NORMAL}\n" && return $ec
+	fi
+
+	printf "${GREEN} OK ${NORMAL}\n"
+
+	${PYTHON} -m venv "venv" && source venv/bin/activate && pip install pycodestyle
 }
+
 
 echo "----------------------------------------------------"
 echo "Running Python linter against following directories:"
