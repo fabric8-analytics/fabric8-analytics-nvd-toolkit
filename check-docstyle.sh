@@ -14,14 +14,14 @@ function prepare_venv() {
 		# we want tests to run on python3.6
 	printf 'checking alias `python3.6` ... '
 	PYTHON=$(which python3.6 2> /dev/null)
-	if [ -z ${PYTHON} ]; then
+	if [ "$?" -ne "0" ]; then
 		printf "${YELLOW} NOT FOUND ${NORMAL}\n"
 
 		printf 'checking alias `python3` ... '
 		PYTHON=$(which python3 2> /dev/null)
 
 		let ec=$?
-		[ $ec -gt 0 ] && printf "${RED} NOT FOUND ${NORMAL}\n" && return $ec
+		[ "$ec" -ne "0" ] && printf "${RED} NOT FOUND ${NORMAL}\n" && return $ec
 	fi
 
 	printf "${GREEN} OK ${NORMAL}\n"
