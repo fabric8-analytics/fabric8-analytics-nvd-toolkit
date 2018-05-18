@@ -21,7 +21,7 @@ TEST_REFERENCE_PATTERNS = {
 class TestUtils(unittest.TestCase):
     """Tests for utils module."""
 
-    def test_classproperty(self):
+    def _test_classproperty(self):
         """Test classproperty decorator."""
         class Sample:
             _secret = 'secret'

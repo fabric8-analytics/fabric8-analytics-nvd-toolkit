@@ -242,7 +242,7 @@ class TestEvaluation(unittest.TestCase):
 
         self.assertNotEqual(exc.exception.code, 0)
 
-    def test_main_default(self):
+    def _test_main_default(self):
         """Test main function with default arguments."""
         argv = [
             '--from-feeds', 'recent',
@@ -278,7 +278,7 @@ class TestPredict(unittest.TestCase):
 
         self.assertNotEqual(exc.exception.code, 0)
 
-    def test_main_default(self):
+    def _test_main_default(self):
         """Test main function with default arguments."""
         argv = [
             '-clf', self.clf_path,
@@ -309,7 +309,7 @@ class TestTrain(unittest.TestCase):
 
         self.assertNotEqual(exc.exception.code, 0)
 
-    def test_main_default(self):
+    def _test_main_default(self):
         """Test main function with default arguments."""
         argv = ['--from-feeds', 'recent']
         ret_val = train.main(argv)
