@@ -3,9 +3,11 @@
 import unittest
 
 import numpy as np
-from sklearn.pipeline import Pipeline
 
-from toolkit.pipelines import get_preprocessing_pipeline
+from sklearn.pipeline import Pipeline
+from nvdlib.nvd import NVD
+
+from toolkit.pipelines.pipelines import get_preprocessing_pipeline
 from toolkit.transformers import FeatureExtractor, Hook
 # noinspection PyProtectedMember
 from toolkit.transformers.extractors import _FeatureExtractor  # pylint: disable=protected-access
@@ -14,6 +16,37 @@ from toolkit.utils import clear
 
 class TestFeatureExtractor(unittest.TestCase):
     """Tests for FeatureExtractor class."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Return preprocessed data."""
+        feed = NVD.from_feeds(feed_names=['recent'])
+        # download and update
+        feed.update()
+
+        # get the sample cves
+        __cve_iter = feed.cves()
+        __records = 500
+
+        data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
+        pipeline = get_preprocessing_pipeline(
+            nvd_attributes=['project', 'description'],
+            share_hooks=True
+        )
+        steps, preps = list(zip(*pipeline.steps))
+
+        # set up fit parameters (see sklearn fit_params notation)
+        fit_params = {
+            "%s__feed_attributes" % steps[2]: ['description'],
+            "%s__output_attributes" % steps[2]: ['label']
+        }
+
+        prep_data = pipeline.fit_transform(
+            X=data,
+            **fit_params
+        )
+
+        cls.test_data = prep_data
 
     @clear
     def test_init(self):
@@ -43,10 +76,8 @@ class TestFeatureExtractor(unittest.TestCase):
     @clear
     def test_extract_features(self):
         """Test FeatureExtractor `_extract_features` method."""
-        # preprocess the sentences
-        test_data = _get_preprocessed_test_data()
         # get tokenized sentence
-        sent = test_data[0].values
+        sent = self.test_data[0].features
 
         # apply default extractors transformation
         prep = FeatureExtractor()
@@ -61,8 +92,7 @@ class TestFeatureExtractor(unittest.TestCase):
     def test_fit_transform(self):
         """Test FeatureExtractor `fit_transform` method."""
         # preprocess the sentences
-        test_data = _get_preprocessed_test_data()
-        test_data = np.array(test_data)
+        test_data = np.array(self.test_data)
 
         test_data, test_labels = test_data[:, 0], test_data[:, 1]
 
@@ -161,7 +191,9 @@ def _get_preprocessed_test_data():
     __records = 500
 
     data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
-    pipeline = get_preprocessing_pipeline()
+    pipeline = get_preprocessing_pipeline(
+        nvd_attributes=['project', 'description']
+    )
     steps, preps = list(zip(*pipeline.steps))
 
     # set up fit parameters (see sklearn fit_params notation)

@@ -41,7 +41,7 @@ class GitHubHandler(object):
 
     def __init__(self, url: str = None):
         """Initialize GitHubHandler."""
-        self._src_url = self.strip_src_url(url)
+        self._src_url = self.strip_src_url(url or "")
         self._user, self._project = self.get_user_project(self._src_url)
         self._http = urllib3.PoolManager()
 

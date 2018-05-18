@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 # run_tests.sh
 
+TERM=${TERM:-xterm}
+
 # set up terminal colors
 NORMAL=$(tput sgr0)
 RED=$(tput bold && tput setaf 1)
@@ -42,6 +44,7 @@ pip install -r requirements.txt
 
 # download nltk data
 python -c "import nltk; nltk.download('stopwords')"
+python -c "import nltk; nltk.download('wordnet')"
 python -c "import nltk; nltk.download('universal_tagset')"
 python -c "import nltk; nltk.download('averaged_perceptron_tagger')"
 

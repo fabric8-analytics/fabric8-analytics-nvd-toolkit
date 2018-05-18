@@ -30,21 +30,23 @@ class NBClassifier(TransformerMixin):
     and implements `transform` and `fit_transform` methods suitable for
     pipeline integration.
 
-        :param label_probdist:
-            P(label), the probability distribution over labels.
+    :param label_probdist: P(label)
 
-            It is expressed as a ``ProbDistI`` whose samples are labels.
-            I.e., P(label) = ``label_probdist.prob(label)``.
+        The probability distribution over labels.
 
-        :param feature_probdist:
-            P(fname=fval|label), the probability distribution for feature values, given labels.
+        It is expressed as a ``ProbDistI`` whose samples are labels.
+        I.e., P(label) = ``label_probdist.prob(label)``.
 
-            It is expressed as a dictionary whose keys are ``(label, fname)``
-            pairs and whose values are ``ProbDistI`` objects over feature values.
-            I.e., P(fname=fval|label) = ``feature_probdist[label,fname].prob(fval)``.
-            If a given ``(label,fname)`` is not a key in ``feature_probdist``,
-            then it is assumed that the corresponding P(fname=fval|label)
-            is 0 for all values of ``fval``.
+    :param feature_probdist: P(fname=fval|label)
+
+        The probability distribution for feature values, given labels.
+
+        It is expressed as a dictionary whose keys are ``(label, fname)``
+        pairs and whose values are ``ProbDistI`` objects over feature values.
+        I.e., P(fname=fval|label) = ``feature_probdist[label,fname].prob(fval)``.
+        If a given ``(label,fname)`` is not a key in ``feature_probdist``,
+        then it is assumed that the corresponding P(fname=fval|label)
+        is 0 for all values of ``fval``.
     """
 
     def __init__(self,
@@ -344,7 +346,7 @@ def cross_validate(classifier,
         The same as is provided to `fit` method.
 
     :param y: Iterable of labels
-    :param sample:
+    :param sample: one of labels
 
         one of labels to get the prediction for (for example,
         if labels are ['class_A', 'class_B', 'class_C'], the sample

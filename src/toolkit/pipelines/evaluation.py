@@ -15,9 +15,9 @@ from nvdlib.nvd import NVD
 from sklearn.model_selection import train_test_split
 
 from toolkit import pipelines
-from toolkit.transformers import classifiers
+from toolkit import utils
 from toolkit.pipelines.train import FEATURE_HOOKS
-from toolkit.utils import BooleanAction
+from toolkit.transformers.classifiers import NBClassifier, cross_validate
 
 
 def parse_args(argv):
@@ -49,13 +49,13 @@ def parse_args(argv):
 
     parser.add_argument(
         '--eval', '--no-eval',
-        action=BooleanAction,
+        action=utils.BooleanAction,
         default=True
     )
 
     parser.add_argument(
         '-xval', '--cross-validate', '--no-cross-validate',
-        action=BooleanAction,
+        action=utils.BooleanAction,
         default=True
     )
 
@@ -86,14 +86,22 @@ def main(argv):
         print("Getting NVD Feed...")
         feed = NVD.from_feeds(feed_names=args.nvd_feeds)
         feed.update()
-        data = feed.cves()  # generator
+        data = list(feed.cves())  # generator
+
+    cve_dict = {cve.cve_id: cve for cve in data}
+
+    # set up default argument for vendor-product feature hook
+    FEATURE_HOOKS.vendor_product_match_hook.default_kwargs = {
+        'cve_dict': cve_dict
+    }
 
     # transform and transform the data with the pre-processing pipeline
     print("Preprocessing...")
     features, labels = pipelines.extract_labeled_features(
         data=data,
         feature_hooks=FEATURE_HOOKS,
-        attributes=['description'],
+        nvd_attributes=['cve_id', 'description'],
+        nltk_feed_attributes=['description']
     )
     print("Preprocessing done.")
 
@@ -103,7 +111,7 @@ def main(argv):
         exit(1)
 
     path_to_classifier = os.path.join(os.getcwd(), args.path_to_classifier)
-    classifier = classifiers.NBClassifier.restore(path_to_classifier)
+    classifier = NBClassifier.restore(path_to_classifier)
 
     # noinspection PyPep8Naming
     X_train, X_test, y_train, y_test = train_test_split(  # pylint: disable=invalid-name
@@ -119,7 +127,7 @@ def main(argv):
         print("Evaluation accuracy:", score)
 
     if args.cross_validate:
-        score = classifiers.cross_validate(
+        score = cross_validate(
             classifier,
             X_train,
             y_train,

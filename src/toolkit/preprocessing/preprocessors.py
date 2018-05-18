@@ -28,45 +28,30 @@ class NVDFeedPreprocessor(TransformerMixin):
         While `transform`, each attribute will be gathered from each element
         of the list fed to the method and return in the resulting tuple.
 
-        If None, ('cve_id', 'references', 'description') are selected by default
+        If None, ('cve_id', 'references') are selected by default
 
     :param handler: data handler, by default GitHubHandler (ATM the only one supported)
     :param skip_duplicity: bool, whether to allow duplicit attributes
 
         Handler provides default handler properties which it extracts from
         the data, if any of attr in `attributes` intersects with those properties,
-        it raises an error if `skip_duplicit` is False (default).
+        it raises an error if `skip_duplicit` is False (default True).
     """
 
     def __init__(self,
                  attributes: typing.Union[list, np.ndarray] = None,
                  handler=None,
-                 skip_duplicity=False):
+                 skip_duplicity=True):
         """Initialize NVDFeedPreprocessor."""
-        if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
-            raise TypeError(
-                "Argument `attributes` expected to be of type `{}`, got `{}`"
-                .format(typing.Union[list, np.ndarray], type(attributes))
-            )
-
         self._handler = handler
-        if handler is None:
+
+        if self._handler is None:
             self._handler = GitHubHandler
 
-        attributes = tuple(attributes) if attributes else ('cve_id', 'references', 'description')
-        for attr in attributes:
-            if attr in self._handler.default_properties and not skip_duplicity:
-                raise ValueError("Attribute `{}` is already present in handlers "
-                                 "default properties.".format(attr))
-
-        self._cve_attributes = attributes
-        # leave only those not present in handlers default properties
-        self._cve_attributes = tuple([
-            attr for attr in self._cve_attributes
-            if attr not in self._handler.default_properties
-        ])
-
         self._use_filter = False
+        self._skip_duplicity = skip_duplicity
+
+        self._cve_attributes = self._validate_attributes(attributes)
 
     # noinspection PyPep8Naming, PyUnusedLocal
     def fit(self,
@@ -77,10 +62,23 @@ class NVDFeedPreprocessor(TransformerMixin):
 
         :param fit_params: optional parameters
 
-            use_filter: whether to filter the data by handler, default True
-                        *NOTE*: This argument is especially important when labeling
-                                the data follows after this preprocessor
+            :use_filter: whether to filter the data by handler, default True
+
+                *NOTE*: This argument is especially important when labeling
+                the data follows after this preprocessor
+
+            :attributes: list or ndarray of attributes to extract,
+
+                While `transform`, each attribute will be gathered from each element
+                of the list fed to the method and return in the resulting tuple.
+
+                *NOTE*: If `attributes` were provided during object instantiation,
+                those attributes will be overwritten.
         """
+        attributes = fit_params.get('attributes', None)
+        if attributes:
+            self._cve_attributes = self._validate_attributes(attributes)
+
         self._use_filter = fit_params.get('use_filter', True)
 
         return self
@@ -128,38 +126,32 @@ class NVDFeedPreprocessor(TransformerMixin):
 
     def _get_cve_attributes(self, cve):
         """Get the selected attributes from the CVE object."""
-        # initialize handler
         ref = utils.get_reference(cve, pattern=self._handler.pattern)
 
-        data = list()
-        if ref is not None:
-            handler = self._handler(url=ref)
-
-            # attribute creator
-            Series = namedtuple(  # pylint: disable=invalid-name
-                'Series',
-                handler.default_properties + self._cve_attributes
-            )
-
-            # initialize with handlers default data
-            for prop in handler.default_properties:
-                attr = getattr(handler, prop)
-                if attr is not None:
-                    data.append(attr)
-
-        elif not self._use_filter:
-            # if the use_filter was False, the handler may have not extracted anything
-            Series = namedtuple(  # pylint: disable=invalid-name
-                'Series',
-                self._cve_attributes
-            )
-
-        else:
+        if not ref and self._use_filter:
             # something is wrong, since the cve passed the filter but handler
             # did not extracted any attributes
-            raise ValueError("Unexpected error occurred. `use_filter=True`, but"
-                             " reference `{}` did not match handlers pattern."
-                             .format(ref))
+            raise ValueError("Unexpected error occurred. `use_filter=True`, but "
+                             f"reference `{ref}` did not match handlers pattern.")
+
+        # attribute creator
+        Series = namedtuple(  # pylint: disable=invalid-name
+            'Series',
+            self._handler.default_properties + self._cve_attributes
+        )
+
+        # initialize handler
+        try:
+            handler = self._handler(url=ref)
+        except ValueError:
+            # url does not match handler's base pattern
+            handler = None
+
+        data = list()
+        # initialize with handlers default data
+        for prop in self._handler.default_properties:
+            attr = getattr(handler, prop, None)
+            data.append(attr)
 
         data.extend([
             getattr(cve, attr) for attr in self._cve_attributes
@@ -167,39 +159,63 @@ class NVDFeedPreprocessor(TransformerMixin):
 
         return Series(*data)
 
+    def _validate_attributes(self, attributes: list) -> tuple:
+        """Check validity of given attributes and return if applicable."""
+        if attributes and not any(isinstance(attributes, t) for t in (list, np.ndarray)):
+            raise TypeError(
+                "Argument `attributes` expected to be of type `{}`, got `{}`"
+                .format(typing.Union[list, np.ndarray], type(attributes))
+            )
+
+        attributes = tuple(attributes) if attributes else ('cve_id', 'references')
+        for attr in attributes:
+            if attr in self._handler.default_properties and not self._skip_duplicity:
+                raise ValueError("Attribute `{}` is already present in handlers "
+                                 "default properties.".format(attr))
+
+        # leave only those not present in handlers default properties
+        attributes = tuple([
+            attr for attr in attributes
+            if attr not in self._handler.default_properties
+        ])
+
+        return attributes
+
 
 class LabelPreprocessor(TransformerMixin):
     """Preprocessor implementing `tranform` method for scikit pipelines.
 
     This preprocessor assign labels to the given set by creating.
 
-    :param feed_attributes: list, attributes to be extracted from the `X`
-    while `transform` or `fit_transform` call and fed to the hook.
-
-    NOTE: attributes of `X` are extracted by `getattr` function, make
-    sure that the `X` implements __get__ method.
-
     :param hook: Hook, hook to be called on the each element of `X`
-    while `fit_transform` call and will be fed the element of `X` (
-    which should be a `namedtuple`).
+        Attributes are extracted while `fit_transform` call
+        and will be fed the element of `X` (which should be a `namedtuple`).
+
+    :param feed_attributes: list, attributes to be extracted from the `X`
+        Attributes are extracted while `transform` or `fit_transform` call
+        and fed to the hook.
+
+        NOTE: attributes of `X` are extracted by `getattr` function, make
+        sure that the `X` implements __get__ method.
 
     :param output_attributes: list, attributes to be returned
 
         By default output_attributes are the same as feed_attributes.
+
     """
 
     def __init__(self,
                  hook: "Hook",
-                 feed_attributes: list,
+                 feed_attributes: list = None,
                  output_attributes: list = None,
                  allow_nan_labels=False):
         """Initialize LabelPreprocessor."""
-        if not isinstance(feed_attributes, typing.Iterable):
+        self._feed_attributes = feed_attributes or []
+        self._output_attributes = output_attributes or self._feed_attributes
+
+        if not isinstance(self._feed_attributes, typing.Iterable):
             raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
                             " got `{}`".format(typing.Iterable, type(feed_attributes)))
-
-        self._feed_attributes = feed_attributes
-        self._output_attributes = output_attributes or self._feed_attributes
 
         if not isinstance(self._output_attributes, typing.Iterable):
             raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
@@ -209,8 +225,8 @@ class LabelPreprocessor(TransformerMixin):
             raise TypeError("Argument `hook` expected to be of type `{}`, got `{}"
                             .format(Hook, type(hook)))
         self._hook = hook
-        self._labels = None
 
+        self._labels = None
         self._allow_nan_labels = allow_nan_labels
 
     @property
@@ -221,10 +237,47 @@ class LabelPreprocessor(TransformerMixin):
     # noinspection PyPep8Naming
     def fit(self,
             X: typing.Union[list, np.ndarray],  # pylint: disable=invalid-name
-            y=None,
-            **fitparams):
-        """Fit the preprocessor to the given data."""
-        Series = namedtuple(  # pylint: disable=invalid-name
+            y=None,  # pylint: disable=unused-argument
+            **fit_params):
+        """Fit the preprocessor to the given data.
+
+        :param X: Iterable, each element should be a tuple of attributes
+
+            The `X` is expected to be the output of NVDFeedPreprocessor.
+            Each element will be passed to the labeling hook.
+
+        :param y: redundant
+        :param fit_params: kwargs, optional arguments to be used during fitting
+
+            :feed_attributes: list, attributes to be extracted from the `X`
+
+            Attributes are extracted while `transform` or `fit_transform` call
+            and fed to the hook.
+
+            NOTE: attributes of `X` are extracted by `getattr` function, make
+            sure that the `X` implements __get__ method.
+
+            :output_attributes: list, attributes to be returned
+
+            By default output_attributes are the same as feed_attributes.
+
+        """
+        # allow defining attributes in the fit function as well, since
+        # user might want to specify it directly in the pipeline
+        self._feed_attributes = fit_params.get('feed_attributes', []) or self._feed_attributes
+        self._output_attributes = fit_params.get('output_attributes', []) or (
+                self._output_attributes or self._feed_attributes
+        )
+
+        if not isinstance(self._feed_attributes, typing.Iterable):
+            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
+
+        if not isinstance(self._output_attributes, typing.Iterable):
+            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
+
+        Attributes = namedtuple(  # pylint: disable=invalid-name
             'Attributes',
             field_names=self._feed_attributes
         )
@@ -232,9 +285,12 @@ class LabelPreprocessor(TransformerMixin):
         self._labels = [None] * len(X)
         for i, x in enumerate(X):
             # noinspection PyTypeChecker
-            self._labels[i] = self._hook(*Series(
-                *tuple(getattr(x, attr) for attr in self._feed_attributes)
-            ))
+            if self._feed_attributes:
+                self._labels[i] = self._hook(*Attributes(
+                    *tuple(getattr(x, attr) for attr in self._feed_attributes)
+                ))
+            else:
+                self._labels[i] = self._hook(*x)
 
         return self
 
@@ -267,6 +323,7 @@ class LabelPreprocessor(TransformerMixin):
         if not result:
             result = [[]] * len(self._output_attributes)
 
+        # sanity check
         assert len(result) == len(labels)
 
         # assign label to each set of attributes
@@ -287,21 +344,35 @@ class NLTKPreprocessor(TransformerMixin):
     Other text processing operations are not mandatory and can be optimized
     by user.
 
-        :param lemmatizer: nltk lemmatizer, defaults to nltk.WordNetLemmatizer
-        :param stemmer: nltk stemmer, defaults to nltk.SnowballStemmer
-        :param tokenizer: nltk tokenizer, defaults to nltk.TreebankWordTokenizer
-        :param stopwords: bool, whether to strip stopwords
-        :param tag_dict: dictionary of (pattern, correct_tag) used for tag correction
+    :param feed_attributes: list, attributes to be extracted from the `X`
 
-            If provided, each tag is matched to a pattern in this dictionary
-            and corrected, if applicable.
-        :param lower: bool, whether to transform tokens to lowercase
-        :param strip: bool, whether to strip tokens
+        Attributes are extracted while `transform` or `fit_transform` call
+        and fed to the hook.
+
+        NOTE: attributes of `X` are extracted by `getattr` function, make
+        sure that the `X` implements __get__ method.
+
+    :param output_attributes: list, attributes to be returned
+
+        By default output_attributes are the same as feed_attributes.
+
+    :param lemmatizer: nltk lemmatizer, defaults to nltk.WordNetLemmatizer
+    :param stemmer: nltk stemmer, defaults to nltk.SnowballStemmer
+    :param tokenizer: nltk tokenizer, defaults to nltk.TreebankWordTokenizer
+    :param stopwords: bool, whether to strip stopwords
+    :param tag_dict: dictionary of (pattern, correct_tag) used for tag correction
+
+        If provided, each tag is matched to a pattern in this dictionary
+        and corrected, if applicable.
+
+    :param lower: bool, whether to transform tokens to lowercase
+    :param strip: bool, whether to strip tokens
+
     """
 
     def __init__(self,
-                 feed_attributes: list = None,
-                 output_attributes: list = None,
+                 feed_attributes: typing.List[str] = None,
+                 output_attributes: typing.List[str] = None,
                  lemmatizer=None,
                  stemmer=None,
                  tokenizer=None,
@@ -312,16 +383,10 @@ class NLTKPreprocessor(TransformerMixin):
                  strip=False,
                  lang='english'):
         """Initialize NLTKPreprocessor."""
+        utils.check_attributes(feed_attributes, output_attributes)
+
         self._feed_attributes = feed_attributes or []
         self._output_attributes = output_attributes or []
-
-        if not isinstance(self._feed_attributes, typing.Iterable):
-            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
-
-        if not isinstance(self._output_attributes, typing.Iterable):
-            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
 
         self._tokenizer = tokenizer or nltk.TreebankWordTokenizer()
         self._lemmatizer = lemmatizer  # or nltk.WordNetLemmatizer()
@@ -368,26 +433,32 @@ class NLTKPreprocessor(TransformerMixin):
         """Fits the preprocessor to the given data.
 
         :param X: Iterable, each element should be a string to be tokenized
-        :param y: Iterable, labels for each element in X (must be the same
-        length as `X`)
+        :param y: Iterable, labels for each element in X (same length as `X`)
         :param fit_params: kwargs, optional arguments to be used during fitting
-        and transformation
 
-            feed_attributes: # TODO
-            output_attributes:
+            :feed_attributes: List[str], attributes to be extracted from the `X`
+
+                Attributes are extracted while `transform` or `fit_transform` call
+                and fed to the hook.
+
+                NOTE: attributes of `X` are extracted by `getattr` function, make
+                sure that the `X` implements __get__ method.
+
+            :output_attributes: List[str], attributes to be returned
+
+                By default output_attributes are the same as feed_attributes.
+
         """
         # allow defining attributes in the fit function as well, since
         # user might want to specify it directly in the pipeline
+
         self._feed_attributes = fit_params.get('feed_attributes', []) or self._feed_attributes
-        self._output_attributes = fit_params.get('output_attributes', []) or self._output_attributes
+        self._output_attributes = fit_params.get('output_attributes', []) or (
+                self._output_attributes or self._feed_attributes
+        )
 
-        if not isinstance(self._feed_attributes, typing.Iterable):
-            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
+        utils.check_attributes(self._feed_attributes, self._output_attributes)
 
-        if not isinstance(self._output_attributes, typing.Iterable):
-            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
         if y is not None:
             assert len(list(X)) == len(list(y)), "len(X) != len(y)"
 
@@ -427,16 +498,16 @@ class NLTKPreprocessor(TransformerMixin):
 
         Series = namedtuple(  # pylint: disable=invalid-name
             'Series',
-            ['values'] + self._output_attributes)
+            ['features'] + self._output_attributes)
 
         additional_output = [
-            getattr(x, attr) for attr in self._output_attributes
+            [getattr(x, attr) for attr in self._output_attributes]
             for x in X
         ]
 
         if additional_output:
             result = [
-                Series(res, adds) for res, adds in zip(intermediate_result, additional_output)
+                Series(res, *adds) for res, adds in zip(intermediate_result, additional_output)
             ]
         else:
             result = intermediate_result

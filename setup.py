@@ -47,15 +47,16 @@ setup(
 
     # explicit setup requirement in order to install scipy
     install_requires=[
-        "requests",
-        "urllib3",
         "nltk",
+        "requests",
         "scikit-learn",
+        "urllib3",
     ],
 
     tests_require=[
-        "unittest2",
+        "mock",
         "pytest",
         "scikit-learn",
+        "unittest2",
     ],
 )

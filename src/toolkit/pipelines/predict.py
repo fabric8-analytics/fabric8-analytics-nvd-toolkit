@@ -10,8 +10,8 @@ import sys
 import textwrap
 
 from toolkit import pipelines
-from toolkit.transformers import classifiers
 from toolkit.pipelines.train import FEATURE_HOOKS
+from toolkit.transformers.classifiers import NBClassifier
 
 
 def parse_args(argv):
@@ -42,15 +42,18 @@ def main(argv):
     """Run."""
     args = parse_args(argv)
 
-    clf = classifiers.NBClassifier.restore(args.path_to_classifier)
+    clf = NBClassifier.restore(args.path_to_classifier)
     prediction_pipeline = pipelines.get_prediction_pipeline(
         classifier=clf,
         feature_hooks=FEATURE_HOOKS
     )
 
-    prediction, = prediction_pipeline.fit_predict(X=[args.description],
-                                                  classifier__n=args.num_candidates,
-                                                  classifier__sample=True)
+    prediction, = prediction_pipeline.fit_predict(
+        X=[args.description],
+        feature_extractor__skip_unfed_hooks=True,
+        classifier__n=args.num_candidates,
+        classifier__sample=True
+    )
 
     print("Prediction results:")
     print("-------------------")

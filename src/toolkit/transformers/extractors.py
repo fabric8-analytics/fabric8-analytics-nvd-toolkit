@@ -7,6 +7,8 @@ the `transform` or `fit_transform` methods for this purpose
 import typing
 
 import numpy as np
+
+from collections import namedtuple
 from sklearn.base import TransformerMixin
 
 from toolkit.transformers.hooks import Hook
@@ -19,7 +21,9 @@ class FeatureExtractor(TransformerMixin):
     By default, constructs vanilla feature extractor with basic features
     and positional context information.
 
-    :param feature_hooks: dict, {feature_key: Hook}
+    :param feature_hooks: Union[dict, list]
+
+        either dict of: {feature_key: function}, or list of <class Hook>
 
         Specify features which should be extracted from the given set.
         The hooks are called for each element of the set and return
@@ -27,14 +31,23 @@ class FeatureExtractor(TransformerMixin):
     """
 
     def __init__(self,
-                 feature_hooks=None,
+                 feature_hooks: typing.Union[dict, typing.Iterable] = None,
                  share_hooks=False):
         """Initialize FeatureExtractor."""
-        if isinstance(feature_hooks, dict):
+        if feature_hooks is None:
+            feature_hooks = list()
+
+        elif isinstance(feature_hooks, dict):
             # create hooks from the dictionary
             feature_hooks = [Hook(k, v, reuse=share_hooks) for k, v in feature_hooks.items()]
 
-        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks or [])
+        elif not isinstance(feature_hooks, typing.Iterable):
+            raise TypeError(
+                "Argument `feature_hooks` expected to be of type "
+                f"{typing.Union[dict, typing.Iterable]}, got {type(feature_hooks)}"
+            )
+
+        self._extractor = _FeatureExtractor(share_hooks=share_hooks).update(feature_hooks)
 
         # prototyped
         self._y = None
@@ -57,14 +70,18 @@ class FeatureExtractor(TransformerMixin):
 
         :param y: Iterable of len(X), target values
 
-        :param fit_params:
+        :param fit_params: kwargs, optional arguments to be used during fitting
 
-            skip_unfed_hooks: bool, whether to skip unfed hooks
+            :skip_unfed_hooks: bool, whether to skip unfed hooks
         """
         self._skip_unfed_hooks = fit_params.get('skip_unfed_hooks', False)
 
         if y is None:
-            y = [None] * len(X)
+            try:
+                y = [getattr(x, 'label') for x in X]
+
+            except AttributeError:
+                y = [None] * len(X)
 
         self._y = y
 
@@ -94,34 +111,48 @@ class FeatureExtractor(TransformerMixin):
             hooks and the values are the values of those extracted feature_keys.
 
         """
-        transformed = list()
+        intermediate_result = list()
 
-        for tagged_sent, label in zip(X, self._y):
-            transformed.append(
+        for x, label in zip(X, self._y):
+            features = getattr(x, 'features', x)
+            intermediate_result.append(
                 [
                     (
-                        tagged_sent[j],
-                        self._extract_features(tagged_sent, word_pos=j,
+                        features[j],
+                        self._extract_features(x,
+                                               word_pos=j,
                                                skip_unfed_hooks=self._skip_unfed_hooks),
                         # whether the token matches the label
-                        label == tagged_sent[j][0] if label else None
-                    ) for j in range(len(tagged_sent))
+                        label == features[j][0] if label else None
+                    ) for j in range(len(features))
                 ]
             )
 
-        return np.array(transformed)
+        Series = namedtuple('Series', ['value', 'features', 'label'])
+
+        result = np.array([
+            [Series(*res) for res in featureset]
+            for featureset in intermediate_result
+        ])
+
+        return result
 
     def _extract_features(self,
-                          tagged_sent: list,
+                          x: typing.Union[tuple, list],
                           word_pos: int,
-                          skip_unfed_hooks=False,
-                          **kwargs) -> dict:
+                          skip_unfed_hooks=False) -> dict:
         """Feed the hooks and extract feature_keys based on those hooks."""
-        feed_dict = {
-            'tagged': tagged_sent,
-            'pos': word_pos,
-        }
-        feed_dict.update(kwargs)
+        try:
+            # assume x is a namedtuple (as returned by NLTKPreprocessor)
+            # noinspection PyUnresolvedReferences,PyProtectedMember
+            feed_dict: dict = x._asdict()
+
+        except AttributeError:
+            feed_dict = {
+                'features': x
+            }
+
+        feed_dict.update(pos=word_pos)
 
         return self._extractor.feed(feed_dict=feed_dict, skip_unfed_hooks=skip_unfed_hooks)
 
@@ -157,8 +188,7 @@ class _FeatureExtractor(object):
             hooks = [hooks]
 
         if not all([isinstance(hook, Hook) for hook in hooks]):
-            raise ValueError("`hooks` elements expected to be of type `%r`"
-                             % Hook)
+            raise ValueError(f"`hooks` elements expected to be of type {Hook}")
 
         # extend current hooks
         self._hooks.extend(hooks)
@@ -176,7 +206,7 @@ class _FeatureExtractor(object):
 
         :param skip_unfed_hooks: bool, False by default
 
-            If True, allows skipping unfed hooks, otherwise raises AttributeError
+            If True, allows skipping unfed hooks, otherwise raises
 
         :returns: dict
             Where the key is the hook key and value is the value returned
@@ -187,7 +217,7 @@ class _FeatureExtractor(object):
             # check that all arguments are provided
             try:
                 result[hook.key] = hook(**feed_dict, **hook.default_kwargs)
-            except TypeError as e:
+            except (TypeError, AttributeError) as e:
                 if skip_unfed_hooks:
                     continue
                 else:
@@ -196,49 +226,49 @@ class _FeatureExtractor(object):
         return result
 
     @staticmethod
-    def _prev_ngram(tagged: list, pos: int, n: int):
+    def _prev_ngram(features: list, pos: int, n: int, **kwargs):
         """Extract contextual information about previous n-gram words."""
         if n == 0:
             return ''
         if pos == 0:
             return '<start>'
-        word = tagged[pos - 1][0]
+        word = features[pos - 1][0]
         return " ".join([
-            _FeatureExtractor._prev_ngram(tagged, pos - 1, n - 1), word
+            _FeatureExtractor._prev_ngram(features, pos - 1, n - 1), word
         ]).strip()
 
     @staticmethod
-    def _prev_ngram_tags(tagged, pos, n):
+    def _prev_ngram_tags(features: list, pos: int, n: int, **kwargs):
         """Extract contextual information about previous n-gram tags."""
         if n == 0:
             return ''
         if pos == 0:
             return '<start>'
-        tag = tagged[pos - 1][1]
+        tag = features[pos - 1][1]
         return " ".join([
-            _FeatureExtractor._prev_ngram_tags(tagged, pos - 1, n - 1), tag
+            _FeatureExtractor._prev_ngram_tags(features, pos - 1, n - 1), tag
         ]).strip()
 
     @staticmethod
-    def _next_ngram(tagged, pos, n):
+    def _next_ngram(features: list, pos: int, n: int, **kwargs):
         """Extract contextual information about following n-gram words."""
         if n == 0:
             return ''
-        if pos == len(tagged) - 1:
+        if pos == len(features) - 1:
             return '<end>'
-        word = tagged[pos + 1][0]
+        word = features[pos + 1][0]
         return " ".join([
-            word, _FeatureExtractor._next_ngram(tagged, pos + 1, n - 1)
+            word, _FeatureExtractor._next_ngram(features, pos + 1, n - 1)
         ]).strip()
 
     @staticmethod
-    def _next_ngram_tags(tagged, pos, n):
+    def _next_ngram_tags(features: list, pos: int, n: int, **kwargs):
         """Extract contextual information about following n-gram tags."""
         if n == 0:
             return ''
-        if pos == len(tagged) - 1:
+        if pos == len(features) - 1:
             return '<end>'
-        tag = tagged[pos + 1][1]
+        tag = features[pos + 1][1]
         return " ".join([
-            tag, _FeatureExtractor._next_ngram_tags(tagged, pos + 1, n - 1)
+            tag, _FeatureExtractor._next_ngram_tags(features, pos + 1, n - 1)
         ]).strip()

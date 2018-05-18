@@ -3,6 +3,7 @@
 __all__ = [
     "toolkit.pipelines.pipelines.get_preprocessing_pipeline",
     "toolkit.pipelines.pipelines.get_training_pipeline",
+    "toolkit.pipelines.pipelines.get_full_training_pipeline",
     "toolkit.pipelines.pipelines.get_prediction_pipeline",
     "toolkit.pipelines.pipelines.extract_features",
     "toolkit.pipelines.pipelines.extract_labeled_features",
@@ -13,6 +14,7 @@ __all__ = [
 from toolkit.pipelines.pipelines import \
     get_preprocessing_pipeline,\
     get_training_pipeline,\
+    get_full_training_pipeline,\
     get_prediction_pipeline,\
     extract_features,\
     extract_labeled_features
