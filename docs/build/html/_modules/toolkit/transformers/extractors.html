@@ -1,0 +1,352 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>toolkit.transformers.extractors &#8212; nvd-toolkit  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toolkit.transformers.extractors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains transformers and feature extractors.</span>
+
+<span class="sd">The transformers are used in train and predict pipelines and implement</span>
+<span class="sd">the `transform` or `fit_transform` methods for this purpose</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">TransformerMixin</span>
+
+<span class="kn">from</span> <span class="nn">toolkit.transformers.hooks</span> <span class="k">import</span> <span class="n">Hook</span>
+
+
+<span class="c1"># noinspection PyTypeChecker</span>
+<div class="viewcode-block" id="FeatureExtractor"><a class="viewcode-back" href="../../../toolkit.transformers.html#toolkit.transformers.extractors.FeatureExtractor">[docs]</a><span class="k">class</span> <span class="nc">FeatureExtractor</span><span class="p">(</span><span class="n">TransformerMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Feature extractor implementing `transform` for scikit pipelines.</span>
+
+<span class="sd">    By default, constructs vanilla feature extractor with basic features</span>
+<span class="sd">    and positional context information.</span>
+
+<span class="sd">    :param feature_hooks: Union[dict, list]</span>
+
+<span class="sd">        either dict of: {feature_key: function}, or list of &lt;class Hook&gt;</span>
+
+<span class="sd">        Specify features which should be extracted from the given set.</span>
+<span class="sd">        The hooks are called for each element of the set and return</span>
+<span class="sd">        corresponding features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">feature_hooks</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">share_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize FeatureExtractor.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">feature_hooks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">feature_hooks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature_hooks</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># create hooks from the dictionary</span>
+            <span class="n">feature_hooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Hook</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">feature_hooks</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature_hooks</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Argument `feature_hooks` expected to be of type &quot;</span>
+                <span class="n">f</span><span class="s2">&quot;</span><span class="si">{typing.Union[dict, typing.Iterable]}</span><span class="s2">, got {type(feature_hooks)}&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extractor</span> <span class="o">=</span> <span class="n">_FeatureExtractor</span><span class="p">(</span><span class="n">share_hooks</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">feature_hooks</span><span class="p">)</span>
+
+        <span class="c1"># prototyped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip_unfed_hooks</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">feature_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return list of hooks of selected feature_keys.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extractor</span><span class="o">.</span><span class="n">keys</span>
+
+    <span class="c1"># noinspection PyPep8Naming, PyUnusedLocal</span>
+<div class="viewcode-block" id="FeatureExtractor.fit"><a class="viewcode-back" href="../../../toolkit.transformers.html#toolkit.transformers.extractors.FeatureExtractor.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_params</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer to the given data.</span>
+
+<span class="sd">        :param X: Iterable, each element should be a list of tuples (token, tag)</span>
+
+<span class="sd">            Ie. an input should be a list of tuples List[(token, tag)],</span>
+<span class="sd">            which is expected to be the output of NLTKPreprocessor or custom</span>
+<span class="sd">            tokenization process.</span>
+
+<span class="sd">        :param y: Iterable of len(X), target values</span>
+
+<span class="sd">        :param fit_params: kwargs, optional arguments to be used during fitting</span>
+
+<span class="sd">            :skip_unfed_hooks: bool, whether to skip unfed hooks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip_unfed_hooks</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;skip_unfed_hooks&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span>
+
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="FeatureExtractor.transform"><a class="viewcode-back" href="../../../toolkit.transformers.html#toolkit.transformers.extractors.FeatureExtractor.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                  <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Apply transformation to each element in X.</span>
+
+<span class="sd">        :param X: Iterable, each element should be a list of tuples (token, tag)</span>
+
+<span class="sd">            Ie. an input should be a list of tuples List[(token, tag)],</span>
+<span class="sd">            which is expected to be the output of NLTKPreprocessor or custom</span>
+<span class="sd">            tokenization process.</span>
+
+<span class="sd">        :returns: list</span>
+
+<span class="sd">            This transformation outputs list of the shape (len(X),)</span>
+<span class="sd">            where each element of the list is a nested list of tuples of type</span>
+<span class="sd">            (tagged_word, dictionary{feature_key: value}, classification label).</span>
+<span class="sd">            The classification label is a bool indicating whether the label</span>
+<span class="sd">            provided by `y` to the `fit` matches the token.</span>
+
+<span class="sd">            The keys of those features (dictionaries), are names of the feature_keys, ie.</span>
+<span class="sd">            hooks and the values are the values of those extracted feature_keys.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">intermediate_result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="p">):</span>
+            <span class="n">features</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">intermediate_result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">(</span>
+                        <span class="n">features</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_extract_features</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                                               <span class="n">word_pos</span><span class="o">=</span><span class="n">j</span><span class="p">,</span>
+                                               <span class="n">skip_unfed_hooks</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_skip_unfed_hooks</span><span class="p">),</span>
+                        <span class="c1"># whether the token matches the label</span>
+                        <span class="n">label</span> <span class="o">==</span> <span class="n">features</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">label</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">))</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="n">Series</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Series&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;features&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">])</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">[</span><span class="n">Series</span><span class="p">(</span><span class="o">*</span><span class="n">res</span><span class="p">)</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">featureset</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">featureset</span> <span class="ow">in</span> <span class="n">intermediate_result</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="k">def</span> <span class="nf">_extract_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">x</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+                          <span class="n">word_pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                          <span class="n">skip_unfed_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Feed the hooks and extract feature_keys based on those hooks.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># assume x is a namedtuple (as returned by NLTKPreprocessor)</span>
+            <span class="c1"># noinspection PyUnresolvedReferences,PyProtectedMember</span>
+            <span class="n">feed_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">feed_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;features&#39;</span><span class="p">:</span> <span class="n">x</span>
+            <span class="p">}</span>
+
+        <span class="n">feed_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">word_pos</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extractor</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">feed_dict</span><span class="o">=</span><span class="n">feed_dict</span><span class="p">,</span> <span class="n">skip_unfed_hooks</span><span class="o">=</span><span class="n">skip_unfed_hooks</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">_FeatureExtractor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Core of the FeatureExtractor handling hook operations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">share_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># default hooks to be called by FeatureExtractor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;prev-word&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_ngram</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;prev-tag&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_ngram</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;prev-bigram&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_ngram</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;next-bigram&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_ngram</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;prev-bigram-tags&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_ngram_tags</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">Hook</span><span class="p">(</span><span class="s1">&#39;next-bigram-tags&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_ngram_tags</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;List of hook keys.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">hook</span><span class="o">.</span><span class="n">key</span> <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hooks</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">Hook</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;Update the hooks used for feature extraction.</span>
+
+<span class="sd">        :param hooks: list[Hook], custom hooks used for feature extraction</span>
+
+<span class="sd">        :returns: self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hooks</span><span class="p">,</span> <span class="n">Hook</span><span class="p">):</span>
+            <span class="c1"># make it a list if user provided single hook</span>
+            <span class="n">hooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">hooks</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">Hook</span><span class="p">)</span> <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="n">hooks</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;`hooks` elements expected to be of type </span><span class="si">{Hook}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># extend current hooks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hooks</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">feed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">skip_unfed_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Call each hook with the arguments given by values of `feed_dict`.</span>
+
+<span class="sd">        :param feed_dict: dict of arguments to be fed into hooks</span>
+
+<span class="sd">            `feed_dict` will be passed to the hook as **kwargs, where each</span>
+<span class="sd">            element of the dict is key, value pair where key is the arguments</span>
+<span class="sd">            name, value is the arguments value.</span>
+
+<span class="sd">        :param skip_unfed_hooks: bool, False by default</span>
+
+<span class="sd">            If True, allows skipping unfed hooks, otherwise raises</span>
+
+<span class="sd">        :returns: dict</span>
+<span class="sd">            Where the key is the hook key and value is the value returned</span>
+<span class="sd">            by the hook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="p">:</span>
+            <span class="c1"># check that all arguments are provided</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">hook</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook</span><span class="p">(</span><span class="o">**</span><span class="n">feed_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">hook</span><span class="o">.</span><span class="n">default_kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">skip_unfed_hooks</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_prev_ngram</span><span class="p">(</span><span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract contextual information about previous n-gram words.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;start&gt;&#39;</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">_FeatureExtractor</span><span class="o">.</span><span class="n">_prev_ngram</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">word</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_prev_ngram_tags</span><span class="p">(</span><span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract contextual information about previous n-gram tags.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;start&gt;&#39;</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">_FeatureExtractor</span><span class="o">.</span><span class="n">_prev_ngram_tags</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tag</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_next_ngram</span><span class="p">(</span><span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract contextual information about following n-gram words.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;end&gt;&#39;</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">word</span><span class="p">,</span> <span class="n">_FeatureExtractor</span><span class="o">.</span><span class="n">_next_ngram</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_next_ngram_tags</span><span class="p">(</span><span class="n">features</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pos</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract contextual information about following n-gram tags.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;end&gt;&#39;</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">tag</span><span class="p">,</span> <span class="n">_FeatureExtractor</span><span class="o">.</span><span class="n">_next_ngram_tags</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Marek Cermak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

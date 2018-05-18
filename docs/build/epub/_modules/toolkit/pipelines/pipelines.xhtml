@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <title>toolkit.pipelines.pipelines</title>
+    <link rel="stylesheet" href="../../../_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toolkit.pipelines.pipelines</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Pipeline utility functions for API integration.</span>
+
+<span class="sd">This module contains predefined pipelines for API integration.</span>
+<span class="sd">Those pipelines are made to be used simply and effectively, however,</span>
+<span class="sd">for more complex cases, it is suggested to build and optimize your own</span>
+<span class="sd">pipeline from the blocks provided in this toolkit.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
+
+<span class="kn">from</span> <span class="nn">toolkit</span> <span class="k">import</span> <span class="n">preprocessing</span><span class="p">,</span> <span class="n">transformers</span><span class="p">,</span> <span class="n">utils</span>
+
+
+<div class="viewcode-block" id="get_preprocessing_pipeline"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.get_preprocessing_pipeline">[docs]</a><span class="k">def</span> <span class="nf">get_preprocessing_pipeline</span><span class="p">(</span>
+        <span class="n">nvd_attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">nltk_feed_attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">labeling_func</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">share_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pipeline</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build the preprocessing pipeline using existing classifier.</span>
+
+<span class="sd">    The preprocessing pipeline takes as an input a list of CVE objects</span>
+<span class="sd">    and outputs labeled data ready for feature extraction.</span>
+
+<span class="sd">    *must be fit using `fit_transform` method.*</span>
+
+<span class="sd">    :param nvd_attributes: list, attributes to output by NVDPreprocessor</span>
+
+<span class="sd">        The attributes are outputed by NVDPreprocessor and passed</span>
+<span class="sd">        to FeatureExtractor.</span>
+
+<span class="sd">    :param nltk_feed_attributes: list, attributes for NLTKPreprocessor</span>
+
+<span class="sd">        List of attributes which will be fed to NLTKPreprocessor.</span>
+
+<span class="sd">    :param labeling_func: callable object to be used for labeling</span>
+
+<span class="sd">        The `labeling_func` is used to create a hook for `LabelPreprocessor`</span>
+<span class="sd">        (see `LabelPreprocessor` documentation for more info).</span>
+<span class="sd">        By default `toolkit.utils.find_` function is used for that purpose.</span>
+
+<span class="sd">    :param share_hooks: boolean, whether to reuse hooks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">labeling_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labeling_func</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">find_</span>
+
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nvd_feed_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NVDFeedPreprocessor</span><span class="p">(</span><span class="n">attributes</span><span class="o">=</span><span class="n">nvd_attributes</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;label_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">LabelPreprocessor</span><span class="p">(</span>
+                    <span class="n">feed_attributes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">],</span>
+                    <span class="c1"># output only description attribute for NLTK processing</span>
+                    <span class="n">output_attributes</span><span class="o">=</span><span class="n">nvd_attributes</span><span class="p">,</span>
+                    <span class="n">hook</span><span class="o">=</span><span class="n">transformers</span><span class="o">.</span><span class="n">Hook</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;label_hook&#39;</span><span class="p">,</span>
+                                           <span class="n">func</span><span class="o">=</span><span class="n">labeling_func</span><span class="p">,</span>
+                                           <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nltk_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NLTKPreprocessor</span><span class="p">(</span>
+                    <span class="n">feed_attributes</span><span class="o">=</span><span class="n">nltk_feed_attributes</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_training_pipeline"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.get_training_pipeline">[docs]</a><span class="k">def</span> <span class="nf">get_training_pipeline</span><span class="p">(</span><span class="n">feature_hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pipeline</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build the simple training pipeline from FeatureExtractor and NBClassifier.</span>
+
+<span class="sd">    The pipeline expects as an input preprocessed data</span>
+<span class="sd">    and trains NBClassifier on that data.</span>
+
+<span class="sd">    *must be fit using `fit_transform` method.*</span>
+
+<span class="sd">    :param feature_hooks: dict, {feature_key: Hook}</span>
+<span class="sd">        to be used as an argument to `FeatureExtractor`</span>
+
+<span class="sd">        Specify features which should be extracted from the given set.</span>
+<span class="sd">        The hooks are called for each element of the set and return</span>
+<span class="sd">        corresponding features.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;feature_extractor&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">FeatureExtractor</span><span class="p">(</span>
+                    <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span><span class="p">,</span>
+                    <span class="c1"># make hooks sharable (useful if training pipeline was used before)</span>
+                    <span class="n">share_hooks</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;classifier&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">NBClassifier</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_full_training_pipeline"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.get_full_training_pipeline">[docs]</a><span class="k">def</span> <span class="nf">get_full_training_pipeline</span><span class="p">(</span><span class="n">labeling_func</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                               <span class="n">feature_hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">share_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pipeline</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build the full training pipeline with no predefined attributes.</span>
+
+<span class="sd">    The pipeline accepts raw data, performs preprocessing and feature</span>
+<span class="sd">    extraction and trains NBClassifier on that data.</span>
+
+<span class="sd">    The customization of feed and output attributes is fully left to user.</span>
+<span class="sd">    It is necessary to provide `fit_params` when fitting, as this pipeline</span>
+<span class="sd">    does not contain any predefined arguments.</span>
+
+<span class="sd">    *must be fit using `fit_transform` method with `fit_params`*</span>
+
+<span class="sd">    :param feature_hooks: dict, {feature_key: Hook}</span>
+<span class="sd">        to be used as an argument to `FeatureExtractor`</span>
+
+<span class="sd">        Specify features which should be extracted from the given set.</span>
+<span class="sd">        The hooks are called for each element of the set and return</span>
+<span class="sd">        corresponding features.</span>
+
+<span class="sd">    :param labeling_func: callable object to be used for labeling</span>
+
+<span class="sd">        The `labeling_func` is used to create a hook for `LabelPreprocessor`</span>
+<span class="sd">        (see `LabelPreprocessor` documentation for more info).</span>
+<span class="sd">        By default `toolkit.utils.find_` function is used for that purpose.</span>
+
+<span class="sd">    :param share_hooks: boolean, whether to reuse hooks</span>
+
+<span class="sd">    :returns: Pipeline</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">labeling_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">labeling_func</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">find_</span>
+
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nvd_feed_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NVDFeedPreprocessor</span><span class="p">()</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;label_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">LabelPreprocessor</span><span class="p">(</span>
+                    <span class="n">hook</span><span class="o">=</span><span class="n">transformers</span><span class="o">.</span><span class="n">Hook</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;label_hook&#39;</span><span class="p">,</span>
+                                           <span class="n">reuse</span><span class="o">=</span><span class="n">share_hooks</span><span class="p">,</span>
+                                           <span class="n">func</span><span class="o">=</span><span class="n">labeling_func</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nltk_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NLTKPreprocessor</span><span class="p">()</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;feature_extractor&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">FeatureExtractor</span><span class="p">(</span>
+                    <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span><span class="p">,</span>
+                    <span class="n">share_hooks</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;classifier&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">NBClassifier</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_prediction_pipeline"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.get_prediction_pipeline">[docs]</a><span class="k">def</span> <span class="nf">get_prediction_pipeline</span><span class="p">(</span><span class="n">classifier</span><span class="p">:</span> <span class="n">transformers</span><span class="o">.</span><span class="n">NBClassifier</span><span class="p">,</span>
+                            <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">feature_hooks</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pipeline</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build the prediction pipeline using existing classifier.</span>
+
+<span class="sd">    *must be fit using `fit_predict` method.*</span>
+
+<span class="sd">    :param classifier: pre-trained NBClassifier</span>
+<span class="sd">    :param attributes: list, attributes for NLTKPreprocessor</span>
+
+<span class="sd">        List of attributes which will be extracted from NVD and passed to NLTK</span>
+<span class="sd">        preprocessor.</span>
+
+<span class="sd">    :param feature_hooks: dict, {feature_key: Hook}</span>
+<span class="sd">        to be used as an argument to `FeatureExtractor`</span>
+
+<span class="sd">        Specify features which should be extracted from the given set.</span>
+<span class="sd">        The hooks are called for each element of the set and return</span>
+<span class="sd">        corresponding features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nltk_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NLTKPreprocessor</span><span class="p">(</span>
+                    <span class="n">feed_attributes</span><span class="o">=</span><span class="n">attributes</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;feature_extractor&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">FeatureExtractor</span><span class="p">(</span>
+                    <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span><span class="p">,</span>
+                    <span class="c1"># make hooks sharable (useful if training pipeline was used before)</span>
+                    <span class="n">share_hooks</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;classifier&#39;</span><span class="p">,</span>
+                <span class="n">classifier</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_extraction_pipeline"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.get_extraction_pipeline">[docs]</a><span class="k">def</span> <span class="nf">get_extraction_pipeline</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span>
+                            <span class="n">feature_hooks</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">share_hooks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Pipeline</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Build the extraction pipeline.</span>
+
+<span class="sd">    :param attributes: list, attributes for NLTKPreprocessor</span>
+
+<span class="sd">        List of attributes which will be extracted from NVD and passed to NLTK</span>
+<span class="sd">        preprocessor.</span>
+
+<span class="sd">    :param feature_hooks: dict, {feature_key: Hook}</span>
+<span class="sd">        to be used as an argument to `FeatureExtractor`</span>
+
+<span class="sd">        Specify features which should be extracted from the given set.</span>
+<span class="sd">        The hooks are called for each element of the set and return</span>
+<span class="sd">        corresponding features.</span>
+
+<span class="sd">    :param share_hooks: boolean, whether to reuse hooks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">(</span>
+        <span class="n">steps</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nvd_feed_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NVDFeedPreprocessor</span><span class="p">(</span><span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;nltk_preprocessor&#39;</span><span class="p">,</span>
+                <span class="n">preprocessing</span><span class="o">.</span><span class="n">NLTKPreprocessor</span><span class="p">(</span>
+                    <span class="n">feed_attributes</span><span class="o">=</span><span class="n">attributes</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;feature_extractor&#39;</span><span class="p">,</span>
+                <span class="n">transformers</span><span class="o">.</span><span class="n">FeatureExtractor</span><span class="p">(</span>
+                    <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span><span class="p">,</span>
+                    <span class="c1"># make hooks sharable (useful if training pipeline was used before)</span>
+                    <span class="n">share_hooks</span><span class="o">=</span><span class="n">share_hooks</span>
+                <span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_features"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.extract_features">[docs]</a><span class="k">def</span> <span class="nf">extract_features</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">share_hooks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract data by fitting the extraction pipeline.</span>
+
+<span class="sd">    :param data: input data to the pipeline</span>
+<span class="sd">    :param attributes: list, attributes for NLTKPreprocessor</span>
+
+<span class="sd">        List of attributes which will be extracted from NVD and passed to NLTK</span>
+<span class="sd">        preprocessor.</span>
+
+<span class="sd">    :param share_hooks: bool, whether to reuse hooks</span>
+<span class="sd">    :param kwargs: optional, key word arguments</span>
+
+<span class="sd">        :feature_hooks: list of feature hooks to be used for feature extraction</span>
+
+<span class="sd">    :returns: ndarray, featureset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">feature_hooks</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;feature_hooks&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">extraction_pipeline</span> <span class="o">=</span> <span class="n">get_extraction_pipeline</span><span class="p">(</span>
+        <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+        <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span><span class="p">,</span>
+        <span class="n">share_hooks</span><span class="o">=</span><span class="n">share_hooks</span>
+    <span class="p">)</span>
+
+    <span class="n">featureset</span> <span class="o">=</span> <span class="n">extraction_pipeline</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="c1"># it is important not to filter the data by the handler here</span>
+        <span class="n">nvd_feed_preprocessor__use_filter</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">featureset</span></div>
+
+
+<div class="viewcode-block" id="extract_labeled_features"><a class="viewcode-back" href="../../../toolkit.pipelines.xhtml#toolkit.pipelines.pipelines.extract_labeled_features">[docs]</a><span class="k">def</span> <span class="nf">extract_labeled_features</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">nvd_attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">nltk_feed_attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">feature_hooks</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">labeling_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">share_hooks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Extract labeled features from input data.</span>
+
+<span class="sd">     Extracts labeled features by concatenating and fitting the preprocessing</span>
+<span class="sd">     and extraction pipeline.</span>
+
+<span class="sd">     This is a wrapper for simplification of preprocessing and feature extraction.</span>
+<span class="sd">     For full functionality it is suggested to build custom pipelines.</span>
+
+<span class="sd">    :param data: input data to the preprocessing pipeline</span>
+<span class="sd">    :param nvd_attributes: list, attributes to output by NVDPreprocessor</span>
+
+<span class="sd">        The attributes are outputed by NVDPreprocessor and passed</span>
+<span class="sd">        to FeatureExtractor.</span>
+
+<span class="sd">    :param nltk_feed_attributes: list, attributes for NLTKPreprocessor</span>
+
+<span class="sd">        List of attributes which will be fed to NLTKPreprocessor.</span>
+
+<span class="sd">    :param feature_hooks: List[Hook], hooks used for feature extraction</span>
+<span class="sd">    :param labeling_func: function used for labeling, passed to LabelPreprocessor</span>
+<span class="sd">    :param share_hooks: bool, whether to reuse hooks</span>
+
+<span class="sd">    :returns: tuple, (featureset, classification labels)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nltk_feed_attributes</span> <span class="o">=</span> <span class="n">nltk_feed_attributes</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="n">prep_pipeline</span> <span class="o">=</span> <span class="n">get_preprocessing_pipeline</span><span class="p">(</span>
+        <span class="n">nvd_attributes</span><span class="o">=</span><span class="n">nvd_attributes</span><span class="p">,</span>
+        <span class="n">labeling_func</span><span class="o">=</span><span class="n">labeling_func</span><span class="p">,</span>
+        <span class="n">share_hooks</span><span class="o">=</span><span class="n">share_hooks</span>
+    <span class="p">)</span>
+
+    <span class="n">steps</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">prep_pipeline</span><span class="o">.</span><span class="n">steps</span><span class="p">))</span>
+    <span class="n">fit_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">__feed_attributes&quot;</span> <span class="o">%</span> <span class="n">steps</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">nltk_feed_attributes</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">__output_attributes&quot;</span> <span class="o">%</span> <span class="n">steps</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">nvd_attributes</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">prep_data</span> <span class="o">=</span> <span class="n">prep_pipeline</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+        <span class="n">X</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">fit_params</span>
+    <span class="p">)</span>
+
+    <span class="c1"># split the data</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">transformers</span><span class="o">.</span><span class="n">FeatureExtractor</span><span class="p">(</span>
+        <span class="n">feature_hooks</span><span class="o">=</span><span class="n">feature_hooks</span>
+    <span class="p">)</span>
+
+    <span class="n">featuresets</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">prep_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">featuresets</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prep_data</span><span class="p">)[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,387 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>toolkit.pipelines package &#8212; nvd-toolkit  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="toolkit-pipelines-package">
+<h1>toolkit.pipelines package<a class="headerlink" href="#toolkit-pipelines-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-toolkit.pipelines.evaluation">
+<span id="toolkit-pipelines-evaluation-module"></span><h2>toolkit.pipelines.evaluation module<a class="headerlink" href="#module-toolkit.pipelines.evaluation" title="Permalink to this headline">¶</a></h2>
+<p>This module contains training pipeline.</p>
+<p>The pipeline integrates preprocessors, transformers and classifier
+to fit on the data.</p>
+<dl class="function">
+<dt id="toolkit.pipelines.evaluation.main">
+<code class="descclassname">toolkit.pipelines.evaluation.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/evaluation.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.evaluation.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.evaluation.parse_args">
+<code class="descclassname">toolkit.pipelines.evaluation.</code><code class="descname">parse_args</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/evaluation.html#parse_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.evaluation.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse arguments.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.pipelines.pipelines">
+<span id="toolkit-pipelines-pipelines-module"></span><h2>toolkit.pipelines.pipelines module<a class="headerlink" href="#module-toolkit.pipelines.pipelines" title="Permalink to this headline">¶</a></h2>
+<p>Pipeline utility functions for API integration.</p>
+<p>This module contains predefined pipelines for API integration.
+Those pipelines are made to be used simply and effectively, however,
+for more complex cases, it is suggested to build and optimize your own
+pipeline from the blocks provided in this toolkit.</p>
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.extract_features">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">extract_features</code><span class="sig-paren">(</span><em>data: Union[list, numpy.ndarray], attributes: list, share_hooks=True, **kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#extract_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.extract_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract data by fitting the extraction pipeline.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – input data to the pipeline</li>
+<li><strong>attributes</strong> – <p>list, attributes for NLTKPreprocessor</p>
+<p>List of attributes which will be extracted from NVD and passed to NLTK
+preprocessor.</p>
+</li>
+<li><strong>share_hooks</strong> – bool, whether to reuse hooks</li>
+<li><strong>kwargs</strong> – <p>optional, key word arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">feature_hooks:</th><td class="field-body">list of feature hooks to be used for feature extraction</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ndarray, featureset</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.extract_labeled_features">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">extract_labeled_features</code><span class="sig-paren">(</span><em>data: Union[list, numpy.ndarray], nvd_attributes: list, nltk_feed_attributes: list = None, feature_hooks: list = None, labeling_func=None, share_hooks=True</em><span class="sig-paren">)</span> &#x2192; tuple<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#extract_labeled_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.extract_labeled_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract labeled features from input data.</p>
+<blockquote>
+<div><p>Extracts labeled features by concatenating and fitting the preprocessing
+and extraction pipeline.</p>
+<p>This is a wrapper for simplification of preprocessing and feature extraction.
+For full functionality it is suggested to build custom pipelines.</p>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> – input data to the preprocessing pipeline</li>
+<li><strong>nvd_attributes</strong> – <p>list, attributes to output by NVDPreprocessor</p>
+<p>The attributes are outputed by NVDPreprocessor and passed
+to FeatureExtractor.</p>
+</li>
+<li><strong>nltk_feed_attributes</strong> – <p>list, attributes for NLTKPreprocessor</p>
+<p>List of attributes which will be fed to NLTKPreprocessor.</p>
+</li>
+<li><strong>feature_hooks</strong> – List[Hook], hooks used for feature extraction</li>
+<li><strong>labeling_func</strong> – function used for labeling, passed to LabelPreprocessor</li>
+<li><strong>share_hooks</strong> – bool, whether to reuse hooks</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple, (featureset, classification labels)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.get_extraction_pipeline">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">get_extraction_pipeline</code><span class="sig-paren">(</span><em>attributes</em>, <em>feature_hooks: list = None</em>, <em>share_hooks=False</em><span class="sig-paren">)</span> &#x2192; sklearn.pipeline.Pipeline<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#get_extraction_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.get_extraction_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the extraction pipeline.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>attributes</strong> – <p>list, attributes for NLTKPreprocessor</p>
+<p>List of attributes which will be extracted from NVD and passed to NLTK
+preprocessor.</p>
+</li>
+<li><strong>feature_hooks</strong> – <p>dict, {feature_key: Hook}
+to be used as an argument to <cite>FeatureExtractor</cite></p>
+<p>Specify features which should be extracted from the given set.
+The hooks are called for each element of the set and return
+corresponding features.</p>
+</li>
+<li><strong>share_hooks</strong> – boolean, whether to reuse hooks</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.get_full_training_pipeline">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">get_full_training_pipeline</code><span class="sig-paren">(</span><em>labeling_func: Callable = None</em>, <em>feature_hooks=None</em>, <em>share_hooks=False</em><span class="sig-paren">)</span> &#x2192; sklearn.pipeline.Pipeline<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#get_full_training_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.get_full_training_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the full training pipeline with no predefined attributes.</p>
+<p>The pipeline accepts raw data, performs preprocessing and feature
+extraction and trains NBClassifier on that data.</p>
+<p>The customization of feed and output attributes is fully left to user.
+It is necessary to provide <cite>fit_params</cite> when fitting, as this pipeline
+does not contain any predefined arguments.</p>
+<p><em>must be fit using `fit_transform` method with `fit_params`</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>feature_hooks</strong> – <p>dict, {feature_key: Hook}
+to be used as an argument to <cite>FeatureExtractor</cite></p>
+<p>Specify features which should be extracted from the given set.
+The hooks are called for each element of the set and return
+corresponding features.</p>
+</li>
+<li><strong>labeling_func</strong> – <p>callable object to be used for labeling</p>
+<p>The <cite>labeling_func</cite> is used to create a hook for <cite>LabelPreprocessor</cite>
+(see <cite>LabelPreprocessor</cite> documentation for more info).
+By default <cite>toolkit.utils.find_</cite> function is used for that purpose.</p>
+</li>
+<li><strong>share_hooks</strong> – boolean, whether to reuse hooks</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Pipeline</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.get_prediction_pipeline">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">get_prediction_pipeline</code><span class="sig-paren">(</span><em>classifier: toolkit.transformers.classifiers.NBClassifier</em>, <em>attributes: list = None</em>, <em>feature_hooks: list = None</em><span class="sig-paren">)</span> &#x2192; sklearn.pipeline.Pipeline<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#get_prediction_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.get_prediction_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the prediction pipeline using existing classifier.</p>
+<p><em>must be fit using `fit_predict` method.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>classifier</strong> – pre-trained NBClassifier</li>
+<li><strong>attributes</strong> – <p>list, attributes for NLTKPreprocessor</p>
+<p>List of attributes which will be extracted from NVD and passed to NLTK
+preprocessor.</p>
+</li>
+<li><strong>feature_hooks</strong> – <p>dict, {feature_key: Hook}
+to be used as an argument to <cite>FeatureExtractor</cite></p>
+<p>Specify features which should be extracted from the given set.
+The hooks are called for each element of the set and return
+corresponding features.</p>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.get_preprocessing_pipeline">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">get_preprocessing_pipeline</code><span class="sig-paren">(</span><em>nvd_attributes: list</em>, <em>nltk_feed_attributes: list = None</em>, <em>labeling_func: Callable = None</em>, <em>share_hooks=False</em><span class="sig-paren">)</span> &#x2192; sklearn.pipeline.Pipeline<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#get_preprocessing_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.get_preprocessing_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the preprocessing pipeline using existing classifier.</p>
+<p>The preprocessing pipeline takes as an input a list of CVE objects
+and outputs labeled data ready for feature extraction.</p>
+<p><em>must be fit using `fit_transform` method.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nvd_attributes</strong> – <p>list, attributes to output by NVDPreprocessor</p>
+<p>The attributes are outputed by NVDPreprocessor and passed
+to FeatureExtractor.</p>
+</li>
+<li><strong>nltk_feed_attributes</strong> – <p>list, attributes for NLTKPreprocessor</p>
+<p>List of attributes which will be fed to NLTKPreprocessor.</p>
+</li>
+<li><strong>labeling_func</strong> – <p>callable object to be used for labeling</p>
+<p>The <cite>labeling_func</cite> is used to create a hook for <cite>LabelPreprocessor</cite>
+(see <cite>LabelPreprocessor</cite> documentation for more info).
+By default <cite>toolkit.utils.find_</cite> function is used for that purpose.</p>
+</li>
+<li><strong>share_hooks</strong> – boolean, whether to reuse hooks</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.pipelines.get_training_pipeline">
+<code class="descclassname">toolkit.pipelines.pipelines.</code><code class="descname">get_training_pipeline</code><span class="sig-paren">(</span><em>feature_hooks=None</em><span class="sig-paren">)</span> &#x2192; sklearn.pipeline.Pipeline<a class="reference internal" href="_modules/toolkit/pipelines/pipelines.html#get_training_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.pipelines.get_training_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the simple training pipeline from FeatureExtractor and NBClassifier.</p>
+<p>The pipeline expects as an input preprocessed data
+and trains NBClassifier on that data.</p>
+<p><em>must be fit using `fit_transform` method.</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>feature_hooks</strong> – <p>dict, {feature_key: Hook}
+to be used as an argument to <cite>FeatureExtractor</cite></p>
+<p>Specify features which should be extracted from the given set.
+The hooks are called for each element of the set and return
+corresponding features.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.pipelines.predict">
+<span id="toolkit-pipelines-predict-module"></span><h2>toolkit.pipelines.predict module<a class="headerlink" href="#module-toolkit.pipelines.predict" title="Permalink to this headline">¶</a></h2>
+<p>This module contains prediction pipeline.</p>
+<p>The pipeline restores pre-trained classifier to make predictions about
+given data.</p>
+<dl class="function">
+<dt id="toolkit.pipelines.predict.main">
+<code class="descclassname">toolkit.pipelines.predict.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/predict.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.predict.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.predict.parse_args">
+<code class="descclassname">toolkit.pipelines.predict.</code><code class="descname">parse_args</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/predict.html#parse_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.predict.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse arguments.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.pipelines.train">
+<span id="toolkit-pipelines-train-module"></span><h2>toolkit.pipelines.train module<a class="headerlink" href="#module-toolkit.pipelines.train" title="Permalink to this headline">¶</a></h2>
+<p>This module contains training pipeline.</p>
+<p>The pipeline integrates preprocessors, transformers and classifier
+to fit on the data.</p>
+<dl class="function">
+<dt id="toolkit.pipelines.train.main">
+<code class="descclassname">toolkit.pipelines.train.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/train.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.train.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="toolkit.pipelines.train.parse_args">
+<code class="descclassname">toolkit.pipelines.train.</code><code class="descname">parse_args</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/toolkit/pipelines/train.html#parse_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#toolkit.pipelines.train.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse arguments.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.pipelines">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-toolkit.pipelines" title="Permalink to this headline">¶</a></h2>
+<p>Package containing pre-build pipelines and CLIs.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">toolkit.pipelines package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-toolkit.pipelines.evaluation">toolkit.pipelines.evaluation module</a></li>
+<li><a class="reference internal" href="#module-toolkit.pipelines.pipelines">toolkit.pipelines.pipelines module</a></li>
+<li><a class="reference internal" href="#module-toolkit.pipelines.predict">toolkit.pipelines.predict module</a></li>
+<li><a class="reference internal" href="#module-toolkit.pipelines.train">toolkit.pipelines.train module</a></li>
+<li><a class="reference internal" href="#module-toolkit.pipelines">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/toolkit.pipelines.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Marek Cermak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/toolkit.pipelines.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

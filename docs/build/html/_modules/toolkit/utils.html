@@ -1,0 +1,329 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>toolkit.utils &#8212; nvd-toolkit  documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toolkit.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module containing utilities for processing data from NVD feed.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">from</span> <span class="nn">toolkit.transformers.hooks</span> <span class="k">import</span> <span class="n">Hook</span>
+
+
+<div class="viewcode-block" id="BooleanAction"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.BooleanAction">[docs]</a><span class="k">class</span> <span class="nc">BooleanAction</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">Action</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Argparse function to handle --flag and --no-flag arguments.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option_strings</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize BooleanAction.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BooleanAction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">option_strings</span><span class="p">,</span> <span class="n">dest</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">nargs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">namespace</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">option_string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Call BooleanAction instance.&quot;&quot;&quot;</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dest</span><span class="p">,</span>
+                <span class="kc">False</span> <span class="k">if</span> <span class="n">option_string</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;--no&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+<span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="classproperty"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.classproperty">[docs]</a><span class="k">class</span> <span class="nc">classproperty</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="sd">&quot;&quot;&quot;Class property implementation.</span>
+
+<span class="sd">    Usage: Same as a @property decorator for instance properties,</span>
+<span class="sd">    @classproperty can be used for class members.</span>
+
+<span class="sd">    TODO: solve the setter and deleter by adding a metaclass</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># only getter needed atm</span>
+        <span class="sd">&quot;&quot;&quot;Initialize classproperty.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">fget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fget</span><span class="p">,</span> <span class="s1">&#39;__doc__&#39;</span><span class="p">):</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__get</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__doc</span> <span class="o">=</span> <span class="n">doc</span>
+
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return class property.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;instance type not filled&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;unreadable attribute&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set class property - DISABLED.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;can&#39;t set attribute&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete class property - DISABLED.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;can&#39;t delete attribute&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_attributes"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.check_attributes">[docs]</a><span class="k">def</span> <span class="nf">check_attributes</span><span class="p">(</span><span class="o">*</span><span class="n">attributes</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check whether `attribute_list` contains valid elements.</span>
+
+<span class="sd">    :raises: TypeError</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">attr_list</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">attr_list</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">allow_none</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attr_list</span>
+        <span class="p">]):</span>
+            <span class="k">continue</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `feed_attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot; got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">type</span><span class="p">(</span><span class="n">attr_list</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="has_reference"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.has_reference">[docs]</a><span class="k">def</span> <span class="nf">has_reference</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Report reference existence based on {url, pattern} given.</span>
+
+<span class="sd">    :param cve: CVE object whose `references` attribute is of type Iterable[str]</span>
+<span class="sd">    :param url: str, if specified, requires exact match of cve reference</span>
+<span class="sd">    with the given `url` argument and takes precedence over `pattern` argument</span>
+<span class="sd">    :param pattern: str, regex expression used for comparison,</span>
+<span class="sd">    `re.search()` method is used</span>
+
+<span class="sd">    :returns: bool, whether cve references found in one of {url, pattern}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">any</span><span class="p">([</span><span class="n">url</span><span class="p">,</span> <span class="n">pattern</span><span class="p">]),</span> <span class="s2">&quot;either `url` or `pattern` must be provided&quot;</span>
+    <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="s1">&#39;references&#39;</span><span class="p">),</span> <span class="s2">&quot;cve object `</span><span class="si">%s</span><span class="s2">` has no attribute `references`&quot;</span> <span class="o">%</span> <span class="n">cve</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">),</span> <span class="s2">&quot;`cve.references` is not `Iterable`, &quot;</span> \
+                                                        <span class="s2">&quot;got: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="n">ref</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="get_reference"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.get_reference">[docs]</a><span class="k">def</span> <span class="nf">get_reference</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Return reference (if exists) based on {url, pattern}.</span>
+
+<span class="sd">    If multiple references are present, only the first encountered is returned.</span>
+
+<span class="sd">    :param cve: CVE object whose `references` attribute is an iterable of str references</span>
+<span class="sd">    :param url: str, if specified, requires exact match of cve reference with the given `url`</span>
+<span class="sd">    argument and takes precedence over `pattern` argument</span>
+<span class="sd">    :param pattern: str, regex expression used for comparison, `re.search()` method is used</span>
+
+<span class="sd">    :returns: str, cve reference matching one of {url, pattern}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">any</span><span class="p">([</span><span class="n">url</span><span class="p">,</span> <span class="n">pattern</span><span class="p">]),</span> <span class="s2">&quot;either `url` or `pattern` must be provided&quot;</span>
+    <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="s1">&#39;references&#39;</span><span class="p">),</span> <span class="s2">&quot;cve object `</span><span class="si">%s</span><span class="s2">` has no attribute `references`&quot;</span> <span class="o">%</span> <span class="n">cve</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">),</span> <span class="s2">&quot;`cve.references` is not `Iterable`, &quot;</span> \
+                                                        <span class="s2">&quot;got: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">url</span> <span class="o">==</span> <span class="n">ref</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ref</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">cve</span><span class="o">.</span><span class="n">references</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">ref</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="c1"># this function is meant to be used as a hook for LabelPreprocessor</span>
+<div class="viewcode-block" id="find_"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.find_">[docs]</a><span class="k">def</span> <span class="nf">find_</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">ignore_case</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the `word` in the `stream`.</span>
+
+<span class="sd">    :param word: str, word or pattern to be searched in stream</span>
+<span class="sd">    :param stream: str, stream to be searched in</span>
+<span class="sd">    :param ignore_case: whether to ignore the case</span>
+<span class="sd">    :returns: the corresponding `word` (could be of different case</span>
+<span class="sd">    if `ignore_case` is specified) from the stream</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">word</span><span class="p">,</span>
+                      <span class="n">stream</span><span class="p">,</span>
+                      <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span> <span class="k">if</span> <span class="n">ignore_case</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">match</span></div>
+
+
+<div class="viewcode-block" id="nvd_to_dataframe"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.nvd_to_dataframe">[docs]</a><span class="k">def</span> <span class="nf">nvd_to_dataframe</span><span class="p">(</span><span class="n">cve_list</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span>
+                     <span class="n">handler</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a pandas DataFrame from nvdlib.NVD object.</span>
+
+<span class="sd">    NOTE: This function requires `pandas` package to be installed</span>
+<span class="sd">    (which is not a requirement for the standard installation or</span>
+<span class="sd">    for production usage)</span>
+
+<span class="sd">    :param cve_list: list of nvdlib.model.CVE objects</span>
+<span class="sd">    :param handler: handler for cves, right now only GitHubHandler is supported</span>
+
+<span class="sd">    :return: pandas.DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">Series</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">projects</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="c1"># type: typing.Tuple[str(username), str(project)]</span>
+
+    <span class="n">languages</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">project_langs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="c1"># type: typing.Dict[tuple(username, project), dict{lang: int}]</span>
+
+    <span class="k">for</span> <span class="n">cve</span> <span class="ow">in</span> <span class="n">cve_list</span><span class="p">:</span>
+        <span class="c1"># Get reference supported by the handler to gather information</span>
+        <span class="c1"># about the CVE</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">handle</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ref</span> <span class="o">=</span> <span class="n">get_reference</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="n">handler</span><span class="o">.</span><span class="n">pattern</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># does not match handlers pattern</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># initialize handler</span>
+            <span class="n">handle</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">ref</span><span class="p">)</span>
+
+            <span class="n">username</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">handle</span><span class="o">.</span><span class="n">project</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span> <span class="ow">in</span> <span class="n">projects</span><span class="p">:</span>
+                <span class="c1"># Multiple CVEs are possible for a project, # but not important</span>
+                <span class="c1"># to cover for package prediction</span>
+                <span class="k">continue</span>
+            <span class="n">projects</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">username</span><span class="p">,</span> <span class="n">project</span><span class="p">))</span>
+
+            <span class="c1"># query GitHub API for project languages</span>
+            <span class="n">cve_languages</span> <span class="o">=</span> <span class="n">handle</span><span class="o">.</span><span class="n">languages</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cve_languages</span><span class="p">:</span>
+                <span class="n">cve_languages</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+            <span class="n">languages</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cve_languages</span><span class="p">)</span>
+            <span class="n">project_langs</span><span class="p">[(</span><span class="n">username</span><span class="p">,</span> <span class="n">project</span><span class="p">)]</span> <span class="o">=</span> <span class="n">cve_languages</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+            <span class="n">cve</span><span class="o">.</span><span class="n">cve_id</span><span class="p">,</span>
+            <span class="n">cve</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">username</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="s1">&#39;repository&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">])</span>
+
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Create list of series representing each language and their data</span>
+    <span class="n">lang_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">lang</span> <span class="ow">in</span> <span class="n">languages</span><span class="p">:</span>
+        <span class="c1"># create series of languages and their byte counts per project</span>
+        <span class="n">series_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">project_langs</span><span class="p">[(</span><span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lang</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">__</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="n">lang_series</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">series_data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">lang</span><span class="p">)</span>
+
+        <span class="n">lang_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lang_series</span><span class="p">)</span>
+
+    <span class="c1"># finalize and return the dataframe</span>
+    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lang_data</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="clear"><a class="viewcode-back" href="../../toolkit.html#toolkit.utils.clear">[docs]</a><span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorate with cleanup before function call.&quot;&quot;&quot;</span>
+    <span class="c1"># noinspection PyUnusedLocal,PyUnusedLocal</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="sd">&quot;&quot;&quot;Wrap inner function.&quot;&quot;&quot;</span>
+        <span class="c1"># perform cleanup</span>
+        <span class="n">Hook</span><span class="o">.</span><span class="n">clear_current_instances</span><span class="p">()</span>
+        <span class="n">exc</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret_values</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># run the function</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ret_values</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exc</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># cleanup again</span>
+            <span class="n">Hook</span><span class="o">.</span><span class="n">clear_current_instances</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Marek Cermak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

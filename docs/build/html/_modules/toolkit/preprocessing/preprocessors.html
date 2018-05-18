@@ -1,0 +1,653 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>toolkit.preprocessing.preprocessors &#8212; nvd-toolkit  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for toolkit.preprocessing.preprocessors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains preprocessors.</span>
+
+<span class="sd">Those preprocessors are transformers which implement `transform` methods</span>
+<span class="sd">called by sklearn pipeline and can be integrated with it.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">nltk.corpus</span> <span class="k">as</span> <span class="nn">corpus</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">TransformerMixin</span>
+
+<span class="kn">from</span> <span class="nn">toolkit.preprocessing.handlers</span> <span class="k">import</span> <span class="n">GitHubHandler</span>
+<span class="kn">from</span> <span class="nn">toolkit.transformers</span> <span class="k">import</span> <span class="n">Hook</span>
+<span class="kn">from</span> <span class="nn">toolkit</span> <span class="k">import</span> <span class="n">utils</span>
+
+
+<div class="viewcode-block" id="NVDFeedPreprocessor"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NVDFeedPreprocessor">[docs]</a><span class="k">class</span> <span class="nc">NVDFeedPreprocessor</span><span class="p">(</span><span class="n">TransformerMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Preprocessor collecting relevant data from NVD feed.</span>
+
+<span class="sd">    :param attributes: list or ndarray of attributes to extract,</span>
+
+<span class="sd">        While `transform`, each attribute will be gathered from each element</span>
+<span class="sd">        of the list fed to the method and return in the resulting tuple.</span>
+
+<span class="sd">        If None, (&#39;cve_id&#39;, &#39;references&#39;) are selected by default</span>
+
+<span class="sd">    :param handler: data handler, by default GitHubHandler (ATM the only one supported)</span>
+<span class="sd">    :param skip_duplicity: bool, whether to allow duplicit attributes</span>
+
+<span class="sd">        Handler provides default handler properties which it extracts from</span>
+<span class="sd">        the data, if any of attr in `attributes` intersects with those properties,</span>
+<span class="sd">        it raises an error if `skip_duplicit` is False (default True).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">attributes</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">handler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">skip_duplicity</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize NVDFeedPreprocessor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span> <span class="o">=</span> <span class="n">handler</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span> <span class="o">=</span> <span class="n">GitHubHandler</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_filter</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip_duplicity</span> <span class="o">=</span> <span class="n">skip_duplicity</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cve_attributes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_attributes</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span>
+
+    <span class="c1"># noinspection PyPep8Naming, PyUnusedLocal</span>
+<div class="viewcode-block" id="NVDFeedPreprocessor.fit"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NVDFeedPreprocessor.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name,unused-argument</span>
+            <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+            <span class="o">**</span><span class="n">fit_params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Auxiliary method to enable pipeline functionality.</span>
+
+<span class="sd">        :param fit_params: optional parameters</span>
+
+<span class="sd">            :use_filter: whether to filter the data by handler, default True</span>
+
+<span class="sd">                *NOTE*: This argument is especially important when labeling</span>
+<span class="sd">                the data follows after this preprocessor</span>
+
+<span class="sd">            :attributes: list or ndarray of attributes to extract,</span>
+
+<span class="sd">                While `transform`, each attribute will be gathered from each element</span>
+<span class="sd">                of the list fed to the method and return in the resulting tuple.</span>
+
+<span class="sd">                *NOTE*: If `attributes` were provided during object instantiation,</span>
+<span class="sd">                those attributes will be overwritten.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cve_attributes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_attributes</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_filter</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_filter&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="NVDFeedPreprocessor.transform"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NVDFeedPreprocessor.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+        <span class="sd">&quot;&quot;&quot;Apply transformation to each element in `cves`.</span>
+
+<span class="sd">        This transformation outputs list of tuples</span>
+
+<span class="sd">        :param X:</span>
+<span class="sd">            list or ndarray, each element is assumed to be of type &quot;nvdlib.model.CVE&quot;</span>
+<span class="sd">            or an object implementing attributes given in `attr_list`</span>
+
+<span class="sd">        :returns: list of shape (len(x), len(attr_list))</span>
+<span class="sd">            Each element of the resulting list is a namedtuple of cve attributes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_filter</span><span class="p">:</span>
+            <span class="c1"># filter the cves by the given handler</span>
+            <span class="n">cve_iter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_by_handler</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cve_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_cve_attributes</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">cve_iter</span>
+        <span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_filter_by_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cves</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Filter the given elements by specified handler.</span>
+
+<span class="sd">        NOTE: The only supported handler ATM is `GitHubHandler`, hence</span>
+<span class="sd">        cves are filtered by reference pattern.</span>
+
+<span class="sd">        :returns: list of tuples of type (cve, reference)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: modify this approach by creating handler-specific filter method</span>
+        <span class="c1">#   such method would take CVE and returned bool whether</span>
+        <span class="c1">#   it could operate on it or not</span>
+        <span class="n">filtered_cves</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">cve</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">has_reference</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">pattern</span><span class="p">),</span>
+            <span class="n">cves</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filtered_cves</span>
+
+    <span class="k">def</span> <span class="nf">_get_cve_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cve</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the selected attributes from the CVE object.&quot;&quot;&quot;</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_reference</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">pattern</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ref</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_filter</span><span class="p">:</span>
+            <span class="c1"># something is wrong, since the cve passed the filter but handler</span>
+            <span class="c1"># did not extracted any attributes</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unexpected error occurred. `use_filter=True`, but &quot;</span>
+                             <span class="n">f</span><span class="s2">&quot;reference `</span><span class="si">{ref}</span><span class="s2">` did not match handlers pattern.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># attribute creator</span>
+        <span class="n">Series</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="s1">&#39;Series&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">default_properties</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cve_attributes</span>
+        <span class="p">)</span>
+
+        <span class="c1"># initialize handler</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">ref</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># url does not match handler&#39;s base pattern</span>
+            <span class="n">handler</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="c1"># initialize with handlers default data</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">default_properties</span><span class="p">:</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">cve</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cve_attributes</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">Series</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Check validity of given attributes and return if applicable.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attributes</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Argument `attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`, got `</span><span class="si">{}</span><span class="s2">`&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">type</span><span class="p">(</span><span class="n">attributes</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span> <span class="k">if</span> <span class="n">attributes</span> <span class="k">else</span> <span class="p">(</span><span class="s1">&#39;cve_id&#39;</span><span class="p">,</span> <span class="s1">&#39;references&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">default_properties</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip_duplicity</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Attribute `</span><span class="si">{}</span><span class="s2">` is already present in handlers &quot;</span>
+                                 <span class="s2">&quot;default properties.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+
+        <span class="c1"># leave only those not present in handlers default properties</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span>
+            <span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attributes</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handler</span><span class="o">.</span><span class="n">default_properties</span>
+        <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">attributes</span></div>
+
+
+<div class="viewcode-block" id="LabelPreprocessor"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.LabelPreprocessor">[docs]</a><span class="k">class</span> <span class="nc">LabelPreprocessor</span><span class="p">(</span><span class="n">TransformerMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Preprocessor implementing `tranform` method for scikit pipelines.</span>
+
+<span class="sd">    This preprocessor assign labels to the given set by creating.</span>
+
+<span class="sd">    :param hook: Hook, hook to be called on the each element of `X`</span>
+<span class="sd">        Attributes are extracted while `fit_transform` call</span>
+<span class="sd">        and will be fed the element of `X` (which should be a `namedtuple`).</span>
+
+<span class="sd">    :param feed_attributes: list, attributes to be extracted from the `X`</span>
+<span class="sd">        Attributes are extracted while `transform` or `fit_transform` call</span>
+<span class="sd">        and fed to the hook.</span>
+
+<span class="sd">        NOTE: attributes of `X` are extracted by `getattr` function, make</span>
+<span class="sd">        sure that the `X` implements __get__ method.</span>
+
+<span class="sd">    :param output_attributes: list, attributes to be returned</span>
+
+<span class="sd">        By default output_attributes are the same as feed_attributes.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">hook</span><span class="p">:</span> <span class="s2">&quot;Hook&quot;</span><span class="p">,</span>
+                 <span class="n">feed_attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">output_attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">allow_nan_labels</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize LabelPreprocessor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span> <span class="o">=</span> <span class="n">feed_attributes</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="o">=</span> <span class="n">output_attributes</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `feed_attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot; got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">feed_attributes</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `output_attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot; got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hook</span><span class="p">,</span> <span class="n">Hook</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `hook` expected to be of type `</span><span class="si">{}</span><span class="s2">`, got `</span><span class="si">{}</span><span class="s2">&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Hook</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">hook</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span> <span class="o">=</span> <span class="n">hook</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_nan_labels</span> <span class="o">=</span> <span class="n">allow_nan_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get processed labels.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="LabelPreprocessor.fit"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.LabelPreprocessor.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+            <span class="o">**</span><span class="n">fit_params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the preprocessor to the given data.</span>
+
+<span class="sd">        :param X: Iterable, each element should be a tuple of attributes</span>
+
+<span class="sd">            The `X` is expected to be the output of NVDFeedPreprocessor.</span>
+<span class="sd">            Each element will be passed to the labeling hook.</span>
+
+<span class="sd">        :param y: redundant</span>
+<span class="sd">        :param fit_params: kwargs, optional arguments to be used during fitting</span>
+
+<span class="sd">            :feed_attributes: list, attributes to be extracted from the `X`</span>
+
+<span class="sd">            Attributes are extracted while `transform` or `fit_transform` call</span>
+<span class="sd">            and fed to the hook.</span>
+
+<span class="sd">            NOTE: attributes of `X` are extracted by `getattr` function, make</span>
+<span class="sd">            sure that the `X` implements __get__ method.</span>
+
+<span class="sd">            :output_attributes: list, attributes to be returned</span>
+
+<span class="sd">            By default output_attributes are the same as feed_attributes.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># allow defining attributes in the fit function as well, since</span>
+        <span class="c1"># user might want to specify it directly in the pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;feed_attributes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output_attributes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `feed_attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot; got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Argument `output_attributes` expected to be of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot; got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">)))</span>
+
+        <span class="n">Attributes</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="s1">&#39;Attributes&#39;</span><span class="p">,</span>
+            <span class="n">field_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+            <span class="c1"># noinspection PyTypeChecker</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="p">(</span><span class="o">*</span><span class="n">Attributes</span><span class="p">(</span>
+                    <span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">)</span>
+                <span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="LabelPreprocessor.transform"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.LabelPreprocessor.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>  <span class="c1"># pylint: disable=invalid-name</span>
+        <span class="sd">&quot;&quot;&quot;Transform the data provided in `X` by extracting output attributes.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">allow_label</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Return whether the label is allowed.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_nan_labels</span>
+
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="n">Series</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Series&#39;</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># noinspection PyTypeChecker</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">)</span> <span class="k">if</span> <span class="n">allow_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1"># create relevant labels</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="k">if</span> <span class="n">allow_label</span><span class="p">(</span><span class="n">label</span><span class="p">)]</span>
+
+        <span class="c1"># in case no label was found, return Series of empty values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[[]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">)</span>
+
+        <span class="c1"># sanity check</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># assign label to each set of attributes</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">Series</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span>
+        <span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="NLTKPreprocessor"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor">[docs]</a><span class="k">class</span> <span class="nc">NLTKPreprocessor</span><span class="p">(</span><span class="n">TransformerMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Preprocessor implementing `transform` method for scikit pipelines.</span>
+
+<span class="sd">    This preprocessor performs tokenization, stemming and lemmatization</span>
+<span class="sd">    by default. Processors used for these operations are customizable.</span>
+
+<span class="sd">    Other text processing operations are not mandatory and can be optimized</span>
+<span class="sd">    by user.</span>
+
+<span class="sd">    :param feed_attributes: list, attributes to be extracted from the `X`</span>
+
+<span class="sd">        Attributes are extracted while `transform` or `fit_transform` call</span>
+<span class="sd">        and fed to the hook.</span>
+
+<span class="sd">        NOTE: attributes of `X` are extracted by `getattr` function, make</span>
+<span class="sd">        sure that the `X` implements __get__ method.</span>
+
+<span class="sd">    :param output_attributes: list, attributes to be returned</span>
+
+<span class="sd">        By default output_attributes are the same as feed_attributes.</span>
+
+<span class="sd">    :param lemmatizer: nltk lemmatizer, defaults to nltk.WordNetLemmatizer</span>
+<span class="sd">    :param stemmer: nltk stemmer, defaults to nltk.SnowballStemmer</span>
+<span class="sd">    :param tokenizer: nltk tokenizer, defaults to nltk.TreebankWordTokenizer</span>
+<span class="sd">    :param stopwords: bool, whether to strip stopwords</span>
+<span class="sd">    :param tag_dict: dictionary of (pattern, correct_tag) used for tag correction</span>
+
+<span class="sd">        If provided, each tag is matched to a pattern in this dictionary</span>
+<span class="sd">        and corrected, if applicable.</span>
+
+<span class="sd">    :param lower: bool, whether to transform tokens to lowercase</span>
+<span class="sd">    :param strip: bool, whether to strip tokens</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">feed_attributes</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">output_attributes</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">lemmatizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">stemmer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">tokenizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">stopwords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">tag_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">token_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">lower</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">strip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">lang</span><span class="o">=</span><span class="s1">&#39;english&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize NLTKPreprocessor.&quot;&quot;&quot;</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">check_attributes</span><span class="p">(</span><span class="n">feed_attributes</span><span class="p">,</span> <span class="n">output_attributes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span> <span class="o">=</span> <span class="n">feed_attributes</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="o">=</span> <span class="n">output_attributes</span> <span class="ow">or</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span> <span class="ow">or</span> <span class="n">nltk</span><span class="o">.</span><span class="n">TreebankWordTokenizer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lemmatizer</span> <span class="o">=</span> <span class="n">lemmatizer</span>  <span class="c1"># or nltk.WordNetLemmatizer()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stemmer</span> <span class="o">=</span> <span class="n">stemmer</span>  <span class="c1"># or nltk.SnowballStemmer(language=lang)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lower</span> <span class="o">=</span> <span class="n">lower</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_strip</span> <span class="o">=</span> <span class="n">strip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stopwords</span> <span class="o">=</span> <span class="n">corpus</span><span class="o">.</span><span class="n">stopwords</span><span class="o">.</span><span class="n">words</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span> <span class="k">if</span> <span class="n">stopwords</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lang</span> <span class="o">=</span> <span class="n">lang</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag_dict</span> <span class="o">=</span> <span class="n">tag_dict</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token_dict</span> <span class="o">=</span> <span class="n">token_dict</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="c1"># update the token dict with a default version pattern</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="sa">r</span><span class="s2">&quot;(\d[.]?)+[-_]?(\w)*&quot;</span><span class="p">:</span> <span class="s1">&#39;&lt;VERSION&gt;&#39;</span>
+        <span class="p">})</span>
+
+        <span class="c1"># prototyped</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="NLTKPreprocessor.inverse_transform"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.inverse_transform">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">inverse_transform</span><span class="p">(</span>
+            <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
+        <span class="sd">&quot;&quot;&quot;Inverse operation to the `transform` method.</span>
+
+<span class="sd">        Returns list of shape (len(X),) with the tokens stored in X.</span>
+
+<span class="sd">        Note that this does not return the original data provided</span>
+<span class="sd">        to `transform` method, since lemmatization and stemming</span>
+<span class="sd">        are not reversible operations and for memory sake, lowercase changes</span>
+<span class="sd">        are not stored in memory either.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span>
+        <span class="p">]</span></div>
+
+    <span class="c1"># noinspection PyPep8Naming, PyUnusedLocal</span>
+<div class="viewcode-block" id="NLTKPreprocessor.fit"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+            <span class="o">**</span><span class="n">fit_params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fits the preprocessor to the given data.</span>
+
+<span class="sd">        :param X: Iterable, each element should be a string to be tokenized</span>
+<span class="sd">        :param y: Iterable, labels for each element in X (same length as `X`)</span>
+<span class="sd">        :param fit_params: kwargs, optional arguments to be used during fitting</span>
+
+<span class="sd">            :feed_attributes: List[str], attributes to be extracted from the `X`</span>
+
+<span class="sd">                Attributes are extracted while `transform` or `fit_transform` call</span>
+<span class="sd">                and fed to the hook.</span>
+
+<span class="sd">                NOTE: attributes of `X` are extracted by `getattr` function, make</span>
+<span class="sd">                sure that the `X` implements __get__ method.</span>
+
+<span class="sd">            :output_attributes: List[str], attributes to be returned</span>
+
+<span class="sd">                By default output_attributes are the same as feed_attributes.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># allow defining attributes in the fit function as well, since</span>
+        <span class="c1"># user might want to specify it directly in the pipeline</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;feed_attributes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="o">=</span> <span class="n">fit_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;output_attributes&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+        <span class="p">)</span>
+
+        <span class="n">utils</span><span class="o">.</span><span class="n">check_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">X</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="s2">&quot;len(X) != len(y)&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">y</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="c1"># noinspection PyPep8Naming</span>
+<div class="viewcode-block" id="NLTKPreprocessor.transform"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">X</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">:</span>  <span class="c1"># pylint: disable=invalid-name</span>
+        <span class="sd">&quot;&quot;&quot;Fit to each element in X.</span>
+
+<span class="sd">        This transformation outputs list of the shape (len(X), 2)</span>
+<span class="sd">        where each element of the list is a tuple of (token, tag).</span>
+
+<span class="sd">        :param X: Iterable, each element should be a string to be tokenized</span>
+
+<span class="sd">        :returns: namedtuple of the same shape as `X` if `y` is None, otherwise</span>
+<span class="sd">        adds one dimension for `y` elements</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span><span class="p">:</span>
+            <span class="n">X_feed</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feed_attributes</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span>
+            <span class="p">]</span>
+
+            <span class="n">intermediate_result</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X_feed</span>
+            <span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intermediate_result</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">sent</span><span class="p">)</span> <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">X</span>
+            <span class="p">]</span>
+
+        <span class="n">Series</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="s1">&#39;Series&#39;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">)</span>
+
+        <span class="n">additional_output</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attributes</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">additional_output</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Series</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="o">*</span><span class="n">adds</span><span class="p">)</span> <span class="k">for</span> <span class="n">res</span><span class="p">,</span> <span class="n">adds</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">intermediate_result</span><span class="p">,</span> <span class="n">additional_output</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">intermediate_result</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="NLTKPreprocessor.tokenize"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.tokenize">[docs]</a>    <span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform tokenization of each sentence given in the list.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Tokenization process expects input of type `</span><span class="si">{}</span><span class="s2">`,&quot;</span>
+                            <span class="s2">&quot;got `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">stream</span><span class="p">)))</span>
+
+        <span class="n">tokenized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenizer</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">nltk</span><span class="o">.</span><span class="n">pos_tag</span><span class="p">(</span><span class="n">tokenized</span><span class="p">,</span> <span class="n">tagset</span><span class="o">=</span><span class="s1">&#39;universal&#39;</span><span class="p">):</span>
+            <span class="c1"># Check and correct (if applicable) the tag against given patterns</span>
+            <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">correction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+                    <span class="n">tag</span> <span class="o">=</span> <span class="n">correction</span>
+                    <span class="c1"># do not allow ambiguity of tags (assume user took care of this)</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Check and correct (if applicable) the token against given patterns</span>
+            <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">correction</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="n">correction</span>
+                    <span class="c1"># do not allow ambiguity of tags (assume user took care of this)</span>
+                    <span class="k">break</span>
+
+            <span class="c1"># Apply pre-processing to each token and tag</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower</span> <span class="k">else</span> <span class="n">token</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strip</span> <span class="k">else</span> <span class="n">token</span>
+
+            <span class="c1"># If stop word, ignore token and continue</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stopwords</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Punctuation will not be yielded</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stemmer</span><span class="p">:</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lemmatizer</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="c1"># skip if the token can not be lemmatized (eg. tags &#39;PRT&#39;)</span>
+                    <span class="k">continue</span>
+
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">token</span><span class="p">,</span> <span class="n">tag</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="NLTKPreprocessor.stem"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.stem">[docs]</a>    <span class="k">def</span> <span class="nf">stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stem the word and return the stem.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stemmer</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">token</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NLTKPreprocessor.lemmatize"><a class="viewcode-back" href="../../../toolkit.preprocessing.html#toolkit.preprocessing.preprocessors.NLTKPreprocessor.lemmatize">[docs]</a>    <span class="k">def</span> <span class="nf">lemmatize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lemmatize the token based on its tag and return the lemma.&quot;&quot;&quot;</span>
+        <span class="c1"># The lemmatizer expects the `pos` argument to be first letter</span>
+        <span class="c1"># of positional tag of the universal set (which we use by default)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lemmatizer</span><span class="o">.</span><span class="n">lemmatize</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Marek Cermak.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

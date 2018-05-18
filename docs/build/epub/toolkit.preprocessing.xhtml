@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <title>toolkit.preprocessing package</title>
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head><body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="toolkit-preprocessing-package">
+<h1>toolkit.preprocessing package</h1>
+<div class="section" id="submodules">
+<h2>Submodules</h2>
+</div>
+<div class="section" id="module-toolkit.preprocessing.ecos">
+<span id="toolkit-preprocessing-ecos-module"></span><h2>toolkit.preprocessing.ecos module</h2>
+<p>Module containing ecosystem specific tooling.</p>
+<dl class="class">
+<dt id="toolkit.preprocessing.ecos.Maven">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.ecos.</code><code class="descname">Maven</code></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/3/library/functions.html#object]</span></p>
+<p>Maven ecosystem class.</p>
+<p>The class acts as a namespace for maven-specific operations.</p>
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.ecos.Maven.find_packages">
+<em class="property">static </em><code class="descname">find_packages</code><span class="sig-paren">(</span><em>path=None</em>, <em>recurse=True</em>, <em>topdown=True</em><span class="sig-paren">)</span></dt>
+<dd><p>Find project packages belonging to the specific ecosystem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – str, parent directory</p></li>
+<li><p><strong>recurse</strong> – whether to recurse child directories</p></li>
+<li><p><strong>topdown</strong> – proceed traversal from child to parent directory</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.ecos.Maven.find_pom_files">
+<em class="property">static </em><code class="descname">find_pom_files</code><span class="sig-paren">(</span><em>path: str</em>, <em>recurse=True</em>, <em>topdown=True</em><span class="sig-paren">)</span></dt>
+<dd><p>Find pom.xml files in the given path.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.ecos.Maven.get_package_from_spec">
+<em class="property">static </em><code class="descname">get_package_from_spec</code><span class="sig-paren">(</span><em>pom_file</em><span class="sig-paren">)</span> &#x2192; toolkit.preprocessing.ecos.Package</dt>
+<dd><p>Create MavenPackage object from pom.xml file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="toolkit.preprocessing.ecos.MavenPackage">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.ecos.</code><code class="descname">MavenPackage</code><span class="sig-paren">(</span><em>groupId: str</em>, <em>artifactId: str</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="#toolkit.preprocessing.ecos.Package" title="toolkit.preprocessing.ecos.Package"><code class="xref py py-class docutils literal notranslate"><span class="pre">toolkit.preprocessing.ecos.Package</span></code></a></p>
+<p>Maven package class.</p>
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.MavenPackage.aid">
+<code class="descname">aid</code></dt>
+<dd><p>Get package artifact id.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.MavenPackage.gid">
+<code class="descname">gid</code></dt>
+<dd><p>Get package group id.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="toolkit.preprocessing.ecos.Package">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.ecos.</code><code class="descname">Package</code><span class="sig-paren">(</span><em>ecosystem</em>, <em>name=None</em>, <em>owner=None</em>, <em>version=None</em>, <em>description=None</em>, <em>licenses=None</em>, <em>url=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/3/library/functions.html#object]</span></p>
+<p>Ecosystem invariant package base class.</p>
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.description">
+<code class="descname">description</code></dt>
+<dd><p>Get package description.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.ecosystem">
+<code class="descname">ecosystem</code></dt>
+<dd><p>Get package ecosystem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.ecos.Package.get_attributes">
+<code class="descname">get_attributes</code><span class="sig-paren">(</span><em>skip_none=False</em><span class="sig-paren">)</span></dt>
+<dd><p>Get packages attribute dict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.licenses">
+<code class="descname">licenses</code></dt>
+<dd><p>Get licenses used in the repository.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.name">
+<code class="descname">name</code></dt>
+<dd><p>Get package name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.owner">
+<code class="descname">owner</code></dt>
+<dd><p>Get package owner.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.url">
+<code class="descname">url</code></dt>
+<dd><p>Get url of the project.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.ecos.Package.version">
+<code class="descname">version</code></dt>
+<dd><p>Get package version.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.preprocessing.handlers">
+<span id="toolkit-preprocessing-handlers-module"></span><h2>toolkit.preprocessing.handlers module</h2>
+<p>Module containing handlers for source control management systems.</p>
+<dl class="class">
+<dt id="toolkit.preprocessing.handlers.GitHandler">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.handlers.</code><code class="descname">GitHandler</code><span class="sig-paren">(</span><em>path: str</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/3/library/functions.html#object]</span></p>
+<p>The handler manages local git repository.</p>
+<dl class="classmethod">
+<dt id="toolkit.preprocessing.handlers.GitHandler.clone">
+<em class="property">classmethod </em><code class="descname">clone</code><span class="sig-paren">(</span><em>url: str</em><span class="sig-paren">)</span></dt>
+<dd><p>Initialize handler from a repository url.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.handlers.GitHandler.exec_cmd">
+<em class="property">static </em><code class="descname">exec_cmd</code><span class="sig-paren">(</span><em>cmd</em>, <em>chdir=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Execute git command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> – command to execute</p></li>
+<li><p><strong>chdir</strong> – change directory to use as current working dir</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple (stdout, stderr), output of the command</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.handlers.GitHandler.get_modified_files">
+<code class="descname">get_modified_files</code><span class="sig-paren">(</span><em>commits: list</em><span class="sig-paren">)</span> &#x2192; list</dt>
+<dd><p>Get modified files by a commit hash.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHandler.repository">
+<code class="descname">repository</code></dt>
+<dd><p>Return change root directory, ie. main git repository.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHandler.status">
+<code class="descname">status</code></dt>
+<dd><p>Return git status of the current repository.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.handlers.</code><code class="descname">GitHubHandler</code><span class="sig-paren">(</span><em>url: str = None</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/3/library/functions.html#object]</span></p>
+<p>The handler manages Git Hub repository.</p>
+<p>Strips its source directory and handles access to Git Hub API
+making it easy to interact with the repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> – str, url of any Git Hub repository or blob</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.default_properties">
+<code class="descname">default_properties</code><em class="property"> = ('user', 'project', 'repository')</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.get_languages">
+<code class="descname">get_languages</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict</dt>
+<dd><p>Query Git Hub API languages used for the given user/project.</p>
+<p>Note: Git Hub will most likely require OAUTH_TOKEN specified,
+provide your token via environment variable OAUTH_TOKEN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict, {“str”language: “int”bytes_of_code} or None</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>HTPPError on wrong response status</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.get_user_project">
+<em class="property">static </em><code class="descname">get_user_project</code><span class="sig-paren">(</span><em>src_url: str</em><span class="sig-paren">)</span> &#x2192; tuple</dt>
+<dd><p>Split the source url and extracts username and project name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>src_url</strong> – url to the source repository of a project</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple (username, project)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.languages">
+<code class="descname">languages</code></dt>
+<dd><p>Languages used by the project.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.pattern">
+<code class="descname">pattern</code><em class="property"> = 'http[s]://github.com/([\\w-]+)/([\\w-]+[.]*[\\w-]*)'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.project">
+<code class="descname">project</code></dt>
+<dd><p>Git Hub project name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.repository">
+<code class="descname">repository</code></dt>
+<dd><p>Git Hub repository source url.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.strip_src_url">
+<code class="descname">strip_src_url</code><span class="sig-paren">(</span><em>url: str</em><span class="sig-paren">)</span> &#x2192; str</dt>
+<dd><p>Strip the source url from a given url.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> – str, url to be stripped</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str, source url</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>ValueError if url does not match handler’s pattern</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.handlers.GitHubHandler.user">
+<code class="descname">user</code></dt>
+<dd><p>Git Hub repository owner.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="toolkit.preprocessing.handlers.StatusError">
+<em class="property">exception </em><code class="descclassname">toolkit.preprocessing.handlers.</code><code class="descname">StatusError</code><span class="sig-paren">(</span><em>status: int</em>, <em>*args</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a><span class="link-target"> [https://docs.python.org/3/library/exceptions.html#Exception]</span></p>
+<p>Custom exception returned by Git Hub API.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.preprocessing.preprocessors">
+<span id="toolkit-preprocessing-preprocessors-module"></span><h2>toolkit.preprocessing.preprocessors module</h2>
+<p>This module contains preprocessors.</p>
+<p>Those preprocessors are transformers which implement <cite>transform</cite> methods
+called by sklearn pipeline and can be integrated with it.</p>
+<dl class="class">
+<dt id="toolkit.preprocessing.preprocessors.LabelPreprocessor">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.preprocessors.</code><code class="descname">LabelPreprocessor</code><span class="sig-paren">(</span><em>hook: toolkit.transformers.hooks.Hook</em>, <em>feed_attributes: list = None</em>, <em>output_attributes: list = None</em>, <em>allow_nan_labels=False</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>Preprocessor implementing <cite>tranform</cite> method for scikit pipelines.</p>
+<p>This preprocessor assign labels to the given set by creating.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hook</strong> – Hook, hook to be called on the each element of <cite>X</cite>
+Attributes are extracted while <cite>fit_transform</cite> call
+and will be fed the element of <cite>X</cite> (which should be a <cite>namedtuple</cite>).</p></li>
+<li><p><strong>feed_attributes</strong> – <p>list, attributes to be extracted from the <cite>X</cite>
+Attributes are extracted while <cite>transform</cite> or <cite>fit_transform</cite> call
+and fed to the hook.</p>
+<p>NOTE: attributes of <cite>X</cite> are extracted by <cite>getattr</cite> function, make
+sure that the <cite>X</cite> implements __get__ method.</p>
+</p></li>
+<li><p><strong>output_attributes</strong> – <p>list, attributes to be returned</p>
+<p>By default output_attributes are the same as feed_attributes.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.LabelPreprocessor.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X: Union[list, numpy.ndarray], y=None, **fit_params</em><span class="sig-paren">)</span></dt>
+<dd><p>Fit the preprocessor to the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – <p>Iterable, each element should be a tuple of attributes</p>
+<p>The <cite>X</cite> is expected to be the output of NVDFeedPreprocessor.
+Each element will be passed to the labeling hook.</p>
+</p></li>
+<li><p><strong>y</strong> – redundant</p></li>
+<li><p><strong>fit_params</strong> – <p>kwargs, optional arguments to be used during fitting</p>
+<dl class="field-list simple">
+<dt class="field-odd">feed_attributes</dt>
+<dd class="field-odd"><p>list, attributes to be extracted from the <cite>X</cite></p>
+</dd>
+</dl>
+<p>Attributes are extracted while <cite>transform</cite> or <cite>fit_transform</cite> call
+and fed to the hook.</p>
+<p>NOTE: attributes of <cite>X</cite> are extracted by <cite>getattr</cite> function, make
+sure that the <cite>X</cite> implements __get__ method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">output_attributes</dt>
+<dd class="field-odd"><p>list, attributes to be returned</p>
+</dd>
+</dl>
+<p>By default output_attributes are the same as feed_attributes.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="toolkit.preprocessing.preprocessors.LabelPreprocessor.labels">
+<code class="descname">labels</code></dt>
+<dd><p>Get processed labels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.LabelPreprocessor.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X: Union[list, numpy.ndarray]</em><span class="sig-paren">)</span></dt>
+<dd><p>Transform the data provided in <cite>X</cite> by extracting output attributes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.preprocessors.</code><code class="descname">NLTKPreprocessor</code><span class="sig-paren">(</span><em>feed_attributes: list = None</em>, <em>output_attributes: list = None</em>, <em>lemmatizer=None</em>, <em>stemmer=None</em>, <em>tokenizer=None</em>, <em>stopwords=False</em>, <em>tag_dict=None</em>, <em>token_dict=None</em>, <em>lower=False</em>, <em>strip=False</em>, <em>lang='english'</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>Preprocessor implementing <cite>transform</cite> method for scikit pipelines.</p>
+<p>This preprocessor performs tokenization, stemming and lemmatization
+by default. Processors used for these operations are customizable.</p>
+<p>Other text processing operations are not mandatory and can be optimized
+by user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>feed_attributes</strong> – <p>list, attributes to be extracted from the <cite>X</cite></p>
+<p>Attributes are extracted while <cite>transform</cite> or <cite>fit_transform</cite> call
+and fed to the hook.</p>
+<p>NOTE: attributes of <cite>X</cite> are extracted by <cite>getattr</cite> function, make
+sure that the <cite>X</cite> implements __get__ method.</p>
+</p></li>
+<li><p><strong>output_attributes</strong> – <p>list, attributes to be returned</p>
+<p>By default output_attributes are the same as feed_attributes.</p>
+</p></li>
+<li><p><strong>lemmatizer</strong> – nltk lemmatizer, defaults to nltk.WordNetLemmatizer</p></li>
+<li><p><strong>stemmer</strong> – nltk stemmer, defaults to nltk.SnowballStemmer</p></li>
+<li><p><strong>tokenizer</strong> – nltk tokenizer, defaults to nltk.TreebankWordTokenizer</p></li>
+<li><p><strong>stopwords</strong> – bool, whether to strip stopwords</p></li>
+<li><p><strong>tag_dict</strong> – <p>dictionary of (pattern, correct_tag) used for tag correction</p>
+<p>If provided, each tag is matched to a pattern in this dictionary
+and corrected, if applicable.</p>
+</p></li>
+<li><p><strong>lower</strong> – bool, whether to transform tokens to lowercase</p></li>
+<li><p><strong>strip</strong> – bool, whether to strip tokens</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X: Iterable</em>, <em>y=None</em>, <em>**fit_params</em><span class="sig-paren">)</span></dt>
+<dd><p>Fits the preprocessor to the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – Iterable, each element should be a string to be tokenized</p></li>
+<li><p><strong>y</strong> – Iterable, labels for each element in X (same length as <cite>X</cite>)</p></li>
+<li><p><strong>fit_params</strong> – <p>kwargs, optional arguments to be used during fitting</p>
+<dl class="field-list">
+<dt class="field-odd">feed_attributes</dt>
+<dd class="field-odd"><p>list, attributes to be extracted from the <cite>X</cite></p>
+<p>Attributes are extracted while <cite>transform</cite> or <cite>fit_transform</cite> call
+and fed to the hook.</p>
+<p>NOTE: attributes of <cite>X</cite> are extracted by <cite>getattr</cite> function, make
+sure that the <cite>X</cite> implements __get__ method.</p>
+</dd>
+<dt class="field-even">output_attributes</dt>
+<dd class="field-even"><p>list, attributes to be returned</p>
+<p>By default output_attributes are the same as feed_attributes.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.inverse_transform">
+<em class="property">static </em><code class="descname">inverse_transform</code><span class="sig-paren">(</span><em>X: Union[list, numpy.ndarray]</em><span class="sig-paren">)</span> &#x2192; list</dt>
+<dd><p>Inverse operation to the <cite>transform</cite> method.</p>
+<p>Returns list of shape (len(X),) with the tokens stored in X.</p>
+<p>Note that this does not return the original data provided
+to <cite>transform</cite> method, since lemmatization and stemming
+are not reversible operations and for memory sake, lowercase changes
+are not stored in memory either.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.lemmatize">
+<code class="descname">lemmatize</code><span class="sig-paren">(</span><em>token: str</em>, <em>tag: str</em><span class="sig-paren">)</span></dt>
+<dd><p>Lemmatize the token based on its tag and return the lemma.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.stem">
+<code class="descname">stem</code><span class="sig-paren">(</span><em>token: str</em><span class="sig-paren">)</span></dt>
+<dd><p>Stem the word and return the stem.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.tokenize">
+<code class="descname">tokenize</code><span class="sig-paren">(</span><em>stream: str</em><span class="sig-paren">)</span></dt>
+<dd><p>Perform tokenization of each sentence given in the list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NLTKPreprocessor.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X: Iterable</em><span class="sig-paren">)</span> &#x2192; Any</dt>
+<dd><p>Fit to each element in X.</p>
+<p>This transformation outputs list of the shape (len(X), 2)
+where each element of the list is a tuple of (token, tag).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – Iterable, each element should be a string to be tokenized</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>namedtuple of the same shape as <cite>X</cite> if <cite>y</cite> is None, otherwise</p>
+</dd>
+</dl>
+<p>adds one dimension for <cite>y</cite> elements</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="toolkit.preprocessing.preprocessors.NVDFeedPreprocessor">
+<em class="property">class </em><code class="descclassname">toolkit.preprocessing.preprocessors.</code><code class="descname">NVDFeedPreprocessor</code><span class="sig-paren">(</span><em>attributes: Union[list</em>, <em>numpy.ndarray] = None</em>, <em>handler=None</em>, <em>skip_duplicity=True</em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>Preprocessor collecting relevant data from NVD feed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>attributes</strong> – <p>list or ndarray of attributes to extract,</p>
+<p>While <cite>transform</cite>, each attribute will be gathered from each element
+of the list fed to the method and return in the resulting tuple.</p>
+<p>If None, (‘cve_id’, ‘references’) are selected by default</p>
+</p></li>
+<li><p><strong>handler</strong> – data handler, by default GitHubHandler (ATM the only one supported)</p></li>
+<li><p><strong>skip_duplicity</strong> – <p>bool, whether to allow duplicit attributes</p>
+<p>Handler provides default handler properties which it extracts from
+the data, if any of attr in <cite>attributes</cite> intersects with those properties,
+it raises an error if <cite>skip_duplicit</cite> is False (default True).</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NVDFeedPreprocessor.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>**fit_params</em><span class="sig-paren">)</span></dt>
+<dd><p>Auxiliary method to enable pipeline functionality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fit_params</strong> – <p>optional parameters</p>
+<dl class="field-list">
+<dt class="field-odd">use_filter</dt>
+<dd class="field-odd"><p>whether to filter the data by handler, default True</p>
+<p><em>NOTE</em>: This argument is especially important when labeling
+the data follows after this preprocessor</p>
+</dd>
+<dt class="field-even">attributes</dt>
+<dd class="field-even"><p>list or ndarray of attributes to extract,</p>
+<p>While <cite>transform</cite>, each attribute will be gathered from each element
+of the list fed to the method and return in the resulting tuple.</p>
+<p><em>NOTE</em>: If <cite>attributes</cite> were provided during object instantiation,
+those attributes will be overwritten.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="toolkit.preprocessing.preprocessors.NVDFeedPreprocessor.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X: Union[list, numpy.ndarray]</em><span class="sig-paren">)</span></dt>
+<dd><p>Apply transformation to each element in <cite>cves</cite>.</p>
+<p>This transformation outputs list of tuples</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> – list or ndarray, each element is assumed to be of type “nvdlib.model.CVE”
+or an object implementing attributes given in <cite>attr_list</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of shape (len(x), len(attr_list))
+Each element of the resulting list is a namedtuple of cve attributes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-toolkit.preprocessing">
+<span id="module-contents"></span><h2>Module contents</h2>
+<p>Package containing pre-processing tools.</p>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
