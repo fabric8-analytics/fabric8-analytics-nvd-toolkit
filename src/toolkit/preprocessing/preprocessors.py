@@ -371,8 +371,8 @@ class NLTKPreprocessor(TransformerMixin):
     """
 
     def __init__(self,
-                 feed_attributes: list = None,
-                 output_attributes: list = None,
+                 feed_attributes: typing.List[str] = None,
+                 output_attributes: typing.List[str] = None,
                  lemmatizer=None,
                  stemmer=None,
                  tokenizer=None,
@@ -383,16 +383,10 @@ class NLTKPreprocessor(TransformerMixin):
                  strip=False,
                  lang='english'):
         """Initialize NLTKPreprocessor."""
+        utils.check_attributes(feed_attributes, output_attributes)
+
         self._feed_attributes = feed_attributes or []
         self._output_attributes = output_attributes or []
-
-        if not isinstance(self._feed_attributes, typing.Iterable):
-            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
-
-        if not isinstance(self._output_attributes, typing.Iterable):
-            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
 
         self._tokenizer = tokenizer or nltk.TreebankWordTokenizer()
         self._lemmatizer = lemmatizer  # or nltk.WordNetLemmatizer()
@@ -442,7 +436,7 @@ class NLTKPreprocessor(TransformerMixin):
         :param y: Iterable, labels for each element in X (same length as `X`)
         :param fit_params: kwargs, optional arguments to be used during fitting
 
-            :feed_attributes: list, attributes to be extracted from the `X`
+            :feed_attributes: List[str], attributes to be extracted from the `X`
 
                 Attributes are extracted while `transform` or `fit_transform` call
                 and fed to the hook.
@@ -450,25 +444,21 @@ class NLTKPreprocessor(TransformerMixin):
                 NOTE: attributes of `X` are extracted by `getattr` function, make
                 sure that the `X` implements __get__ method.
 
-            :output_attributes: list, attributes to be returned
+            :output_attributes: List[str], attributes to be returned
 
                 By default output_attributes are the same as feed_attributes.
 
         """
         # allow defining attributes in the fit function as well, since
         # user might want to specify it directly in the pipeline
+
         self._feed_attributes = fit_params.get('feed_attributes', []) or self._feed_attributes
         self._output_attributes = fit_params.get('output_attributes', []) or (
                 self._output_attributes or self._feed_attributes
         )
 
-        if not isinstance(self._feed_attributes, typing.Iterable):
-            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._feed_attributes)))
+        utils.check_attributes(self._feed_attributes, self._output_attributes)
 
-        if not isinstance(self._output_attributes, typing.Iterable):
-            raise TypeError("Argument `output_attributes` expected to be of type `{}`,"
-                            " got `{}`".format(typing.Iterable, type(self._output_attributes)))
         if y is not None:
             assert len(list(X)) == len(list(y)), "len(X) != len(y)"
 

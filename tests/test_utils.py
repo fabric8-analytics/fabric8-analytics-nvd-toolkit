@@ -42,6 +42,17 @@ class TestUtils(unittest.TestCase):
         #     # delete
         #     del Sample.secret
 
+    def test_check_attributes(self):
+        """Test utils.check_attributes() function."""
+        # should not raise
+        ret = utils.check_attributes(['attribute'])
+
+        self.assertIsNone(ret)
+
+        # raises
+        with self.assertRaises(TypeError):
+            utils.check_attributes('attribute')
+
     def test_has_reference(self):
         """Test utils.has_reference() function."""
         # Create sample extensible cve object for testing

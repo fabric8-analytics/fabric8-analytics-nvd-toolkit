@@ -16,9 +16,11 @@ from sklearn.pipeline import Pipeline
 from toolkit import preprocessing, transformers, utils
 
 
-def get_preprocessing_pipeline(attributes: list = None,
-                               labeling_func: typing.Callable = None,
-                               share_hooks=False) -> Pipeline:
+def get_preprocessing_pipeline(
+        nvd_attributes: list,
+        nltk_feed_attributes: list = None,
+        labeling_func: typing.Callable = None,
+        share_hooks=False) -> Pipeline:
     """Build the preprocessing pipeline using existing classifier.
 
     The preprocessing pipeline takes as an input a list of CVE objects
@@ -26,10 +28,14 @@ def get_preprocessing_pipeline(attributes: list = None,
 
     *must be fit using `fit_transform` method.*
 
-    :param attributes: list, attributes for NLTKPreprocessor
+    :param nvd_attributes: list, attributes to output by NVDPreprocessor
 
-        List of attributes which will be extracted from NVD and passed to NLTK
-        preprocessor.
+        The attributes are outputed by NVDPreprocessor and passed
+        to FeatureExtractor.
+
+    :param nltk_feed_attributes: list, attributes for NLTKPreprocessor
+
+        List of attributes which will be fed to NLTKPreprocessor.
 
     :param labeling_func: callable object to be used for labeling
 
@@ -46,14 +52,14 @@ def get_preprocessing_pipeline(attributes: list = None,
         steps=[
             (
                 'nvd_feed_preprocessor',
-                preprocessing.NVDFeedPreprocessor(attributes=attributes)
+                preprocessing.NVDFeedPreprocessor(attributes=nvd_attributes)
             ),
             (
                 'label_preprocessor',
                 preprocessing.LabelPreprocessor(
                     feed_attributes=['project', 'description'],
                     # output only description attribute for NLTK processing
-                    output_attributes=attributes,
+                    output_attributes=nvd_attributes,
                     hook=transformers.Hook(key='label_hook',
                                            func=labeling_func,
                                            reuse=share_hooks)
@@ -62,7 +68,7 @@ def get_preprocessing_pipeline(attributes: list = None,
             (
                 'nltk_preprocessor',
                 preprocessing.NLTKPreprocessor(
-                    feed_attributes=attributes,
+                    feed_attributes=nltk_feed_attributes,
                 )
             )
         ]
@@ -328,7 +334,7 @@ def extract_labeled_features(
     nltk_feed_attributes = nltk_feed_attributes or []
 
     prep_pipeline = get_preprocessing_pipeline(
-        attributes=nvd_attributes,
+        nvd_attributes=nvd_attributes,
         labeling_func=labeling_func,
         share_hooks=share_hooks
     )

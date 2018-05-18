@@ -3,6 +3,8 @@
 import os
 import re
 
+from xml.etree.ElementTree import ElementTree
+
 
 class Package(object):
     """Ecosystem invariant package base class."""
@@ -175,8 +177,7 @@ class Maven(object):
     @staticmethod
     def get_package_from_spec(pom_file) -> Package:
         """Create MavenPackage object from pom.xml file."""
-        from xml.etree import ElementTree
-        tree = ElementTree.parse(pom_file)
+        tree = ElementTree(file=pom_file)
         root = tree.getroot()
 
         # get xml namespace

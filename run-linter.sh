@@ -3,6 +3,7 @@ separate_files="setup.py"
 pass=0
 fail=0
 
+TERM=${TERM:-xterm}
 
 # set up terminal colors
 NORMAL=$(tput sgr0)

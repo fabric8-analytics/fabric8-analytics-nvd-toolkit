@@ -59,6 +59,26 @@ class classproperty(object):  # pylint: disable=invalid-name
         raise AttributeError("can't delete attribute")
 
 
+def check_attributes(*attributes: typing.Any, allow_none=True):
+    """Check whether `attribute_list` contains valid elements.
+
+    :raises: TypeError
+
+    """
+    for attr_list in attributes:
+        if attr_list is None and allow_none:
+            continue
+
+        if isinstance(attr_list, list) and all([
+            isinstance(attr, str) for attr in attr_list
+        ]):
+            continue
+
+        else:
+            raise TypeError("Argument `feed_attributes` expected to be of type `{}`,"
+                            " got `{}`".format(typing.List[str], type(attr_list)))
+
+
 def has_reference(cve, url=None, pattern=None) -> bool:
     """Report reference existence based on {url, pattern} given.
 

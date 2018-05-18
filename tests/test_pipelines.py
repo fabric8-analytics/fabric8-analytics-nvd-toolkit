@@ -1,6 +1,6 @@
 """Tests for integration of components into pipelines."""
 
-import os
+import tempfile
 import unittest
 
 import numpy as np
@@ -17,11 +17,16 @@ from toolkit.pipelines import train
 class TestPipeline(unittest.TestCase):
     """Test classification pipeline."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Set up class level fixture."""
+        cls.test_data = _get_test_data()
+
     def test_preprocessing_pipeline(self):
         """Test preprocessing pipeline."""
         # default prep pipeline
         pipeline = pipelines.get_preprocessing_pipeline(
-            attributes=['description'],
+            nvd_attributes=['project', 'description'],
             share_hooks=True
         )
 
@@ -37,15 +42,13 @@ class TestPipeline(unittest.TestCase):
             "%s__output_attributes" % steps[2]: ['label']
         }
 
-        test_data = _get_test_data()
-
         prep_data = pipeline.fit_transform(
-            X=test_data,
+            X=self.test_data,
             **fit_params
         )
 
         # sanity check
-        self.assertLessEqual(len(prep_data), len(test_data))
+        self.assertLessEqual(len(prep_data), len(self.test_data))
 
         # check that prep_data is not empty
         # NOTE: this is a bit risky since there is no assurance that there
@@ -58,7 +61,7 @@ class TestPipeline(unittest.TestCase):
 
         # custom attributes
         pipeline = pipelines.get_preprocessing_pipeline(
-            attributes=['cve_id', 'description'],
+            nvd_attributes=['cve_id', 'project', 'description'],
             share_hooks=True  # reuse already existing hook
         )
 
@@ -68,12 +71,12 @@ class TestPipeline(unittest.TestCase):
         }
 
         prep_data = pipeline.fit_transform(
-            X=test_data,
+            X=self.test_data,
             **fit_params
         )
 
         # sanity check
-        self.assertLessEqual(len(prep_data), len(test_data))
+        self.assertLessEqual(len(prep_data), len(self.test_data))
 
         self.assertTrue(any(prep_data))
         self.assertTrue(hasattr(prep_data[0], 'features'))  # default output
@@ -81,9 +84,9 @@ class TestPipeline(unittest.TestCase):
 
     def test_training_pipeline(self):
         """Test training pipeline."""
-        test_data = _get_test_data()
         prep_pipeline = pipelines.get_preprocessing_pipeline(
-            attributes=['description']
+            nvd_attributes=['project', 'description'],
+            share_hooks=True
         )
 
         steps, preps = list(zip(*prep_pipeline.steps))
@@ -93,7 +96,7 @@ class TestPipeline(unittest.TestCase):
         }
 
         prep_data = prep_pipeline.fit_transform(
-            X=test_data,
+            X=self.test_data,
             **fit_params
         )
 
@@ -117,8 +120,6 @@ class TestPipeline(unittest.TestCase):
 
     def test_full_training_pipeline(self):
         """Test full training pipeline."""
-        test_data = _get_test_data()
-
         train_pipeline = pipelines.get_full_training_pipeline()
         steps, preps = list(zip(*train_pipeline.steps))
         fit_params = {
@@ -129,7 +130,7 @@ class TestPipeline(unittest.TestCase):
         }
 
         clf = train_pipeline.fit_transform(
-            X=test_data,
+            X=self.test_data,
             **fit_params
         )
 
@@ -139,10 +140,10 @@ class TestPipeline(unittest.TestCase):
 
     def test_prediction_pipeline(self):
         """Test pipeline prediction."""
-        test_data = _get_test_data()
         train_data, _ = pipelines.extract_labeled_features(
-            test_data,
-            nvd_attributes=['description'],
+            self.test_data,
+            nvd_attributes=['project', 'description'],
+            nltk_feed_attributes=['description']
         )
 
         clf = classifiers.NBClassifier().fit(train_data)
@@ -168,21 +169,20 @@ class TestPipeline(unittest.TestCase):
 
     def test_extract_features(self):
         """Test feature extraction."""
-        test_data = _get_test_data()
         featuresets = pipelines.extract_features(
-            test_data,
+            self.test_data,
             ['description']
         )
 
         self.assertTrue(any(featuresets))
-        self.assertEqual(len(featuresets), len(test_data))
+        self.assertEqual(len(featuresets), len(self.test_data))
 
     def test_extract_labeled_features(self):
         """Test labeled feature extraction."""
-        test_data = _get_test_data()
         featuresets, labels = pipelines.extract_labeled_features(
-            data=test_data,
-            nvd_attributes=['description'],
+            data=self.test_data,
+            nvd_attributes=['project', 'description'],
+            nltk_feed_attributes=['description']
         )
 
         self.assertTrue(np.any(featuresets))
@@ -190,10 +190,10 @@ class TestPipeline(unittest.TestCase):
 
     def test_evaluation(self):
         """Test evaluation of extracted features."""
-        test_data = _get_test_data()
         featuresets, _ = pipelines.extract_labeled_features(
-            data=test_data,
-            nvd_attributes=['description'],
+            data=self.test_data,
+            nvd_attributes=['project', 'description'],
+            nltk_feed_attributes=['description']
         )
 
         clf = classifiers.NBClassifier().fit(featuresets)
@@ -220,6 +220,11 @@ class TestPipeline(unittest.TestCase):
 class TestEvaluation(unittest.TestCase):
     """Tests for evaluation module."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Set up class level fixture."""
+        cls.clf_path = _export_classifier()
+
     def test_main_help(self):
         """Test argument parser's help."""
         argv = ['--help']
@@ -241,8 +246,7 @@ class TestEvaluation(unittest.TestCase):
         """Test main function with default arguments."""
         argv = [
             '--from-feeds', 'recent',
-            '-clf',
-            os.path.join(os.path.dirname(__file__), 'export/')
+            '-clf', self.clf_path
         ]
         ret_val = evaluation.main(argv)
 
@@ -251,6 +255,11 @@ class TestEvaluation(unittest.TestCase):
 
 class TestPredict(unittest.TestCase):
     """Tests for evaluation module."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class level fixture."""
+        cls.clf_path = _export_classifier()
 
     def test_main_help(self):
         """Test argument parser's help."""
@@ -272,8 +281,7 @@ class TestPredict(unittest.TestCase):
     def test_main_default(self):
         """Test main function with default arguments."""
         argv = [
-            '-clf',
-            os.path.join(os.path.dirname(__file__), 'export/'),
+            '-clf', self.clf_path,
             'Sample description.'
         ]
         ret_val = predict.main(argv)
@@ -321,9 +329,29 @@ def _get_test_data(n_records=500):
     feed.update()
 
     # get the sample cves
-    __cve_iter = feed.cves()
-    __records = n_records
+    cve_iter = feed.cves()
+    records = n_records
 
-    data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
+    data = [next(cve_iter) for _ in range(records)]  # only first n to speed up tests
 
     return data
+
+
+def _export_classifier():
+    """Set up for unit tests by exporting classifier."""
+    raw_data = _get_test_data()
+
+    data, _ = pipelines.extract_labeled_features(
+        data=raw_data,
+        nvd_attributes=['project', 'description'],
+        nltk_feed_attributes=['description']
+    )
+
+    classifier = classifiers.NBClassifier()
+    classifier = classifier.fit(data)
+
+    tmp_dir = tempfile.mkdtemp(prefix='test_export_')
+
+    pickle_path = classifier.export(export_dir=tmp_dir)
+
+    return pickle_path

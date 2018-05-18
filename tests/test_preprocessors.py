@@ -1,10 +1,11 @@
-"""Tests for classifier module."""
+"""Tests for preprocessors module."""
 
 import re
 import typing
 import unittest
 
 from collections import namedtuple
+from nltk import WordNetLemmatizer, SnowballStemmer
 from sklearn.pipeline import Pipeline
 
 from toolkit.preprocessing import \
@@ -64,6 +65,19 @@ class TestNLTKPreprocessor(unittest.TestCase):
         self.assertIsNotNone(prep._stopwords)  # pylint: disable=protected-access
         self.assertIsInstance(prep, NLTKPreprocessor)
 
+        # raises
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            _ = NLTKPreprocessor(
+                feed_attributes='attribute'
+            )
+
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            _ = NLTKPreprocessor(
+                output_attributes='attribute'
+            )
+
     def test_tokenize(self):
         """Test NLTKPreprocessor `tokenize` method."""
         prep = NLTKPreprocessor(
@@ -77,6 +91,36 @@ class TestNLTKPreprocessor(unittest.TestCase):
         self.assertFalse(any(re.match(u"[,.]", t[0][0]) for t in result))
         # check that the list contains elements of same type
         self.assertTrue(all(isinstance(t[0], type(t[1])) for t in result))
+
+        # tag_correction
+        prep = NLTKPreprocessor(
+            tag_dict={'NUM': 'BUM'}
+        )
+
+        result_corrected = prep.tokenize(TEST_SENT)
+        self.assertTrue(all([
+            c[1] == 'BUM' for c, r in zip(result_corrected, result)
+            if r[1] == 'NUM'
+        ]))
+
+        # stemmer and lemmatizer
+        prep = NLTKPreprocessor(
+            lemmatizer=WordNetLemmatizer(),
+            stemmer=SnowballStemmer(language='english')
+        )
+
+        result = prep.tokenize(TEST_SENT)
+        self.assertIsInstance(result, typing.Iterable)
+
+        # check that punctuation has been gotten rid of
+        self.assertFalse(any(re.match(u"[,.]", t[0][0]) for t in result))
+        # check that the list contains elements of same type
+        self.assertTrue(all(isinstance(t[0], type(t[1])) for t in result))
+
+        # raises
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            _ = prep.tokenize(['stream'])
 
     def test_fit_transform(self):
         """Test NLTKPreprocessor `fit_transform` method."""
@@ -114,6 +158,32 @@ class TestNLTKPreprocessor(unittest.TestCase):
         self.assertTrue(len(transform), len(data))
         # check that the array is not empty
         self.assertTrue(any(transform))
+
+        # raises
+        with self.assertRaises(TypeError):
+            _ = prep.fit_transform(
+                X=data,
+                feed_attributes='attribute'
+            )
+
+        with self.assertRaises(TypeError):
+            _ = prep.fit_transform(
+                X=data,
+                output_attributes='attribute'
+            )
+
+    def test_inverse_transform(self):
+        """Test NLTKPreprocessor `inverse_transform` method."""
+        prep = NLTKPreprocessor()
+
+        # test without feed argument and simple data
+        transform = prep.fit_transform(X=TEST_DATA)
+
+        inversed = NLTKPreprocessor.inverse_transform(transform)
+
+        self.assertTrue(len(inversed), len(transform))
+        # check that the array is not empty
+        self.assertTrue(any(inversed))
 
     def test_pipeline(self):
         """Test NLTKPreprocessor as a single pipeline unit."""

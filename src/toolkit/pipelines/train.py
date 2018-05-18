@@ -63,6 +63,11 @@ def parse_args(argv):
         default=False
     )
 
+    parser.add_argument(
+        '-', '--export-dir',
+        default='export'
+    )
+
     return parser.parse_args(args=argv)
 
 
@@ -135,7 +140,7 @@ def main(argv):
         print(f"Training finished in {time() - start_time} seconds")
 
     if args.export:
-        classifier.export()
+        classifier.export(args.export_dir)
 
 
 if __name__ == '__main__':
