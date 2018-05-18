@@ -15,9 +15,9 @@ function prepare_venv() {
 	printf 'checking alias `python3.6` ... ' >&2
 	PYTHON=$(which python3.6 2> /dev/null)
 	if [ "$?" -ne "0" ]; then
-		printf "${YELLOW} NOT FOUND ${NORMAL}\n"
+		printf "${YELLOW} NOT FOUND ${NORMAL}\n" >&2
 
-		printf 'checking alias `python3` ... '
+		printf 'checking alias `python3` ... ' >&2
 		PYTHON=$(which python3 2> /dev/null)
 
 		let ec=$?
