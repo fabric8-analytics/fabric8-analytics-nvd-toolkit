@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 # run_tests.sh
 
+COVERAGE_THRESHOLD=90
+
 TERM=${TERM:-xterm}
 
 # set up terminal colors
@@ -52,4 +54,4 @@ python -c "import nltk; nltk.download('averaged_perceptron_tagger')"
 pip install pytest pytest-cov
 
 # run tests
-PYTHONPATH=src/ pytest --cov="src/" --cov-report term-missing -vv tests/
+PYTHONPATH=src/ pytest --cov="src/" --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
