@@ -1,3 +1,5 @@
+#!/bin/bash
+
 directories="src tests"
 separate_files="setup.py"
 pass=0
@@ -16,7 +18,7 @@ function prepare_venv() {
 	printf 'checking alias `python3.6` ... ' >&2
 	PYTHON=$(which python3.6 2> /dev/null)
 	if [ "$?" -ne "0" ]; then
-		printf "${YELLOW} NOT FOUND ${NORMAL}\n" >&2
+		printf "%sNOT FOUND%s\n" "${YELLOW}" "${NORMAL}" >&2
 
 		printf 'checking alias `python3` ... ' >&2
 		PYTHON=$(which python3 2> /dev/null)
@@ -25,7 +27,7 @@ function prepare_venv() {
 		[ "$ec" -ne "0" ] && printf "${RED} NOT FOUND ${NORMAL}\n" && return $ec
 	fi
 
-	printf "${GREEN} OK ${NORMAL}\n" >&2
+	printf "%sOK%s\n" "${GREEN}" "${NORMAL}" >&2
 
 	${PYTHON} -m venv "venv" && source venv/bin/activate && pip install pydocstyle >&2
 }
@@ -34,8 +36,8 @@ function prepare_venv() {
 function check_files() {
     for source in $1
     do
-        echo $source
-        pydocstyle --count $source
+        echo "$source"
+        pydocstyle --count "$source"
         if [ $? -eq 0 ]
         then
             echo "    Pass"
@@ -55,7 +57,7 @@ function check_files() {
 echo "----------------------------------------------------"
 echo "Checking documentation strings in all sources stored"
 echo "in following directories:"
-echo $directories
+echo "$directories"
 echo "----------------------------------------------------"
 echo
 
@@ -64,7 +66,7 @@ echo
 # checks for the whole directories
 for directory in $directories
 do
-    files=`find $directory -path $directory/venv -prune -o -name '*.py' -print`
+    files=$(find "$directory" -path "$directory/venv" -prune -o -name '*.py' -print)
 
     check_files "$files"
 done
