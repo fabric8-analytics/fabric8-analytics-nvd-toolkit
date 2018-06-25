@@ -20,33 +20,7 @@ class TestFeatureExtractor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Return preprocessed data."""
-        feed = NVD.from_feeds(feed_names=['recent'])
-        # download and update
-        feed.update()
-
-        # get the sample cves
-        __cve_iter = feed.cves()
-        __records = 500
-
-        data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
-        pipeline = get_preprocessing_pipeline(
-            nvd_attributes=['project', 'description'],
-            share_hooks=True
-        )
-        steps, preps = list(zip(*pipeline.steps))
-
-        # set up fit parameters (see sklearn fit_params notation)
-        fit_params = {
-            "%s__feed_attributes" % steps[2]: ['description'],
-            "%s__output_attributes" % steps[2]: ['label']
-        }
-
-        prep_data = pipeline.fit_transform(
-            X=data,
-            **fit_params
-        )
-
-        cls.test_data = prep_data
+        cls.test_data = _get_preprocessed_test_data()
 
     @clear
     def test_init(self):
@@ -180,8 +154,6 @@ def _get_preprocessed_test_data():
 
     Note: used for tests only.
     """
-    from nvdlib.nvd import NVD
-
     feed = NVD.from_feeds(feed_names=['recent'])
     # download and update
     feed.update()
@@ -190,7 +162,12 @@ def _get_preprocessed_test_data():
     __cve_iter = feed.cves()
     __records = 500
 
-    data = [next(__cve_iter) for _ in range(__records)]  # only first n to speed up tests
+    data = list()
+    for i, cve in enumerate(__cve_iter):
+        if i >= __records:
+            break
+        data.append(cve)
+
     pipeline = get_preprocessing_pipeline(
         nvd_attributes=['project', 'description']
     )
