@@ -330,9 +330,12 @@ def _get_test_data(n_records=500):
 
     # get the sample cves
     cve_iter = feed.cves()
-    records = n_records
 
-    data = [next(cve_iter) for _ in range(records)]  # only first n to speed up tests
+    data = list()
+    for i, cve in enumerate(cve_iter):
+        if i >= n_records:
+            break
+        data.append(cve)
 
     return data
 

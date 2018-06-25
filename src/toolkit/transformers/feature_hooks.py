@@ -65,9 +65,8 @@ def __vendor_product_match(features: list,
                 if not cpe.is_application():
                     continue
                 try:
-                    from nvdlib.model import CVE
-                    vendor, = cpe.vendor  # type: str
-                    product, = cpe.product  # type: str
+                    vendor = cpe.vendor  # type: str
+                    product = cpe.product  # type: str
 
                 except ValueError:
                     break
