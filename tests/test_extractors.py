@@ -20,7 +20,6 @@ class TestFeatureExtractor(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Return preprocessed data."""
-
         cls.test_data = _get_preprocessed_test_data()
 
     @clear
