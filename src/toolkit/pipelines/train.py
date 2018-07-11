@@ -22,18 +22,18 @@ from toolkit import utils
 # create this helper class for easier addressing of relevant hooks
 __FeatureHooks = namedtuple('FeatureHooks', [  # pylint: disable=invalid-name
     'has_uppercase_hook',
-    'is_alnum_hook',
     'vendor_product_match_hook',
-    'ver_pos_hook',
-    'word_len_hook',
+    'ver_follows_hook',
+    'ver_precedes_hook',
+    'word_in_dict_hook',
 ])
 
 FEATURE_HOOKS = __FeatureHooks(*[
     feature_hooks.has_uppercase_hook,
-    feature_hooks.is_alnum_hook,
     feature_hooks.vendor_product_match_hook,
-    feature_hooks.ver_pos_hook,
-    feature_hooks.word_len_hook,
+    feature_hooks.ver_follows_hook,
+    feature_hooks.ver_precedes_hook,
+    feature_hooks.word_in_dict_hook,
 ])
 
 

@@ -4,8 +4,12 @@ import operator
 import typing
 
 from itertools import chain
+from nltk.corpus import words
 
 from toolkit.transformers import Hook
+
+
+VOCABULARY = {word.lower(): i for i, word in enumerate(words.words('en'))}
 
 
 # Hook Functions
@@ -92,6 +96,20 @@ def __ver_follows(features: list, pos: int, **kwargs) -> bool:
     return any([p > pos for p in ver_pos])
 
 
+def __ver_precedes(features: list, pos: int, **kwargs) -> bool:
+    """Return whether the given word is preceded by a version string."""
+    version_tag = '<VERSION>'
+    ver_pos = [
+        p for p, (_, t) in enumerate(features)
+        if t == version_tag
+    ]
+
+    if not ver_pos:
+        return False
+
+    return any([p < pos for p in ver_pos])
+
+
 def __ver_pos(features: list, pos: int, **kwargs) -> typing.Union[int, None]:
     """Return version position in the `tagged` w.r.t the given word.
 
@@ -106,6 +124,13 @@ def __ver_pos(features: list, pos: int, **kwargs) -> typing.Union[int, None]:
 
     # noinspection PyTypeChecker
     return min(ver_pos, key=lambda x: abs(x), default=None)
+
+
+def __word_in_dict(features: list, pos: int, **kwargs):
+    """Returns whether the word is in english dictionary."""
+    word, _ = features[pos]
+
+    return word.lower() in VOCABULARY
 
 
 def __word_len(features: list, pos: int, cmp=None, limit=3, **kwargs) -> bool:
@@ -139,6 +164,9 @@ is_alnum_hook: Hook = Hook(key="is_alnum", func=__is_alnum)
 ver_follows_hook: Hook = Hook(key="ver_follows", func=__ver_follows)
 """Hook: Return whether the given word is followed by a version string."""
 
+ver_precedes_hook: Hook = Hook(key="ver_precedes", func=__ver_precedes)
+"""Hook: Return whether the given word is preceded by a version string."""
+
 ver_pos_hook: Hook = Hook(key="ver_pos", func=__ver_pos)
 """Hook: Return version position in the `tagged` w.r.t the given word."""
 
@@ -147,6 +175,9 @@ vendor_product_match_hook: Hook = Hook(
     func=__vendor_product_match
 )
 """Hook: Return whether the given word matches vendor or product."""
+
+word_in_dict_hook: Hook = Hook(key="word_in_dict", func=__word_in_dict)
+"""Hook: Return whether given word is in english dictionary."""
 
 word_len_hook: Hook = Hook(key="word_len", func=__word_len, limit=3)
 """Hook: Compare length of word in `tagged` to the `limit`."""
