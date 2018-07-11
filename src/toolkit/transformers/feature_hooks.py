@@ -127,7 +127,7 @@ def __ver_pos(features: list, pos: int, **kwargs) -> typing.Union[int, None]:
 
 
 def __word_in_dict(features: list, pos: int, **kwargs):
-    """Returns whether the word is in english dictionary."""
+    """Return whether the word is in english dictionary."""
     word, _ = features[pos]
 
     return word.lower() in VOCABULARY
