@@ -220,7 +220,7 @@ def get_prediction_pipeline(classifier: transformers.NBClassifier,
     )
 
 
-def get_extraction_pipeline(attributes,
+def get_extraction_pipeline(attributes=None,
                             feature_hooks: list = None,
                             share_hooks=False) -> Pipeline:
     """Build the extraction pipeline.
@@ -263,11 +263,12 @@ def get_extraction_pipeline(attributes,
     )
 
 
-def extract_features(
-        data: typing.Union[list, np.ndarray],
-        attributes: list,
-        share_hooks=True,
-        **kwargs):
+def extract_features(data: typing.Union[list, np.ndarray],
+                     attributes: list = None,
+                     nvd_attributes: list = None,
+                     nltk_feed_attributes: list = None,
+                     share_hooks=True,
+                     **kwargs):
     """Extract data by fitting the extraction pipeline.
 
     :param data: input data to the pipeline
@@ -276,6 +277,19 @@ def extract_features(
         List of attributes which will be extracted from NVD and passed to NLTK
         preprocessor.
 
+    :param nvd_attributes: list, attributes to output by NVDPreprocessor
+
+        The attributes are outputed by NVDPreprocessor and passed
+        to FeatureExtractor.
+
+        By default same as `attributes`.
+
+    :param nltk_feed_attributes: list, attributes for NLTKPreprocessor
+
+        List of attributes which will be fed to NLTKPreprocessor.
+
+        By default same as `attributes`.
+
     :param share_hooks: bool, whether to reuse hooks
     :param kwargs: optional, key word arguments
 
@@ -283,10 +297,12 @@ def extract_features(
 
     :returns: ndarray, featureset
     """
+    if not any([attributes, nvd_attributes, nltk_feed_attributes]):
+        raise ValueError("No attributes were provided.")
+
     feature_hooks = kwargs.get('feature_hooks', None)
 
     extraction_pipeline = get_extraction_pipeline(
-        attributes=attributes,
         feature_hooks=feature_hooks,
         share_hooks=share_hooks
     )
@@ -294,19 +310,21 @@ def extract_features(
     featureset = extraction_pipeline.fit_transform(
         data,
         # it is important not to filter the data by the handler here
-        nvd_feed_preprocessor__use_filter=False
+        nvd_feed_preprocessor__attributes=nvd_attributes or attributes,
+        nvd_feed_preprocessor__use_filter=False,
+        nltk_preprocessor__feed_attributes=nltk_feed_attributes or attributes,
+        nltk_preprocessor__output_attributes=nvd_attributes
     )
 
     return featureset
 
 
-def extract_labeled_features(
-        data: typing.Union[list, np.ndarray],
-        nvd_attributes: list,
-        nltk_feed_attributes: list = None,
-        feature_hooks: list = None,
-        labeling_func=None,
-        share_hooks=True) -> tuple:
+def extract_labeled_features(data: typing.Union[list, np.ndarray],
+                             nvd_attributes: list,
+                             nltk_feed_attributes: list = None,
+                             feature_hooks: list = None,
+                             labeling_func=None,
+                             share_hooks=True) -> tuple:
     """Extract labeled features from input data.
 
      Extracts labeled features by concatenating and fitting the preprocessing

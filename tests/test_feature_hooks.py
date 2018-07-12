@@ -128,6 +128,27 @@ class TestFeatureHooks(unittest.TestCase):
 
         self.assertFalse(result)
 
+        # incorrect version string
+        features = [('1.0.0-wrong', '<tag>'), ('proj', 'NUM'), ('test', '<tag>')]
+        result = hook.__call__(features, pos=1)
+
+        self.assertFalse(result)
+
+    def test_ver_precedes_hook(self):
+        """Test ver_precedes_hook."""
+        hook = feature_hooks.ver_precedes_hook
+
+        features = [('test', '<tag>'), ('proj', 'NUM'), ('1.0.0', '<VERSION>')]
+        result = hook.__call__(features, pos=1)
+
+        self.assertFalse(result)
+
+        features = [('1.0.0', '<VERSION>'), ('proj', 'NUM'), ('test', '<tag>')]
+        result = hook.__call__(features, pos=1)
+
+        self.assertTrue(result)
+
+        # incorrect version string
         features = [('1.0.0-wrong', '<tag>'), ('proj', 'NUM'), ('test', '<tag>')]
         result = hook.__call__(features, pos=1)
 
@@ -172,5 +193,14 @@ class TestFeatureHooks(unittest.TestCase):
         # custom comparator
         result = hook.__call__(features=features, pos=0, cmp=operator.__lt__,
                                limit=5)
+
+        self.assertEqual(result, True)
+
+    def test_word_in_dict_hook(self):
+        """Test word_in_dict_hook."""
+        hook = feature_hooks.word_in_dict_hook
+        features = [('test', '<tag>')]
+
+        result = hook.__call__(features=features, pos=0)
 
         self.assertEqual(result, True)

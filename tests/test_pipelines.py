@@ -170,8 +170,8 @@ class TestPipeline(unittest.TestCase):
     def test_extract_features(self):
         """Test feature extraction."""
         featuresets = pipelines.extract_features(
-            self.test_data,
-            ['description']
+            data=self.test_data,
+            attributes=['description']
         )
 
         self.assertTrue(any(featuresets))

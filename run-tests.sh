@@ -45,6 +45,7 @@ popd
 pip install -r requirements.txt
 
 # download nltk data
+python -c "import nltk; nltk.download('words')"
 python -c "import nltk; nltk.download('stopwords')"
 python -c "import nltk; nltk.download('wordnet')"
 python -c "import nltk; nltk.download('universal_tagset')"
