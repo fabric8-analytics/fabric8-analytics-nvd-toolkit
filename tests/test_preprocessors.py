@@ -298,7 +298,7 @@ class TestLabelPreprocessor(unittest.TestCase):
     @clear
     def test_fit_transform(self):
         """Test LabelPreprocessor `fit_transform` method."""
-        hook = Hook(key='label', func=lambda p, d: 'label')
+        hook = Hook(key='label', func=lambda _p, _d: 'label')
         attributes = ['project', 'description']
 
         test_data = [TEST_CVE]

@@ -38,7 +38,7 @@ class TestFeatureExtractor(unittest.TestCase):
 
         prep = FeatureExtractor(
             feature_hooks={
-                feature: lambda w, t: True,
+                feature: lambda _w, _t: True,
             }
         )
 
@@ -83,7 +83,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # apply transformation with custom feature_keys
         prep = FeatureExtractor(
             feature_hooks={
-                'useless-feature': lambda s, w, t: True,
+                'useless-feature': lambda _s, _w, _t: True,
             }
         )
 
