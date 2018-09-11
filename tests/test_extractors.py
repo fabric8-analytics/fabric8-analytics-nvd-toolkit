@@ -69,6 +69,7 @@ class TestFeatureExtractor(unittest.TestCase):
         test_data = np.array(self.test_data)
 
         test_data, test_labels = test_data[:, 0], test_data[:, 1]
+        assert test_labels is not None
 
         # apply default extractors transformation
         prep = FeatureExtractor()
