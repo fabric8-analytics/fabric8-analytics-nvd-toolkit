@@ -20,3 +20,12 @@ from toolkit.pipelines.pipelines import \
     extract_labeled_features
 
 from toolkit.pipelines.train import FEATURE_HOOKS
+
+# make all Python checkers happy
+assert get_preprocessing_pipeline is not None
+assert get_training_pipeline is not None
+assert get_full_training_pipeline is not None
+assert get_prediction_pipeline is not None
+assert extract_features is not None
+assert extract_labeled_features is not None
+assert FEATURE_HOOKS is not None
