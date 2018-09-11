@@ -4,7 +4,6 @@ import os
 import unittest
 
 from unittest.mock import patch
-from xml.etree import ElementTree
 
 from toolkit.preprocessing.handlers import GitHandler
 from toolkit.preprocessing.ecos import Maven, Package

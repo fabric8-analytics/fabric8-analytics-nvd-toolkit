@@ -236,7 +236,6 @@ def clear(func):
         """Wrap inner function."""
         # perform cleanup
         Hook.clear_current_instances()
-        exc = None
         ret_values = None
 
         # run the function
@@ -247,5 +246,7 @@ def clear(func):
         finally:
             # cleanup again
             Hook.clear_current_instances()
+
+        return ret_values
 
     return wrapper

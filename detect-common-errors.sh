@@ -28,7 +28,7 @@ function prepare_venv() {
 
 	printf "%sOK%s\n" "${GREEN}" "${NORMAL}" >&2
 
-    ${PYTHON} -m venv "venv" && source venv/bin/activate && pip install pyflakes
+    ${PYTHON} -m venv "venv" && source venv/bin/activate && pip install git+git://github.com/PyCQA/pyflakes@15a35c195e03a4be6192f259b362a9c6734babde
 }
 
 # run the pyflakes for all files that are provided in $1
