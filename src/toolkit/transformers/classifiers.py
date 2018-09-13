@@ -411,7 +411,7 @@ def precision(total: int, correct: int) -> float:
     return float(correct / total)
 
 
-def weighted_precision(y_true, y_pred, weights):  # pylint: disable=unused-argument
+def weighted_precision(_y_true, _y_pred, _weights):  # pylint: disable=unused-argument
     """Calculate weighted precision."""
     raise NotImplementedError("The feature has not been implemented yet."
                               " Sorry for the inconvenience.")
