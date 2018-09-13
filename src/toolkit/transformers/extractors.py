@@ -226,7 +226,7 @@ class _FeatureExtractor(object):
         return result
 
     @staticmethod
-    def _prev_ngram(features: list, pos: int, n: int, **kwargs):
+    def _prev_ngram(features: list, pos: int, n: int, **_kwargs):
         """Extract contextual information about previous n-gram words."""
         if n == 0:
             return ''
@@ -238,7 +238,7 @@ class _FeatureExtractor(object):
         ]).strip()
 
     @staticmethod
-    def _prev_ngram_tags(features: list, pos: int, n: int, **kwargs):
+    def _prev_ngram_tags(features: list, pos: int, n: int, **_kwargs):
         """Extract contextual information about previous n-gram tags."""
         if n == 0:
             return ''
@@ -250,7 +250,7 @@ class _FeatureExtractor(object):
         ]).strip()
 
     @staticmethod
-    def _next_ngram(features: list, pos: int, n: int, **kwargs):
+    def _next_ngram(features: list, pos: int, n: int, **_kwargs):
         """Extract contextual information about following n-gram words."""
         if n == 0:
             return ''
@@ -262,7 +262,7 @@ class _FeatureExtractor(object):
         ]).strip()
 
     @staticmethod
-    def _next_ngram_tags(features: list, pos: int, n: int, **kwargs):
+    def _next_ngram_tags(features: list, pos: int, n: int, **_kwargs):
         """Extract contextual information about following n-gram tags."""
         if n == 0:
             return ''

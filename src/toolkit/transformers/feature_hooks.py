@@ -15,7 +15,7 @@ VOCABULARY = {word.lower(): i for i, word in enumerate(words.words('en'))}
 # Hook Functions
 # --------------
 
-def __has_uppercase(features: list, pos: int, **kwargs) -> bool:
+def __has_uppercase(features: list, pos: int, **_kwargs) -> bool:
     """Return whether the word in `tagged` contains uppercase letter.
 
     :param features: list of tuples (word, tag)
@@ -26,7 +26,7 @@ def __has_uppercase(features: list, pos: int, **kwargs) -> bool:
     return any([w.isupper() for w in word])
 
 
-def __is_alnum(features: list, pos: int, **kwargs) -> bool:
+def __is_alnum(features: list, pos: int, **_kwargs) -> bool:
     """Return whether the word contains only alphanumeric characters.
 
     :param features: list of tuples (word, tag)
@@ -41,7 +41,7 @@ def __vendor_product_match(features: list,
                            pos: int,
                            cve_dict: dict,
                            cve_id: str,
-                           **kwargs) -> bool:
+                           **_kwargs) -> bool:
     """Return whether the given word matches vendor or product of given CVE.
 
     :param features: list of tuples (word, tag)
@@ -82,7 +82,7 @@ def __vendor_product_match(features: list,
     return match
 
 
-def __ver_follows(features: list, pos: int, **kwargs) -> bool:
+def __ver_follows(features: list, pos: int, **_kwargs) -> bool:
     """Return whether the given word is followed by a version string."""
     version_tag = '<VERSION>'
     ver_pos = [
@@ -96,7 +96,7 @@ def __ver_follows(features: list, pos: int, **kwargs) -> bool:
     return any([p > pos for p in ver_pos])
 
 
-def __ver_precedes(features: list, pos: int, **kwargs) -> bool:
+def __ver_precedes(features: list, pos: int, **_kwargs) -> bool:
     """Return whether the given word is preceded by a version string."""
     version_tag = '<VERSION>'
     ver_pos = [
@@ -110,7 +110,7 @@ def __ver_precedes(features: list, pos: int, **kwargs) -> bool:
     return any([p < pos for p in ver_pos])
 
 
-def __ver_pos(features: list, pos: int, **kwargs) -> typing.Union[int, None]:
+def __ver_pos(features: list, pos: int, **_kwargs) -> typing.Union[int, None]:
     """Return version position in the `tagged` w.r.t the given word.
 
     :param features: list of tuples (word, tag)
@@ -126,14 +126,14 @@ def __ver_pos(features: list, pos: int, **kwargs) -> typing.Union[int, None]:
     return min(ver_pos, key=lambda x: abs(x), default=None)
 
 
-def __word_in_dict(features: list, pos: int, **kwargs):
+def __word_in_dict(features: list, pos: int, **_kwargs):
     """Return whether the word is in english dictionary."""
     word, _ = features[pos]
 
     return word.lower() in VOCABULARY
 
 
-def __word_len(features: list, pos: int, cmp=None, limit=3, **kwargs) -> bool:
+def __word_len(features: list, pos: int, cmp=None, limit=3, **_kwargs) -> bool:
     """Compare length of word in `tagged` to the `limit`.
 
     :param features: list of tuples (word, tag)

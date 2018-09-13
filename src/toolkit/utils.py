@@ -16,7 +16,7 @@ class BooleanAction(argparse.Action):
             option_strings, dest, nargs=nargs, **kwargs
         )
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, _parser, namespace, values, option_string=None):
         """Call BooleanAction instance."""
         setattr(namespace, self.dest,
                 False if option_string.startswith('--no') else True)
@@ -42,7 +42,7 @@ class classproperty(object):  # pylint: disable=invalid-name
         self.__get = fget
         self.__doc = doc
 
-    def __get__(self, instance, cls=None):
+    def __get__(self, _instance, cls=None):
         """Return class property."""
         if cls is None:
             raise AttributeError("instance type not filled")
@@ -50,11 +50,11 @@ class classproperty(object):  # pylint: disable=invalid-name
             raise AttributeError("unreadable attribute")
         return self.__get(cls)
 
-    def __set__(self, inst, value):
+    def __set__(self, _inst, _value):
         """Set class property - DISABLED."""
         raise AttributeError("can't set attribute")
 
-    def __delete__(self, inst):
+    def __delete__(self, _inst):
         """Delete class property - DISABLED."""
         raise AttributeError("can't delete attribute")
 
