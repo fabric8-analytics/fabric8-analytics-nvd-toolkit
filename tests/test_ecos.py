@@ -9,7 +9,7 @@ from toolkit.preprocessing.handlers import GitHandler
 from toolkit.preprocessing.ecos import Maven, Package
 
 TEST_MAVEN_REPO_URL = "https://github.com/inversoft/prime-jwt/"
-TEST_TRAVERSAL_PATH = "src/main/java/org/primeframework/jwt/"
+TEST_TRAVERSAL_PATH = "src/main/java/io/fusionauth/jwt/"
 
 
 class TestMaven(unittest.TestCase):

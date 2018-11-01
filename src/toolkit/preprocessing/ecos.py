@@ -141,7 +141,6 @@ class Maven(object):
             recurse=recurse,
             topdown=topdown
         )
-
         packages = list()
         for pom_file in pom_files:
             with open(pom_file, 'r') as pom_spec:

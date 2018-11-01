@@ -136,16 +136,27 @@ def get_packages_by_commits(
     with handler as git:
         mod_files = git.get_modified_files(commits=commits)
 
-    mod_files = sorted(mod_files, key=len, reverse=True)
     eco_namespace = _get_namespace_by_eco(ecosystem)
 
     packages = set()
-    for mod_file_path in mod_files:
-        root_dir = os.path.dirname(str(mod_file_path))
-        found_packages = eco_namespace.find_packages(root_dir, topdown=False)
+    for commit, files in mod_files.items():
 
-        for p in found_packages[:[None, package_limit][package_limit]]:
-            packages.add(p)
+        stdout, _ = handler.exec_cmd(
+            cmd='git checkout %s' % commit,
+            chdir=handler.repository
+        )
+
+        for mod_file_path in sorted(files, key=len, reverse=True):
+            root_dir = os.path.dirname(str(mod_file_path))
+            found_packages = eco_namespace.find_packages(root_dir, topdown=False)
+
+            for p in found_packages[:[None, package_limit][package_limit]]:
+                packages.add(p)
+
+    stdout, _ = handler.exec_cmd(
+        cmd='git checkout master',
+        chdir=handler.repository
+    )
 
     # the first found package should be the child package belonging to the file
     # which has been modified
