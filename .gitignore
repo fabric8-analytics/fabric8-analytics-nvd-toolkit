@@ -13,3 +13,7 @@
 
 # Virtual env directory
 venv/
+
+html/
+latex/
+
