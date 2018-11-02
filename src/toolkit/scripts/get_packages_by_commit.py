@@ -149,7 +149,9 @@ def get_packages_by_commits(
         for mod_file_path in sorted(files, key=len, reverse=True):
             root_dir = os.path.dirname(str(mod_file_path))
             found_packages = eco_namespace.find_packages(root_dir, topdown=False)
-
+            
+            # Limit number of outputted packages if package_limit is provided,
+            #  otherwise use all of them
             for p in found_packages[:[None, package_limit][package_limit]]:
                 packages.add(p)
 
