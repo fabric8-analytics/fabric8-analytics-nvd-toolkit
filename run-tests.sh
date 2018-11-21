@@ -52,7 +52,9 @@ python -c "import nltk; nltk.download('universal_tagset')"
 python -c "import nltk; nltk.download('averaged_perceptron_tagger')"
 
 # ensure pytest and coverage is available
-pip install pytest pytest-cov
+pip install pytest pytest-cov codecov
 
 # run tests
 PYTHONPATH=src/ pytest --cov="src/" --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
+
+codecov --token=e64bad60-3ce8-4089-97d0-5004cda9e1ce
