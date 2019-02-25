@@ -19,7 +19,7 @@ class TestClassifier(unittest.TestCase):
         from nvdlib.nvd import NVD
 
         feed = NVD.from_feeds(feed_names=['recent'])
-        self.assertIsNotNone(feed)
+        assert feed is not None
 
         # download and update
         feed.update()
