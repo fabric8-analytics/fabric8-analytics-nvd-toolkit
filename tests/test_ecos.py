@@ -85,6 +85,7 @@ class TestMaven(unittest.TestCase):
         """Test MavenRepository `find_packages` method."""
         with GitHandler.clone(TEST_MAVEN_REPO_URL) as git:
             repo_dir = git.repository
+            self.assertIsNotNone(repo_dir)
 
             packages = Maven.find_packages(repo_dir)
 
