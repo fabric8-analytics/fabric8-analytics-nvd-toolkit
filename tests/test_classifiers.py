@@ -19,6 +19,8 @@ class TestClassifier(unittest.TestCase):
         from nvdlib.nvd import NVD
 
         feed = NVD.from_feeds(feed_names=['recent'])
+        self.assertIsNotNone(feed)
+
         # download and update
         feed.update()
 
@@ -88,6 +90,7 @@ class TestClassifier(unittest.TestCase):
         classifier = NBClassifier()
 
         classifier = classifier.fit(self.data)
+        self.assertIsNotNone(classifier)
 
         pred_data = self.data[:10]
 
@@ -105,6 +108,7 @@ class TestClassifier(unittest.TestCase):
         """Test NBClassifier `export` method."""
         classifier = NBClassifier()
         classifier = classifier.fit(self.data)
+        self.assertIsNotNone(classifier)
 
         tmp_dir = tempfile.mkdtemp(prefix='test_export_')
         pickle_path = classifier.export(export_dir=tmp_dir)
@@ -124,6 +128,7 @@ class TestClassifier(unittest.TestCase):
         """Test NBClassifier `restore` method."""
         classifier = NBClassifier()
         classifier = classifier.fit(self.data)
+        self.assertIsNotNone(classifier)
 
         tmp_dir = tempfile.mkdtemp(prefix='test_export_')
         pickle_path = classifier.export(export_dir=tmp_dir)
@@ -137,6 +142,7 @@ class TestClassifier(unittest.TestCase):
         """Test NBClassifier `evaluate` method."""
         classifier = NBClassifier()
         classifier.fit(self.data)
+        self.assertIsNotNone(classifier)
 
         # NOTE: `astype` is a workaround for the dtype incompatibility,
         # which was caused by prototyping the TEST_FEATURES for the test
@@ -163,6 +169,7 @@ class TestClassifier(unittest.TestCase):
     def test_cross_validate(self):
         """Test NBClassifier `cross_validate` method."""
         classifier = NBClassifier()
+        self.assertIsNotNone(classifier)
 
         zero_score_labels = [None] * len(self.data)
         score = cross_validate(
@@ -198,6 +205,8 @@ def _get_extracted_test_data():
     from nvdlib.nvd import NVD
 
     feed = NVD.from_feeds(feed_names=['recent'])
+    assert feed is not None
+
     # download and update
     feed.update()
 
