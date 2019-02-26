@@ -62,16 +62,23 @@ class TestFeatureHooks(unittest.TestCase):
 
         cve_list = list(feed.cves())
 
+        assert cve_list is not None
+        assert len(cve_list) > 0
+
         # find application CPE
         cpe = cve = None
         for cve in cve_list:
             try:
-                cpe = cve.configurations[0].cpe[0]
+                cpe = cve.configurations[0]._cpe[0]
             except IndexError:
                 continue
 
             if cpe.is_application():
                 break
+
+        # it is possible there's no CPE specified
+        if not cpe:
+            return
 
         assert all([cve, cpe]), "Failed to gather test data."
 
