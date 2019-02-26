@@ -17,3 +17,7 @@ venv/
 html/
 latex/
 
+.coverage
+.pytest_cache
+coverage.xml
+nvdlib
