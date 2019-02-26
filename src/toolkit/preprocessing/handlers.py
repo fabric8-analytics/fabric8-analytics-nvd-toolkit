@@ -182,23 +182,23 @@ class GitHandler(object):
 
         return cls(path=tmp_dir)
 
-    def get_modified_files(self, commits: list) -> list:
+    def get_modified_files(self, commits: list) -> dict:
         """Get modified files by a commit hash."""
         if not all([isinstance(c, str) for c in commits]):
             raise TypeError("Each commit in  `commits` expected"
                             "to be of type str, got `{}`"
                             .format(type(commits)))
 
-        mod_files = list()
+        mod_files = dict()
         for commit in commits:
             stdout, _ = self.exec_cmd(
                 cmd='git diff-tree --no-commit-id --name-only -r %s' % commit,
                 chdir=self._chdir
             )
 
-            mod_files.extend([
+            mod_files[commit] = [
                 os.path.join(self._chdir, f) for f in stdout.split()
-            ])
+            ]
 
         return mod_files
 

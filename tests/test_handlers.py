@@ -98,11 +98,17 @@ class TestGitHandler(unittest.TestCase):
         """Test GitHandler's `get_modified_files` method."""
         handler = GitHandler.clone(url=TEST_GIT_REPO_URL)
 
-        mod_file, = handler.get_modified_files(commits=TEST_COMMITS)
+        mod_file_dict = handler.get_modified_files(
+            commits=TEST_COMMITS
+        )
+
+        self.assertIsInstance(mod_file_dict, dict)
+
+        mod_file, = mod_file_dict[TEST_COMMITS[0]]
 
         self.assertEqual(os.path.basename(mod_file), 'README.md')
 
         # test multiple commits
-        mod_files = handler.get_modified_files(commits=TEST_COMMITS * 2)
+        mod_file_dict = handler.get_modified_files(commits=TEST_COMMITS * 2)
 
-        self.assertEqual(len(mod_files), 2)
+        self.assertEqual(len(mod_file_dict), 1)

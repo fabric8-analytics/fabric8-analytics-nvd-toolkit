@@ -77,7 +77,7 @@ class TestUtils(unittest.TestCase):
         ret = utils.get_reference(cve, url=TEST_REFERENCE_HTTP)
         self.assertEqual(ret, TEST_REFERENCE_HTTP)
 
-        for k, v in TEST_REFERENCE_PATTERNS.items():  # pylint: disable=invalid-name
+        for k, v in TEST_REFERENCE_PATTERNS.items():
             # test  patterns
             cve.references = [k]
             ret = utils.get_reference(cve, pattern='github')

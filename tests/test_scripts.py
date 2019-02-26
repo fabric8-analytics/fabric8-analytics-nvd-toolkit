@@ -9,7 +9,7 @@ from toolkit.scripts.get_packages_by_commit import \
     main,\
     get_packages_by_commits
 
-TEST_REPO = "https://github.com/inversoft/prime-jwt/"
+TEST_REPO = "https://github.com/FusionAuth/fusionauth-jwt"
 TEST_COMMITS = ["0d94dcef0133d699f21d217e922564adbb83a227"]
 
 

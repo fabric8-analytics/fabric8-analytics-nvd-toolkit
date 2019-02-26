@@ -120,8 +120,9 @@ def get_reference(cve, url=None, pattern=None) -> typing.Union[str, None]:
     """
     assert any([url, pattern]), "either `url` or `pattern` must be provided"
     assert hasattr(cve, 'references'), "cve object `%s` has no attribute `references`" % cve
-    assert isinstance(cve.references, typing.Iterable), "`cve.references` is not `Iterable`, " \
-                                                        "got: %s" % type(cve.references)
+    assert isinstance(cve.references, typing.Iterable),\
+        "`cve.references` is not `Iterable`, got: %s" % type(cve.references)
+
     if url:
         for ref in cve.references:
             if url == ref:
