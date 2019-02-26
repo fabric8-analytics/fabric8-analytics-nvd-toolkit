@@ -11,6 +11,7 @@ class TestExtras(unittest.TestCase):
     def test_about(self):
         """Test __about__ module."""
         about = dict()
+        self.assertIsNotNone(about)
 
         with open(__about__.__file__) as f:
             exec(f.read(), about)

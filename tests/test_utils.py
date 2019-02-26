@@ -32,6 +32,7 @@ class TestUtils(unittest.TestCase):
                 return cls._secret
 
         # check readability
+        self.assertIsNotNone(Sample.secret)
         self.assertEqual(Sample.secret, 'secret')
 
         # check overwrite protection and delete protections
@@ -88,6 +89,8 @@ class TestUtils(unittest.TestCase):
         word = 'project'
         # test case insensitive (default)
         sample = 'This document belongs to the Project.'
+        self.assertIsNotNone(sample)
+
         found = utils.find_(word, sample)
 
         self.assertIsNotNone(found)
@@ -105,6 +108,8 @@ class TestUtils(unittest.TestCase):
 
         # test without handler
         cves = list(NVD.from_feeds(['recent']).cves())
+        self.assertIsNotNone(cves)
+
         df = utils.nvd_to_dataframe(cves)
 
         self.assertIsNotNone(df)

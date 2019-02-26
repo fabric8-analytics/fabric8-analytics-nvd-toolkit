@@ -28,6 +28,7 @@ class TestFeatureExtractor(unittest.TestCase):
         # default parameters
         prep = FeatureExtractor()
 
+        self.assertIsNotNone(prep)
         self.assertIsInstance(prep, FeatureExtractor)
         self.assertIsInstance(prep, FeatureExtractor)
 
@@ -52,6 +53,8 @@ class TestFeatureExtractor(unittest.TestCase):
         """Test FeatureExtractor `_extract_features` method."""
         # get tokenized sentence
         sent = self.test_data[0].features
+
+        self.assertIsNotNone(sent)
 
         # apply default extractors transformation
         prep = FeatureExtractor()
@@ -156,6 +159,8 @@ def _get_preprocessed_test_data():
     Note: used for tests only.
     """
     feed = NVD.from_feeds(feed_names=['recent'])
+    assert feed is not None
+
     # download and update
     feed.update()
 

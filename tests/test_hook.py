@@ -23,5 +23,6 @@ class TestHook(unittest.TestCase):
         # hook with args
         hook_args = Hook(key='key_', func=lambda x: x)
 
+        self.assertIsNotNone(hook_args)
         self.assertEqual(Hook.get_current_keys(), {'key', 'key_'})
         self.assertEqual(hook_args.key, 'key_')
