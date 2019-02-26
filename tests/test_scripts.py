@@ -10,7 +10,7 @@ from toolkit.scripts.get_packages_by_commit import \
     get_packages_by_commits
 
 TEST_REPO = "https://github.com/inversoft/prime-jwt/"
-TEST_COMMITS = ["0d94dcef0133d699f21d217e922564adbb83a227"]
+TEST_COMMITS = ["d31f908b46fe9d5088d4a605484afb844206d75"]
 
 
 class TestScripts(unittest.TestCase):
@@ -43,6 +43,8 @@ class TestScripts(unittest.TestCase):
         tmp_dir = tempfile.mkdtemp(prefix="unittest_",
                                    suffix="_get_package")
 
+        self.assertIsNotNone(tmp_dir)
+
         git_clone_cmd = "git clone {repo} {dest}".format(
             repo=TEST_REPO,
             dest=tmp_dir
@@ -58,13 +60,19 @@ class TestScripts(unittest.TestCase):
 
         self.assertEqual(pcs.returncode, 0)
 
-        maven_package, = get_packages_by_commits(
+        maven_packages = get_packages_by_commits(
             repository=tmp_dir,
             commits=TEST_COMMITS,
             ecosystem='maven',
         )
 
+        # make sure at least one Maven package is found
+        assert maven_packages is not None
+        assert len(maven_packages) >= 1
+
+        maven_package = maven_packages[0]
         gid, aid = maven_package.gid, maven_package.aid
 
-        self.assertEqual(gid, 'com.inversoft')
-        self.assertEqual(aid, 'prime-jwt')
+        # check the attributes
+        self.assertEqual(gid, 'io.fusionauth')
+        self.assertEqual(aid, 'fusionauth-jwt')
