@@ -21,3 +21,5 @@ latex/
 .pytest_cache
 coverage.xml
 nvdlib
+
+.DS_Store
