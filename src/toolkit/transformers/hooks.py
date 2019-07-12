@@ -24,6 +24,7 @@ class Hook(object):
         foo_hook(x=None)  # prints 'verbosity on'
 
     :param reuse: whether to reuse (share) the Hook
+
     """
 
     __INSTANCES = weakref.WeakSet()
