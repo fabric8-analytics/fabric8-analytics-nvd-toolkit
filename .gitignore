@@ -23,3 +23,5 @@ coverage.xml
 nvdlib
 
 .DS_Store
+*.log
+*.err
