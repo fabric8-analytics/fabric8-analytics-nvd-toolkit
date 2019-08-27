@@ -1,12 +1,16 @@
 #!/bin/bash
 
+# Script to check all Python scripts for PEP-8 issues
+
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
 IFS=$'\n'
 
 # list of directories with sources to check
-directories=$(cat directories.txt)
+directories=$(cat ${SCRIPT_DIR}/directories.txt)
 
 # list of separate files to check
-separate_files=$(cat files.txt)
+separate_files=$(cat ${SCRIPT_DIR}/files.txt)
 
 pass=0
 fail=0
@@ -33,15 +37,17 @@ function prepare_venv() {
 
 	printf "%sOK%s\n" "${GREEN}" "${NORMAL}" >&2
 
-    ${PYTHON} -m venv "venv" && source venv/bin/activate && pip install git+git://github.com/PyCQA/pyflakes@15a35c195e03a4be6192f259b362a9c6734babde
+    ${PYTHON} -m venv "venv" && source venv/bin/activate && pip install vulture
 }
 
-# run the pyflakes for all files that are provided in $1
+pushd "${SCRIPT_DIR}/.."
+
+# run the vulture for all files that are provided in $1
 function check_files() {
     for source in $1
     do
         echo "$source"
-        pyflakes "$source"
+        vulture --min-confidence 90 "$source"
         if [ $? -eq 0 ]
         then
             echo "    Pass"
@@ -57,14 +63,15 @@ function check_files() {
     done
 }
 
-[ "$NOVENV" == "1" ] || prepare_venv || exit 1
 
 echo "----------------------------------------------------"
-echo "Checking source files for common errors in following"
-echo "directories:"
+echo "Checking source files for dead code and unused imports"
+echo "in following directories:"
 echo "$directories"
 echo "----------------------------------------------------"
 echo
+
+[ "$NOVENV" == "1" ] || prepare_venv || exit 1
 
 # checks for the whole directories
 for directory in $directories
@@ -75,19 +82,22 @@ do
 done
 
 echo "----------------------------------------------------"
-echo "Checking following source files for common errors:"
+echo "Checking following source files for dead code and"
+echo "unused imports:"
 echo "$separate_files"
 echo "----------------------------------------------------"
 echo
 
 check_files "$separate_files"
 
+popd
+
 if [ $fail -eq 0 ]
 then
     echo "All checks passed for $pass source files"
 else
     let total=$pass+$fail
-    echo "$fail source files out of $total files needs to be checked and fixed"
+    echo "$fail source files out of $total files seems to contain dead code and/or unused imports"
     exit 1
 fi
 
