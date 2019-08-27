@@ -1,6 +1,10 @@
 #!/usr/bin/bash
 # run_tests.sh
 
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+pushd "${SCRIPT_DIR}/.." > /dev/null
+
 COVERAGE_THRESHOLD=90
 
 TERM=${TERM:-xterm}
@@ -62,3 +66,5 @@ pip install pytest pytest-cov codecov
 PYTHONPATH=src/ pytest --cov="src/" --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
 
 codecov --token=e64bad60-3ce8-4089-97d0-5004cda9e1ce
+
+popd > /dev/null
