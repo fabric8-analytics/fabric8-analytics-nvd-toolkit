@@ -3,4 +3,4 @@
 set -ex
 
 . cico_setup.sh
-./run-tests.sh
+./qa/run-tests.sh
